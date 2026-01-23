@@ -1,4 +1,4 @@
-/* Dore Theme Select & Initializer Script 
+/* Dore Theme Select & Initializer Script
 
 Table of Contents
 
@@ -8,40 +8,39 @@ Table of Contents
 
 /* 01. Css Loading Util */
 function loadStyle(href, callback) {
-  for (var i = 0; i < document.styleSheets.length; i++) {
-    if (document.styleSheets[i].href == href) {
-      return;
+    for (var i = 0; i < document.styleSheets.length; i++) {
+        if (document.styleSheets[i].href == href) {
+            return;
+        }
     }
-  }
-  var head = document.getElementsByTagName("head")[0];
-  var link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.type = "text/css";
-  link.href = href;
-  if (callback) {
-    link.onload = function () {
-      callback();
-    };
-  }
-  var mainCss = $(head).find('[href$="main.css"]');
-  if (mainCss.length !== 0) {
-    mainCss[0].before(link);
-  } else {
-    head.appendChild(link);
-  }
+    var head = document.getElementsByTagName("head")[0];
+    var link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.type = "text/css";
+    link.href = href;
+    if (callback) {
+        link.onload = function () {
+            callback();
+        };
+    }
+    var mainCss = $(head).find('[href$="main.css"]');
+    if (mainCss.length !== 0) {
+        mainCss[0].before(link);
+    } else {
+        head.appendChild(link);
+    }
 }
 
 /* 02. Theme Selector, Layout Direction And Initializer */
 (function ($) {
-  if ($().dropzone) {
-    Dropzone.autoDiscover = false;
-  }
+    if ($().dropzone) {
+        Dropzone.autoDiscover = false;
+    }
 
-
-  try {
-    var isPrivateTab = false;
-    localStorage.setItem("dore-is-private-tab", isPrivateTab);
-    var themeColorsDom = /*html*/`
+    try {
+        var isPrivateTab = false;
+        localStorage.setItem("dore-is-private-tab", isPrivateTab);
+        var themeColorsDom = /*html*/ `
   <div class="theme-colors">
     <div class="p-4">
     <p class="text-muted mb-2">Light Theme</p>
@@ -101,116 +100,112 @@ function loadStyle(href, callback) {
 </div>
 `;
 
-    $("body").append(themeColorsDom);
-  } catch (error) {}
+        $("body").append(themeColorsDom);
+    } catch (error) {}
 
-
-  /* Default Theme Color, Border Radius and  Direction */
-  var theme = "dore.light.bluenavy.min.css";
-  var direction = "ltr";
-  var radius = "rounded";
-
-  try {
-    if (localStorage.getItem("dore-theme-color")) {
-      theme = localStorage.getItem("dore-theme-color");
-    } else {
-      localStorage.setItem("dore-theme-color", theme);
-    }
-    if (localStorage.getItem("dore-direction")) {
-      direction = localStorage.getItem("dore-direction");
-    } else {
-      localStorage.setItem("dore-direction", direction);
-    }
-    if (localStorage.getItem("dore-radius")) {
-      radius = localStorage.getItem("dore-radius");
-    } else {
-      localStorage.setItem("dore-radius", radius);
-    }
-  } catch (error) {
-    theme = "dore.light.bluenavy.min.css";
-    direction = "ltr";
-    radius = "rounded";
-  }
-
-  $(".theme-color[data-theme='" + theme + "']").addClass("active");
-  $(".direction-radio[data-direction='" + direction + "']").attr("checked", true);
-  $(".radius-radio[data-radius='" + radius + "']").attr("checked", true);
-  $("#switchDark").attr("checked", theme.indexOf("dark") > 0 ? true : false);
-
-  loadStyle("css/" + theme, onStyleComplete);
-  function onStyleComplete() {
-    setTimeout(onStyleCompleteDelayed, 300);
-  }
-
-  function onStyleCompleteDelayed() {
-    $("body").addClass(direction);
-    $("html").attr("dir", direction);
-    $("body").addClass(radius);
-    $("body").dore();
-  }
-
-  $("body").on("click", ".theme-color", function (event) {
-    event.preventDefault();
-    var dataTheme = $(this).data("theme");
-    try {
-      localStorage.setItem("dore-theme-color", dataTheme);
-      window.location.reload();
-    } catch (error) { }
-  });
-
-  $("input[name='directionRadio']").on("change", function (event) {
-    var direction = $(event.currentTarget).data("direction");
-    try {
-      localStorage.setItem("dore-direction", direction);
-      window.location.reload();
-    } catch (error) { }
-  });
-
-  $("input[name='radiusRadio']").on("change", function (event) {
-    var radius = $(event.currentTarget).data("radius");
-    try {
-      localStorage.setItem("dore-radius", radius);
-      window.location.reload();
-    } catch (error) { }
-  });
-
-  $("#switchDark").on("change", function (event) {
-    var mode = $(event.currentTarget)[0].checked ? "dark" : "light";
-    if (mode == "dark") {
-      theme = theme.replace("light", "dark");
-    } else if (mode == "light") {
-      theme = theme.replace("dark", "light");
-    }
+    /* Default Theme Color, Border Radius and  Direction */
+    var theme = "dore.light.bluenavy.min.css";
+    var direction = "ltr";
+    var radius = "rounded";
 
     try {
-      localStorage.setItem("dore-theme-color", theme);
-      window.location.reload();
-    } catch (error) { }
-  });
-
-  $(".theme-button").on("click", function (event) {
-    event.preventDefault();
-    $(this)
-      .parents(".theme-colors")
-      .toggleClass("shown");
-  });
-
-  $(document).on("click", function (event) {
-    if (
-      !(
-        $(event.target)
-          .parents()
-          .hasClass("theme-colors") ||
-        $(event.target)
-          .parents()
-          .hasClass("theme-button") ||
-        $(event.target).hasClass("theme-button") ||
-        $(event.target).hasClass("theme-colors")
-      )
-    ) {
-      if ($(".theme-colors").hasClass("shown")) {
-        $(".theme-colors").removeClass("shown");
-      }
+        if (localStorage.getItem("dore-theme-color")) {
+            theme = localStorage.getItem("dore-theme-color");
+        } else {
+            localStorage.setItem("dore-theme-color", theme);
+        }
+        if (localStorage.getItem("dore-direction")) {
+            direction = localStorage.getItem("dore-direction");
+        } else {
+            localStorage.setItem("dore-direction", direction);
+        }
+        if (localStorage.getItem("dore-radius")) {
+            radius = localStorage.getItem("dore-radius");
+        } else {
+            localStorage.setItem("dore-radius", radius);
+        }
+    } catch (error) {
+        theme = "dore.light.bluenavy.min.css";
+        direction = "ltr";
+        radius = "rounded";
     }
-  });
+
+    $(".theme-color[data-theme='" + theme + "']").addClass("active");
+    $(".direction-radio[data-direction='" + direction + "']").attr(
+        "checked",
+        true,
+    );
+    $(".radius-radio[data-radius='" + radius + "']").attr("checked", true);
+    $("#switchDark").attr("checked", theme.indexOf("dark") > 0 ? true : false);
+
+    loadStyle(window.APP_URL + "/css/" + theme, onStyleComplete);
+    function onStyleComplete() {
+        setTimeout(onStyleCompleteDelayed, 300);
+    }
+
+    function onStyleCompleteDelayed() {
+        $("body").addClass(direction);
+        $("html").attr("dir", direction);
+        $("body").addClass(radius);
+        $("body").dore();
+    }
+
+    $("body").on("click", ".theme-color", function (event) {
+        event.preventDefault();
+        var dataTheme = $(this).data("theme");
+        try {
+            localStorage.setItem("dore-theme-color", dataTheme);
+            window.location.reload();
+        } catch (error) {}
+    });
+
+    $("input[name='directionRadio']").on("change", function (event) {
+        var direction = $(event.currentTarget).data("direction");
+        try {
+            localStorage.setItem("dore-direction", direction);
+            window.location.reload();
+        } catch (error) {}
+    });
+
+    $("input[name='radiusRadio']").on("change", function (event) {
+        var radius = $(event.currentTarget).data("radius");
+        try {
+            localStorage.setItem("dore-radius", radius);
+            window.location.reload();
+        } catch (error) {}
+    });
+
+    $("#switchDark").on("change", function (event) {
+        var mode = $(event.currentTarget)[0].checked ? "dark" : "light";
+        if (mode == "dark") {
+            theme = theme.replace("light", "dark");
+        } else if (mode == "light") {
+            theme = theme.replace("dark", "light");
+        }
+
+        try {
+            localStorage.setItem("dore-theme-color", theme);
+            window.location.reload();
+        } catch (error) {}
+    });
+
+    $(".theme-button").on("click", function (event) {
+        event.preventDefault();
+        $(this).parents(".theme-colors").toggleClass("shown");
+    });
+
+    $(document).on("click", function (event) {
+        if (
+            !(
+                $(event.target).parents().hasClass("theme-colors") ||
+                $(event.target).parents().hasClass("theme-button") ||
+                $(event.target).hasClass("theme-button") ||
+                $(event.target).hasClass("theme-colors")
+            )
+        ) {
+            if ($(".theme-colors").hasClass("shown")) {
+                $(".theme-colors").removeClass("shown");
+            }
+        }
+    });
 })(jQuery);
