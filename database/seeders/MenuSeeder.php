@@ -16,7 +16,7 @@ class MenuSeeder extends Seeder
         $dashboard = Menu::create([
             'name' => 'Dashboard',
             'slug' => 'dashboard',
-            'icon' => 'bi bi-speedometer2',
+            'icon' => 'iconsminds-home',
             'url' => '/dashboard',
             'order' => 1,
         ]);
@@ -26,7 +26,7 @@ class MenuSeeder extends Seeder
         $masterData = Menu::create([
             'name' => 'Master Data',
             'slug' => 'master-data',
-            'icon' => 'bi bi-database',
+            'icon' => 'iconsminds-big-data',
             'url' => '#',
             'order' => 2,
         ]);
@@ -35,7 +35,7 @@ class MenuSeeder extends Seeder
         $userMenu = Menu::create([
             'name' => 'Users',
             'slug' => 'users',
-            'icon' => 'bi bi-people',
+            'icon' => 'iconsminds-male-female',
             'url' => '/users',
             'parent_id' => $masterData->id,
             'order' => 1,
@@ -46,7 +46,7 @@ class MenuSeeder extends Seeder
         $roleMenu = Menu::create([
             'name' => 'Roles',
             'slug' => 'roles',
-            'icon' => 'bi bi-shield',
+            'icon' => 'iconsminds-shield',
             'url' => '/roles',
             'parent_id' => $masterData->id,
             'order' => 2,
@@ -57,7 +57,7 @@ class MenuSeeder extends Seeder
         $permissionMenu = Menu::create([
             'name' => 'Permissions',
             'slug' => 'permissions',
-            'icon' => 'bi bi-key',
+            'icon' => 'simple-icon-key',
             'url' => '/permissions',
             'parent_id' => $masterData->id,
             'order' => 3,
@@ -68,7 +68,7 @@ class MenuSeeder extends Seeder
         $menuMenu = Menu::create([
             'name' => 'Menus',
             'slug' => 'menus',
-            'icon' => 'bi bi-list',
+            'icon' => 'simple-icon-menu',
             'url' => '/menus',
             'parent_id' => $masterData->id,
             'order' => 4,

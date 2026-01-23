@@ -5,9 +5,13 @@
     <meta charset="UTF-8">
     <title>Dore jQuery</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <link rel="stylesheet" href="{{ asset('assets') }}/font/iconsmind-s/css/iconsminds.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/font/simple-line-icons/css/simple-line-icons.css" />
+    <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/dataTables.bootstrap4.min.css" />
+    <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/datatables.responsive.bootstrap4.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/bootstrap.min.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/bootstrap.rtl.only.min.css" />
@@ -15,6 +19,8 @@
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/perfect-scrollbar.css" />
 
     <link rel="stylesheet" href="{{ asset('assets') }}/css/main.css" />
+
+    @stack('styles')
 </head>
 
 <body id="app-container" class="menu-hidden show-spinner">
@@ -190,7 +196,11 @@
                     <a class="dropdown-item" href="#">Features</a>
                     <a class="dropdown-item" href="#">History</a>
                     <a class="dropdown-item" href="#">Support</a>
-                    <a class="dropdown-item" href="#">Sign out</a>
+                    <a class="dropdown-item" href="{{ route('logout') }}"
+                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">Sign out</a>
+                    <form id="logout-form" action="{{ route('logout') }}" style="display: none;" method="POST">
+                        @csrf
+                    </form>
                 </div>
             </div>
         </div>
@@ -200,23 +210,7 @@
 
     <main>
         <div class="container-fluid">
-            <div class="row">
-                <div class="col-12">
-                    <h1>Blank Page</h1>
-                    <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
-                        <ol class="breadcrumb pt-0">
-                            <li class="breadcrumb-item">
-                                <a href="#">Home</a>
-                            </li>
-                            <li class="breadcrumb-item">
-                                <a href="#">Library</a>
-                            </li>
-                            <li class="breadcrumb-item active" aria-current="page">Data</li>
-                        </ol>
-                    </nav>
-                    <div class="separator mb-5"></div>
-                </div>
-            </div>
+            @yield('content')
         </div>
     </main>
 
@@ -254,6 +248,11 @@
     <script src="{{ asset('assets') }}/js/vendor/mousetrap.min.js"></script>
     <script src="{{ asset('assets') }}/js/dore.script.js"></script>
     <script src="{{ asset('assets') }}/js/scripts.js"></script>
+
+    <script src="{{ asset('assets') }}/js/vendor/datatables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @stack('scripts')
 </body>
 
 </html>
