@@ -40,6 +40,55 @@ Route::middleware('auth')->group(function () {
             Route::get('/{id}/permissions', [App\Http\Controllers\Admin\MenuController::class, 'getPermissions'])->name('permissions.get');
             Route::post('/{id}/permissions', [App\Http\Controllers\Admin\MenuController::class, 'assignPermission'])->name('permissions.assign');
         });
+        // Role Management
+        Route::prefix('role')->name('role.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\RoleController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Admin\RoleController::class, 'store'])->name('store');
+            Route::get('/{id}', [App\Http\Controllers\Admin\RoleController::class, 'show'])->name('show');
+            Route::put('/{id}', [App\Http\Controllers\Admin\RoleController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\Admin\RoleController::class, 'destroy'])->name('destroy');
+
+            Route::get('/{id}/permissions', [App\Http\Controllers\Admin\RoleController::class, 'getPermissions'])->name('permissions.get');
+            Route::post('/{id}/permissions', [App\Http\Controllers\Admin\RoleController::class, 'assignPermission'])->name('permissions.assign');
+        });
+        //Role Permission
+        Route::prefix('permission')->name('permission.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\PermissionController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Admin\PermissionController::class, 'store'])->name('store');
+            Route::get('/{id}', [App\Http\Controllers\Admin\PermissionController::class, 'show'])->name('show');
+            Route::put('/{id}', [App\Http\Controllers\Admin\PermissionController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\Admin\PermissionController::class, 'destroy'])->name('destroy');
+            Route::post('bulk-create', [App\Http\Controllers\Admin\PermissionController::class, 'bulkCreate'])
+                ->name('bulk-create');
+            Route::get('{id}/roles', [App\Http\Controllers\Admin\PermissionController::class, 'getRoles'])
+                ->name('roles');
+            Route::post('{id}/assign-role', [App\Http\Controllers\Admin\PermissionController::class, 'assignRole'])
+                ->name('assign-role');
+        });
+        // User Management Routes
+        Route::prefix('user')->name('user.')->group(function () {
+
+            // Main CRUD Routes
+            Route::get('/', [App\Http\Controllers\Admin\UserController::class, 'index'])->name('index');
+            Route::post('/', [App\Http\Controllers\Admin\UserController::class, 'store'])->name('store');
+            Route::get('/{id}', [App\Http\Controllers\Admin\UserController::class, 'show'])->name('show');
+            Route::put('/{id}', [App\Http\Controllers\Admin\UserController::class, 'update'])->name('update');
+            Route::delete('/{id}', [App\Http\Controllers\Admin\UserController::class, 'destroy'])->name('destroy');
+
+            // Toggle User Status (Active/Inactive)
+            Route::post('/{id}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('toggle-status');
+
+            // Assign Roles to User
+            Route::get('/{id}/roles', [App\Http\Controllers\Admin\UserController::class, 'getRoles'])->name('roles.get');
+            Route::post('/{id}/assign-role', [App\Http\Controllers\Admin\UserController::class, 'assignRole'])->name('assign-role');
+
+            // Assign Permissions to User
+            Route::get('/{id}/permissions', [App\Http\Controllers\Admin\UserController::class, 'getPermissions'])->name('permissions.get');
+            Route::post('/{id}/assign-permission', [App\Http\Controllers\Admin\UserController::class, 'assignPermission'])->name('assign-permission');
+
+            // Reset Password
+            Route::post('/{id}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('reset-password');
+        });
     });
 });
 

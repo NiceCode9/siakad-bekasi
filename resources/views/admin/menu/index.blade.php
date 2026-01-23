@@ -23,19 +23,21 @@
             padding: 5px 0;
         }
     </style>
+
+    <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/component-custom-switch.min.css" />
 @endpush
 
 @section('content')
     <div class="container-fluid">
         <div class="row">
             <div class="col-12">
-                <h1>Blank Page</h1>
+                <h1>Manajemen Menu</h1>
                 <div class="top-right-button-container">
                     <button class="btn btn-primary btn-sm" id="btn-add">
                         <i class="simple-icon-plus"></i> Tambah Menu
                     </button>
                 </div>
-                <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
+                {{-- <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
                     <ol class="breadcrumb pt-0">
                         <li class="breadcrumb-item">
                             <a href="#">Home</a>
@@ -45,12 +47,12 @@
                         </li>
                         <li class="breadcrumb-item active" aria-current="page">Data</li>
                     </ol>
-                </nav>
+                </nav> --}}
                 <div class="separator mb-5"></div>
                 <div class="card">
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered" id="menuTable">
+                            <table class="text-nowrap" id="menuTable">
                                 <thead>
                                     <tr>
                                         <th width="5%">No</th>
@@ -130,10 +132,20 @@
                             <small class="form-text text-muted">Urutan tampilan menu (0 = paling atas)</small>
                         </div>
 
-                        <div class="form-group">
+                        {{-- <div class="form-group">
                             <div class="custom-control custom-switch">
                                 <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" checked>
                                 <label class="custom-control-label" for="is_active">Status Aktif</label>
+                            </div>
+                        </div> --}}
+                        <div class="form-group row mb-1">
+                            <label class="col-12 col-form-label">Status Aktif</label>
+                            <div class="col-12">
+                                <div class="custom-switch custom-switch-small custom-switch-secondary mb-2">
+                                    <input class="custom-switch-input" id="is_active" name="is_active" type="checkbox"
+                                        checked>
+                                    <label class="custom-switch-btn" for="is_active"></label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -227,9 +239,11 @@
 
             // DataTable
             var table = $('#menuTable').DataTable({
+                sDom: '<"row view-filter"<"col-sm-12"<"float-right"l><"float-left"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
                 processing: true,
                 serverSide: true,
                 ajax: "{{ route('admin.menu.index') }}",
+                responsive: true,
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',
@@ -284,36 +298,49 @@
                 order: [
                     [6, 'asc']
                 ],
+                drawCallback: function() {
+                    $($(".dataTables_wrapper .pagination li:first-of-type"))
+                        .find("a")
+                        .addClass("prev");
+                    $($(".dataTables_wrapper .pagination li:last-of-type"))
+                        .find("a")
+                        .addClass("next");
+
+                    $(".dataTables_wrapper .pagination").addClass("pagination-sm");
+                },
                 language: {
-                    processing: "Memuat data...",
-                    search: "Cari:",
-                    lengthMenu: "Tampilkan _MENU_ data",
-                    info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                    infoEmpty: "Menampilkan 0 sampai 0 dari 0 data",
-                    infoFiltered: "(disaring dari _MAX_ total data)",
-                    zeroRecords: "Tidak ada data yang ditemukan",
-                    emptyTable: "Tidak ada data tersedia",
                     paginate: {
-                        first: "Pertama",
-                        previous: "Sebelumnya",
-                        next: "Selanjutnya",
-                        last: "Terakhir"
-                    }
-                }
+                        previous: "<i class='simple-icon-arrow-left'></i>",
+                        next: "<i class='simple-icon-arrow-right'></i>"
+                    },
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search...",
+                    lengthMenu: "Items Per Page _MENU_"
+                },
             });
 
             // Load Parent Menus
-            function loadParentMenus() {
+            function loadParentMenus(selectedParentId = '') {
                 $.ajax({
                     url: "{{ route('admin.menu.parents') }}",
                     type: 'GET',
                     success: function(response) {
                         var options = '<option value="">-- Tidak Ada Parent (Menu Utama) --</option>';
+
                         $.each(response.data, function(index, menu) {
-                            options += '<option value="' + menu.id + '">' + menu.name +
-                                '</option>';
+                            options += `
+                                <option value="${menu.id}">
+                                    ${menu.name}
+                                </option>
+                            `;
                         });
+
                         $('#parent_id').html(options);
+
+                        // 🔥 Set selected SETELAH options ada
+                        if (selectedParentId) {
+                            $('#parent_id').val(selectedParentId);
+                        }
                     }
                 });
             }
@@ -345,27 +372,27 @@
                     url: "{{ url('admin/menu') }}/" + id,
                     type: 'GET',
                     success: function(response) {
-                        loadParentMenus();
 
-                        setTimeout(function() {
-                            $('#menu_id').val(response.data.id);
-                            $('#name').val(response.data.name);
-                            $('#slug').val(response.data.slug);
-                            $('#icon').val(response.data.icon);
-                            $('#url').val(response.data.url);
-                            $('#parent_id').val(response.data.parent_id || '');
-                            $('#order').val(response.data.order);
-                            $('#is_active').prop('checked', response.data.is_active);
+                        $('#menu_id').val(response.data.id);
+                        $('#name').val(response.data.name);
+                        $('#slug').val(response.data.slug);
+                        $('#icon').val(response.data.icon);
+                        $('#url').val(response.data.url);
+                        $('#order').val(response.data.order);
+                        $('#is_active').prop('checked', response.data.is_active);
 
-                            $('#modalTitle').text('Edit Menu');
-                            $('#menuModal').modal('show');
-                        }, 300);
+                        // 🔥 load parent + set selected
+                        loadParentMenus(response.data.parent_id);
+
+                        $('#modalTitle').text('Edit Menu');
+                        $('#menuModal').modal('show');
                     },
-                    error: function(xhr) {
+                    error: function() {
                         Swal.fire('Error!', 'Gagal memuat data menu', 'error');
                     }
                 });
             });
+
 
             // Submit Form
             $('#menuForm').submit(function(e) {

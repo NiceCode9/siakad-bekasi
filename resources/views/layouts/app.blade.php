@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dore jQuery</title>
+    <title>SIAKAD - {{ $title ?? 'Dashboard' }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -244,6 +244,7 @@
     </script>
     <script src="{{ asset('assets') }}/js/vendor/jquery-3.3.1.min.js"></script>
     <script src="{{ asset('assets') }}/js/vendor/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('assets') }}/js/vendor/datatables.min.js"></script>
     <script src="{{ asset('assets') }}/js/vendor/perfect-scrollbar.min.js"></script>
     <script src="{{ asset('assets') }}/js/vendor/mousetrap.min.js"></script>
     <script src="{{ asset('assets') }}/js/dore.script.js"></script>

@@ -36,7 +36,7 @@ class MenuSeeder extends Seeder
             'name' => 'Users',
             'slug' => 'users',
             'icon' => 'iconsminds-male-female',
-            'url' => '/users',
+            'url' => '/admin/users',
             'parent_id' => $masterData->id,
             'order' => 1,
         ]);
@@ -47,7 +47,7 @@ class MenuSeeder extends Seeder
             'name' => 'Roles',
             'slug' => 'roles',
             'icon' => 'iconsminds-shield',
-            'url' => '/roles',
+            'url' => '/admin/roles',
             'parent_id' => $masterData->id,
             'order' => 2,
         ]);
@@ -58,7 +58,7 @@ class MenuSeeder extends Seeder
             'name' => 'Permissions',
             'slug' => 'permissions',
             'icon' => 'simple-icon-key',
-            'url' => '/permissions',
+            'url' => '/admin/permissions',
             'parent_id' => $masterData->id,
             'order' => 3,
         ]);
@@ -69,7 +69,7 @@ class MenuSeeder extends Seeder
             'name' => 'Menus',
             'slug' => 'menus',
             'icon' => 'simple-icon-menu',
-            'url' => '/menus',
+            'url' => '/admin/menu',
             'parent_id' => $masterData->id,
             'order' => 4,
         ]);
@@ -80,7 +80,7 @@ class MenuSeeder extends Seeder
             'name' => 'Reports',
             'slug' => 'reports',
             'icon' => 'bi bi-file-earmark-text',
-            'url' => '/reports',
+            'url' => '/admin/reports',
             'order' => 3,
         ]);
         $reports->permissions()->attach(Permission::where('name', 'view-reports')->first());
