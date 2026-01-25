@@ -42,6 +42,42 @@ class RolePermissionSeeder extends Seeder
             // Dashboard
             'view-dashboard',
 
+            // kurikulum
+            'view-kurikulum',
+            'create-kurikulum',
+            'edit-kurikulum',
+            'delete-kurikulum',
+            // Tahun Akademik
+            'view-tahun-akademik',
+            'create-tahun-akademik',
+            'edit-tahun-akademik',
+            'delete-tahun-akademik',
+            // Semester
+            'view-semester',
+            'create-semester',
+            'edit-semester',
+            'delete-semester',
+            // Jurusan
+            'view-jurusan',
+            'create-jurusan',
+            'edit-jurusan',
+            'delete-jurusan',
+            // Kelas
+            'view-kelas',
+            'create-kelas',
+            'edit-kelas',
+            'delete-kelas',
+            // Mata Pelajaran
+            'view-mata-pelajaran',
+            'create-mata-pelajaran',
+            'edit-mata-pelajaran',
+            'delete-mata-pelajaran',
+            // Jadwal Pelajaran
+            'view-jadwal-pelajaran',
+            'create-jadwal-pelajaran',
+            'edit-jadwal-pelajaran',
+            'delete-jadwal-pelajaran',
+
             // Reports (example)
             'view-reports',
             'export-reports',

@@ -90,6 +90,76 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/reset-password', [App\Http\Controllers\Admin\UserController::class, 'resetPassword'])->name('reset-password');
         });
     });
+
+    // Kurikulum
+    Route::resource('kurikulum', App\Http\Controllers\KurikulumController::class);
+    Route::post('kurikulum/{kurikulum}/set-active', [App\Http\Controllers\KurikulumController::class, 'setActive'])
+        ->name('kurikulum.set-active');
+    // Tahun Akademik
+    Route::resource('tahun-akademik', App\Http\Controllers\TahunAkademikController::class);
+    Route::post('tahun-akademik/{tahunAkademik}/set-active', [App\Http\Controllers\TahunAkademikController::class, 'setActive'])
+        ->name('tahun-akademik.set-active');
+    Route::get('get-kurikulum', [App\Http\Controllers\TahunAkademikController::class, 'getKurikulum'])
+        ->name('tahun-akademik.get-kurikulum');
+    // Semester
+    Route::resource('semester', App\Http\Controllers\SemesterController::class);
+    Route::post('semester/{semester}/set-active', [App\Http\Controllers\SemesterController::class, 'setActive'])
+        ->name('semester.set-active');
+    Route::get('get-tahun-akademik', [App\Http\Controllers\SemesterController::class, 'getTahunAkademik'])->name('semester.get-tahun-akademik');
+
+    // Jurusan
+    Route::resource('jurusan', App\Http\Controllers\JurusanController::class);
+    Route::post('jurusan/{jurusan}/toggle-active', [App\Http\Controllers\JurusanController::class, 'toggleActive'])
+        ->name('jurusan.toggle-active');
+
+    // Kelas Routes
+    Route::prefix('kelas')->name('kelas.')->group(function () {
+        Route::get('/', [App\Http\Controllers\KelasController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\KelasController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\KelasController::class, 'store'])->name('store');
+        Route::get('/{kelas}', [App\Http\Controllers\KelasController::class, 'show'])->name('show');
+        Route::get('/{kelas}/edit', [App\Http\Controllers\KelasController::class, 'edit'])->name('edit');
+        Route::put('/{kelas}', [App\Http\Controllers\KelasController::class, 'update'])->name('update');
+        Route::delete('/{kelas}', [App\Http\Controllers\KelasController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::post('/bulk-create', [App\Http\Controllers\KelasController::class, 'bulkCreate'])->name('bulk-create');
+        Route::post('/copy-from-previous', [App\Http\Controllers\KelasController::class, 'copyFromPrevious'])->name('copy-from-previous');
+        Route::post('/{kelas}/assign-wali-kelas', [App\Http\Controllers\KelasController::class, 'assignWaliKelas'])->name('assign-wali-kelas');
+        Route::delete('/{kelas}/remove-wali-kelas', [App\Http\Controllers\KelasController::class, 'removeWaliKelas'])->name('remove-wali-kelas');
+        Route::get('/{kelas}/siswa', [App\Http\Controllers\KelasController::class, 'getSiswa'])->name('get-siswa');
+    });
+
+    // Mata Pelajaran Routes
+    Route::prefix('mata-pelajaran')->name('mata-pelajaran.')->group(function () {
+        Route::get('/', [App\Http\Controllers\MataPelajaranController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\MataPelajaranController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\MataPelajaranController::class, 'store'])->name('store');
+        Route::get('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'show'])->name('show');
+        Route::get('/{mataPelajaran}/edit', [App\Http\Controllers\MataPelajaranController::class, 'edit'])->name('edit');
+        Route::put('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'update'])->name('update');
+        Route::delete('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::post('/{mataPelajaran}/toggle-active', [App\Http\Controllers\MataPelajaranController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/{mataPelajaran}/assign-to-kelas', [App\Http\Controllers\MataPelajaranController::class, 'assignToKelas'])->name('assign-to-kelas');
+    });
+
+    // Jadwal Pelajaran Routes
+    Route::prefix('jadwal-pelajaran')->name('jadwal-pelajaran.')->group(function () {
+        Route::get('/', [App\Http\Controllers\JadwalPelajaranController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\JadwalPelajaranController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\JadwalPelajaranController::class, 'store'])->name('store');
+        Route::get('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'show'])->name('show');
+        Route::get('/{jadwalPelajaran}/edit', [App\Http\Controllers\JadwalPelajaranController::class, 'edit'])->name('edit');
+        Route::put('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'update'])->name('update');
+        Route::delete('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::get('/kelas/{kelas}', [App\Http\Controllers\JadwalPelajaranController::class, 'viewByKelas'])->name('by-kelas');
+        Route::get('/guru/{guru}', [App\Http\Controllers\JadwalPelajaranController::class, 'viewByGuru'])->name('by-guru');
+        Route::get('/get-mapel-by-kelas', [App\Http\Controllers\JadwalPelajaranController::class, 'getMataPelajaranByKelas'])->name('get-mapel-by-kelas');
+    });
 });
 
 require __DIR__ . '/auth.php';

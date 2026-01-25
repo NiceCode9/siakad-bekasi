@@ -22,11 +22,11 @@ class MenuSeeder extends Seeder
         ]);
         $dashboard->permissions()->attach(Permission::where('name', 'view-dashboard')->first());
 
-        // Master Data (Parent)
-        $masterData = Menu::create([
-            'name' => 'Master Data',
-            'slug' => 'master-data',
-            'icon' => 'iconsminds-big-data',
+        // Settings (Parent)
+        $settings = Menu::create([
+            'name' => 'Settings',
+            'slug' => 'settings',
+            'icon' => 'iconsminds-gear',
             'url' => '#',
             'order' => 2,
         ]);
@@ -37,7 +37,7 @@ class MenuSeeder extends Seeder
             'slug' => 'users',
             'icon' => 'iconsminds-male-female',
             'url' => '/admin/users',
-            'parent_id' => $masterData->id,
+            'parent_id' => $settings->id,
             'order' => 1,
         ]);
         $userMenu->permissions()->attach(Permission::where('name', 'view-users')->first());
@@ -48,7 +48,7 @@ class MenuSeeder extends Seeder
             'slug' => 'roles',
             'icon' => 'iconsminds-shield',
             'url' => '/admin/roles',
-            'parent_id' => $masterData->id,
+            'parent_id' => $settings->id,
             'order' => 2,
         ]);
         $roleMenu->permissions()->attach(Permission::where('name', 'view-roles')->first());
@@ -59,7 +59,7 @@ class MenuSeeder extends Seeder
             'slug' => 'permissions',
             'icon' => 'simple-icon-key',
             'url' => '/admin/permissions',
-            'parent_id' => $masterData->id,
+            'parent_id' => $settings->id,
             'order' => 3,
         ]);
         $permissionMenu->permissions()->attach(Permission::where('name', 'view-permissions')->first());
@@ -70,10 +70,89 @@ class MenuSeeder extends Seeder
             'slug' => 'menus',
             'icon' => 'simple-icon-menu',
             'url' => '/admin/menu',
-            'parent_id' => $masterData->id,
+            'parent_id' => $settings->id,
             'order' => 4,
         ]);
         $menuMenu->permissions()->attach(Permission::where('name', 'view-menus')->first());
+
+        // Master Data
+        $masterData = Menu::create([
+            'name' => 'Master Data',
+            'slug' => 'master-data',
+            'icon' => 'iconsminds-database',
+            'url' => '#',
+            'order' => 2,
+        ]);
+        // kurikulum
+        $kurikulumMenu = Menu::create([
+            'name' => 'Kurikulum',
+            'slug' => 'kurikulum',
+            'icon' => 'iconsminds-book',
+            'url' => '/kurikulum',
+            'parent_id' => $masterData->id,
+            'order' => 1,
+        ]);
+        $kurikulumMenu->permissions()->attach(Permission::where('name', 'view-kurikulum')->first());
+        // Tahun Akademik
+        $tahunAkademikMenu = Menu::create([
+            'name' => 'Tahun Akademik',
+            'slug' => 'tahun-akademik',
+            'icon' => 'iconsminds-calendar-4',
+            'url' => '/tahun-akademik',
+            'parent_id' => $masterData->id,
+            'order' => 2,
+        ]);
+        $tahunAkademikMenu->permissions()->attach(Permission::where('name', 'view-tahun-akademik')->first());
+        // Semester
+        $semesterMenu = Menu::create([
+            'name' => 'Semester',
+            'slug' => 'semester',
+            'icon' => 'iconsminds-time',
+            'url' => '/semester',
+            'parent_id' => $masterData->id,
+            'order' => 3,
+        ]);
+        $semesterMenu->permissions()->attach(Permission::where('name', 'view-semester')->first());
+        // Jurusan
+        $jurusanMenu = Menu::create([
+            'name' => 'Jurusan',
+            'slug' => 'jurusan',
+            'icon' => 'simple-icon-graduation',
+            'url' => '/jurusan',
+            'parent_id' => $masterData->id,
+            'order' => 4,
+        ]);
+        $jurusanMenu->permissions()->attach(Permission::where('name', 'view-jurusan')->first());
+        // Kelas
+        $kelasMenu = Menu::create([
+            'name' => 'Kelas',
+            'slug' => 'kelas',
+            'icon' => 'iconsminds-office',
+            'url' => '/kelas',
+            'parent_id' => $masterData->id,
+            'order' => 5,
+        ]);
+        $kelasMenu->permissions()->attach(Permission::where('name', 'view-jurusan')->first());
+        // Mata Pelajaran
+        $mataPelajaranMenu = Menu::create([
+            'name' => 'Mata Pelajaran',
+            'slug' => 'mata-pelajaran',
+            'icon' => 'iconsminds-open-book',
+            'url' => '/mata-pelajaran',
+            'parent_id' => $masterData->id,
+            'order' => 6,
+        ]);
+        $mataPelajaranMenu->permissions()->attach(Permission::where('name', 'view-mata-pelajaran')->first());
+        // JadwalMataPelajaran
+        $jadwalPelajaranMenu = Menu::create([
+            'name' => 'Jadwal Pelajaran',
+            'slug' => 'jadwal-pelajaran',
+            'icon' => 'iconsminds-calendar-4',
+            'url' => '/jadwal-pelajaran',
+            'parent_id' => $masterData->id,
+            'order' => 7,
+        ]);
+        $jadwalPelajaranMenu->permissions()->attach(Permission::where('name', 'view-jadwal-pelajaran')->first());
 
         // Reports (Parent)
         $reports = Menu::create([
@@ -88,8 +167,8 @@ class MenuSeeder extends Seeder
         // Attach menu ke role (contoh: Dashboard untuk semua role)
         $dashboard->roles()->attach(Role::all());
 
-        // Master Data hanya untuk admin dan super-admin
-        $masterData->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+        // Settings hanya untuk admin dan super-admin
+        $settings->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
 
         // Reports untuk manager, admin, super-admin
         $reports->roles()->attach(Role::whereIn('name', ['manager', 'admin', 'super-admin'])->get());
