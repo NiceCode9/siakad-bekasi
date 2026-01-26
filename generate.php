@@ -1335,3 +1335,1341 @@ class JadwalPelajaranController extends Controller
         return response()->json($mataPelajaranGuru);
     }
 }
+
+
+// ============================================
+// GURU CONTROLLER - HYBRID WITH DATATABLES
+// ============================================
+
+// app/Http/Controllers/GuruController.php
+namespace App\Http\Controllers;
+
+use App\Models\Guru;
+use App\Models\User;
+use App\Traits\HybridResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\DataTables;
+
+class GuruController extends Controller
+{
+    use HybridResponse;
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function index(Request $request)
+    {
+        // Jika request DataTables (AJAX)
+        if ($request->ajax()) {
+            return $this->dataTable();
+        }
+
+        // Return view biasa
+        return view('user-data.guru.index');
+    }
+
+    /**
+     * DataTables AJAX
+     */
+    public function dataTable()
+    {
+        $guru = Guru::with('user')
+            ->select('guru.*');
+
+        return DataTables::of($guru)
+            ->addIndexColumn()
+            ->addColumn('nama_lengkap_gelar', function ($row) {
+                return $row->nama_lengkap_gelar;
+            })
+            ->addColumn('status', function ($row) {
+                $badge = $row->is_active
+                    ? '<span class="badge bg-success">Aktif</span>'
+                    : '<span class="badge bg-secondary">Nonaktif</span>';
+                return $badge;
+            })
+            ->addColumn('action', function ($row) {
+                $actions = '
+                    <div class="btn-group" role="group">
+                        <a href="' . route('guru.show', $row->id) . '"
+                           class="btn btn-sm btn-info" title="Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-warning btn-edit"
+                                data-id="' . $row->id . '"
+                                title="Edit">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-danger btn-delete"
+                                data-id="' . $row->id . '"
+                                data-name="' . $row->nama_lengkap . '"
+                                title="Hapus">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                ';
+                return $actions;
+            })
+            ->addColumn('toggle_active', function ($row) {
+                $checked = $row->is_active ? 'checked' : '';
+                return '
+                    <div class="form-check form-switch">
+                        <input class="form-check-input toggle-active"
+                               type="checkbox"
+                               data-id="' . $row->id . '"
+                               ' . $checked . '>
+                    </div>
+                ';
+            })
+            ->rawColumns(['status', 'action', 'toggle_active'])
+            ->make(true);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        if (request()->ajax()) {
+            return view('user-data.guru.form', [
+                'guru' => null,
+                'action' => route('guru.store'),
+                'method' => 'POST',
+            ]);
+        }
+
+        return view('user-data.guru.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:50|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'nip' => 'nullable|string|max:30|unique:guru,nip',
+            'nuptk' => 'nullable|string|max:20|unique:guru,nuptk',
+            'nama_lengkap' => 'required|string|max:100',
+            'gelar_depan' => 'nullable|string|max:20',
+            'gelar_belakang' => 'nullable|string|max:50',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:50',
+            'tanggal_lahir' => 'nullable|date',
+            'agama' => 'nullable|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
+            'alamat' => 'nullable|string',
+            'telepon' => 'nullable|string|max:20',
+            'email_guru' => 'nullable|email',
+            'status_kepegawaian' => 'nullable|in:PNS,PPPK,GTY,GTT,Honorer',
+            'tanggal_masuk' => 'nullable|date',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Create User
+            $user = User::create([
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'guru',
+                'is_active' => $validated['is_active'] ?? true,
+            ]);
+
+            // Handle foto upload
+            $fotoPath = null;
+            if ($request->hasFile('foto')) {
+                $fotoPath = $request->file('foto')->store('foto-guru', 'public');
+            }
+
+            // Create Guru
+            $guru = Guru::create([
+                'user_id' => $user->id,
+                'nip' => $validated['nip'],
+                'nuptk' => $validated['nuptk'],
+                'nama_lengkap' => $validated['nama_lengkap'],
+                'gelar_depan' => $validated['gelar_depan'],
+                'gelar_belakang' => $validated['gelar_belakang'],
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'tempat_lahir' => $validated['tempat_lahir'],
+                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'agama' => $validated['agama'],
+                'alamat' => $validated['alamat'],
+                'telepon' => $validated['telepon'],
+                'email' => $validated['email_guru'] ?? $validated['email'],
+                'status_kepegawaian' => $validated['status_kepegawaian'],
+                'tanggal_masuk' => $validated['tanggal_masuk'],
+                'foto' => $fotoPath,
+                'is_active' => $validated['is_active'] ?? true,
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Guru berhasil ditambahkan',
+                'guru.index',
+                $guru->load('user')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            // Hapus foto jika ada
+            if (isset($fotoPath)) {
+                Storage::disk('public')->delete($fotoPath);
+            }
+
+            return $this->errorResponse('Gagal menambahkan guru: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Guru $guru)
+    {
+        $guru->load([
+            'user',
+            'kelasWali.semester.tahunAkademik',
+            'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
+            'mataPelajaranGuru.mataPelajaranKelas.kelas',
+        ]);
+
+        // Statistik
+        $stats = [
+            'total_wali_kelas' => $guru->kelasWali()->count(),
+            'total_mengajar' => $guru->mataPelajaranGuru()->count(),
+            'total_bank_soal' => $guru->bankSoal()->count(),
+        ];
+
+        return view('user-data.guru.show', compact('guru', 'stats'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(Guru $guru)
+    {
+        $guru->load('user');
+
+        if (request()->ajax()) {
+            return view('user-data.guru.form', [
+                'guru' => $guru,
+                'action' => route('guru.update', $guru),
+                'method' => 'PUT',
+            ]);
+        }
+
+        return view('user-data.guru.edit', compact('guru'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, Guru $guru)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:50|unique:users,username,' . $guru->user_id,
+            'email' => 'required|email|unique:users,email,' . $guru->user_id,
+            'password' => 'nullable|string|min:6',
+            'nip' => 'nullable|string|max:30|unique:guru,nip,' . $guru->id,
+            'nuptk' => 'nullable|string|max:20|unique:guru,nuptk,' . $guru->id,
+            'nama_lengkap' => 'required|string|max:100',
+            'gelar_depan' => 'nullable|string|max:20',
+            'gelar_belakang' => 'nullable|string|max:50',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:50',
+            'tanggal_lahir' => 'nullable|date',
+            'agama' => 'nullable|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
+            'alamat' => 'nullable|string',
+            'telepon' => 'nullable|string|max:20',
+            'email_guru' => 'nullable|email',
+            'status_kepegawaian' => 'nullable|in:PNS,PPPK,GTY,GTT,Honorer',
+            'tanggal_masuk' => 'nullable|date',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Update User
+            $userData = [
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'is_active' => $validated['is_active'] ?? true,
+            ];
+
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            $guru->user->update($userData);
+
+            // Handle foto upload
+            $fotoPath = $guru->foto;
+            if ($request->hasFile('foto')) {
+                // Hapus foto lama
+                if ($guru->foto) {
+                    Storage::disk('public')->delete($guru->foto);
+                }
+                $fotoPath = $request->file('foto')->store('foto-guru', 'public');
+            }
+
+            // Update Guru
+            $guru->update([
+                'nip' => $validated['nip'],
+                'nuptk' => $validated['nuptk'],
+                'nama_lengkap' => $validated['nama_lengkap'],
+                'gelar_depan' => $validated['gelar_depan'],
+                'gelar_belakang' => $validated['gelar_belakang'],
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'tempat_lahir' => $validated['tempat_lahir'],
+                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'agama' => $validated['agama'],
+                'alamat' => $validated['alamat'],
+                'telepon' => $validated['telepon'],
+                'email' => $validated['email_guru'] ?? $validated['email'],
+                'status_kepegawaian' => $validated['status_kepegawaian'],
+                'tanggal_masuk' => $validated['tanggal_masuk'],
+                'foto' => $fotoPath,
+                'is_active' => $validated['is_active'] ?? true,
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Guru berhasil diperbarui',
+                'guru.index',
+                $guru->load('user')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal memperbarui guru: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(Guru $guru)
+    {
+        // Check jika masih jadi wali kelas
+        if ($guru->kelasWali()->exists()) {
+            return $this->errorResponse('Guru tidak dapat dihapus karena masih menjadi wali kelas', 400);
+        }
+
+        // Check jika masih mengajar
+        if ($guru->mataPelajaranGuru()->exists()) {
+            return $this->errorResponse('Guru tidak dapat dihapus karena masih mengajar', 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Hapus foto
+            if ($guru->foto) {
+                Storage::disk('public')->delete($guru->foto);
+            }
+
+            // Hapus user
+            $guru->user->delete();
+
+            // Guru akan terhapus otomatis karena onDelete cascade di FK
+
+            DB::commit();
+
+            return $this->successResponse('Guru berhasil dihapus', 'guru.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal menghapus guru: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Toggle active status (AJAX)
+     */
+    public function toggleActive(Guru $guru)
+    {
+        $guru->update(['is_active' => !$guru->is_active]);
+        $guru->user->update(['is_active' => !$guru->user->is_active]);
+
+        $status = $guru->is_active ? 'diaktifkan' : 'dinonaktifkan';
+
+        return $this->jsonSuccess(
+            ['is_active' => $guru->is_active],
+            "Guru berhasil {$status}"
+        );
+    }
+
+    /**
+     * Search guru (AJAX autocomplete)
+     */
+    public function search(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        $guru = Guru::where('nama_lengkap', 'like', "%{$term}%")
+            ->orWhere('nip', 'like', "%{$term}%")
+            ->limit(10)
+            ->get()
+            ->map(function ($g) {
+                return [
+                    'id' => $g->id,
+                    'text' => $g->nama_lengkap_gelar . ($g->nip ? " ({$g->nip})" : ''),
+                    'nip' => $g->nip,
+                    'nama' => $g->nama_lengkap,
+                ];
+            });
+
+        return response()->json($guru);
+    }
+
+    /**
+     * Get guru by ID (AJAX)
+     */
+    public function getById(Guru $guru)
+    {
+        $guru->load('user');
+        return $this->jsonSuccess($guru);
+    }
+
+    /**
+     * Export to Excel
+     */
+    public function export()
+    {
+        // TODO: Implement Excel export
+        // return Excel::download(new GuruExport, 'guru.xlsx');
+    }
+
+    /**
+     * Import from Excel
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048',
+        ]);
+
+        // TODO: Implement Excel import
+        // Excel::import(new GuruImport, $request->file('file'));
+
+        return $this->successResponse('Data guru berhasil diimport', 'guru.index');
+    }
+}
+
+
+// ============================================
+// SISWA CONTROLLER - HYBRID WITH DATATABLES
+// ============================================
+
+// app/Http/Controllers/SiswaController.php
+namespace App\Http\Controllers;
+
+use App\Models\Siswa;
+use App\Models\User;
+use App\Models\OrangTua;
+use App\Models\Kelas;
+use App\Models\SiswaKelas;
+use App\Traits\HybridResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use Yajra\DataTables\Facades\DataTables;
+
+class SiswaController extends Controller
+{
+    use HybridResponse;
+
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            return $this->dataTable($request);
+        }
+
+        // Data untuk filter
+        $kelas = Kelas::with('semester')->orderBy('nama')->get();
+        $status = ['aktif', 'lulus', 'pindah', 'keluar', 'DO'];
+
+        return view('user-data.siswa.index', compact('kelas', 'status'));
+    }
+
+    public function dataTable(Request $request)
+    {
+        $query = Siswa::with(['user', 'orangTua', 'kelasAktif'])
+            ->select('siswa.*');
+
+        // Filter by kelas
+        if ($request->filled('kelas_id')) {
+            $query->whereHas('kelasAktif', function ($q) use ($request) {
+                $q->where('kelas.id', $request->kelas_id);
+            });
+        }
+
+        // Filter by status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Filter by jenis kelamin
+        if ($request->filled('jenis_kelamin')) {
+            $query->where('jenis_kelamin', $request->jenis_kelamin);
+        }
+
+        return DataTables::of($query)
+            ->addIndexColumn()
+            ->addColumn('kelas_aktif', function ($row) {
+                $kelas = $row->kelasAktif->first();
+                return $kelas ? $kelas->nama : '-';
+            })
+            ->addColumn('status_badge', function ($row) {
+                $colors = [
+                    'aktif' => 'success',
+                    'lulus' => 'info',
+                    'pindah' => 'warning',
+                    'keluar' => 'secondary',
+                    'DO' => 'danger',
+                ];
+                $color = $colors[$row->status] ?? 'secondary';
+                return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
+            })
+            ->addColumn('jk', function ($row) {
+                return $row->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
+            })
+            ->addColumn('action', function ($row) {
+                return '
+                    <div class="btn-group" role="group">
+                        <a href="' . route('siswa.show', $row->id) . '"
+                           class="btn btn-sm btn-info" title="Detail">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-warning btn-edit"
+                                data-id="' . $row->id . '">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-primary btn-assign-kelas"
+                                data-id="' . $row->id . '"
+                                data-name="' . $row->nama_lengkap . '">
+                            <i class="bi bi-door-open"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-sm btn-danger btn-delete"
+                                data-id="' . $row->id . '"
+                                data-name="' . $row->nama_lengkap . '">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                ';
+            })
+            ->rawColumns(['status_badge', 'action'])
+            ->make(true);
+    }
+
+    public function create()
+    {
+        $orangTua = OrangTua::all();
+
+        if (request()->ajax()) {
+            return view('user-data.siswa.form', [
+                'siswa' => null,
+                'orangTua' => $orangTua,
+                'action' => route('siswa.store'),
+                'method' => 'POST',
+            ]);
+        }
+
+        return view('user-data.siswa.create', compact('orangTua'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:50|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+            'orang_tua_id' => 'nullable|exists:orang_tua,id',
+            'nisn' => 'required|string|size:10|unique:siswa,nisn',
+            'nis' => 'required|string|max:20|unique:siswa,nis',
+            'nik' => 'nullable|string|size:16|unique:siswa,nik',
+            'nama_lengkap' => 'required|string|max:100',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:50',
+            'tanggal_lahir' => 'nullable|date',
+            'agama' => 'nullable|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
+            'anak_ke' => 'nullable|integer|min:1',
+            'jumlah_saudara' => 'nullable|integer|min:0',
+            'alamat' => 'nullable|string',
+            'rt' => 'nullable|string|max:5',
+            'rw' => 'nullable|string|max:5',
+            'kelurahan' => 'nullable|string|max:50',
+            'kecamatan' => 'nullable|string|max:50',
+            'kota' => 'nullable|string|max:50',
+            'provinsi' => 'nullable|string|max:50',
+            'kode_pos' => 'nullable|string|max:10',
+            'telepon' => 'nullable|string|max:20',
+            'email_siswa' => 'nullable|email',
+            'asal_sekolah' => 'nullable|string|max:100',
+            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'tinggi_badan' => 'nullable|numeric|min:0|max:300',
+            'berat_badan' => 'nullable|numeric|min:0|max:200',
+            'golongan_darah' => 'nullable|in:A,B,AB,O',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'tanggal_masuk' => 'nullable|date',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Create User
+            $user = User::create([
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'siswa',
+                'is_active' => true,
+            ]);
+
+            // Handle foto upload
+            $fotoPath = null;
+            if ($request->hasFile('foto')) {
+                $fotoPath = $request->file('foto')->store('foto-siswa', 'public');
+            }
+
+            // Create Siswa
+            $siswa = Siswa::create([
+                'user_id' => $user->id,
+                'orang_tua_id' => $validated['orang_tua_id'],
+                'nisn' => $validated['nisn'],
+                'nis' => $validated['nis'],
+                'nik' => $validated['nik'],
+                'nama_lengkap' => $validated['nama_lengkap'],
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'tempat_lahir' => $validated['tempat_lahir'],
+                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'agama' => $validated['agama'],
+                'anak_ke' => $validated['anak_ke'],
+                'jumlah_saudara' => $validated['jumlah_saudara'],
+                'alamat' => $validated['alamat'],
+                'rt' => $validated['rt'],
+                'rw' => $validated['rw'],
+                'kelurahan' => $validated['kelurahan'],
+                'kecamatan' => $validated['kecamatan'],
+                'kota' => $validated['kota'],
+                'provinsi' => $validated['provinsi'],
+                'kode_pos' => $validated['kode_pos'],
+                'telepon' => $validated['telepon'],
+                'email' => $validated['email_siswa'] ?? $validated['email'],
+                'asal_sekolah' => $validated['asal_sekolah'],
+                'tahun_lulus_smp' => $validated['tahun_lulus_smp'],
+                'tinggi_badan' => $validated['tinggi_badan'],
+                'berat_badan' => $validated['berat_badan'],
+                'golongan_darah' => $validated['golongan_darah'],
+                'foto' => $fotoPath,
+                'status' => 'aktif',
+                'tanggal_masuk' => $validated['tanggal_masuk'] ?? now(),
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Siswa berhasil ditambahkan',
+                'siswa.index',
+                $siswa->load('user', 'orangTua')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            if (isset($fotoPath)) {
+                Storage::disk('public')->delete($fotoPath);
+            }
+
+            return $this->errorResponse('Gagal menambahkan siswa: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function show(Siswa $siswa)
+    {
+        $siswa->load([
+            'user',
+            'orangTua',
+            'kelasAktif',
+            'siswaKelas.kelas.semester',
+            'bukuInduk',
+            'prestasi' => fn($q) => $q->latest()->limit(5),
+            'pelanggaran' => fn($q) => $q->latest()->limit(5),
+        ]);
+
+        // Statistik
+        $stats = [
+            'total_prestasi' => $siswa->prestasi()->count(),
+            'total_pelanggaran' => $siswa->pelanggaran()->count(),
+            'total_nilai' => $siswa->nilai()->count(),
+        ];
+
+        return view('user-data.siswa.show', compact('siswa', 'stats'));
+    }
+
+    public function edit(Siswa $siswa)
+    {
+        $siswa->load('user', 'orangTua');
+        $orangTua = OrangTua::all();
+
+        if (request()->ajax()) {
+            return view('user-data.siswa.form', [
+                'siswa' => $siswa,
+                'orangTua' => $orangTua,
+                'action' => route('siswa.update', $siswa),
+                'method' => 'PUT',
+            ]);
+        }
+
+        return view('user-data.siswa.edit', compact('siswa', 'orangTua'));
+    }
+
+    public function update(Request $request, Siswa $siswa)
+    {
+        $validated = $request->validate([
+            'username' => 'required|string|max:50|unique:users,username,' . $siswa->user_id,
+            'email' => 'required|email|unique:users,email,' . $siswa->user_id,
+            'password' => 'nullable|string|min:6',
+            'orang_tua_id' => 'nullable|exists:orang_tua,id',
+            'nisn' => 'required|string|size:10|unique:siswa,nisn,' . $siswa->id,
+            'nis' => 'required|string|max:20|unique:siswa,nis,' . $siswa->id,
+            'nik' => 'nullable|string|size:16|unique:siswa,nik,' . $siswa->id,
+            'nama_lengkap' => 'required|string|max:100',
+            'jenis_kelamin' => 'required|in:L,P',
+            'tempat_lahir' => 'nullable|string|max:50',
+            'tanggal_lahir' => 'nullable|date',
+            'agama' => 'nullable|in:Islam,Kristen,Katolik,Hindu,Buddha,Konghucu',
+            'anak_ke' => 'nullable|integer|min:1',
+            'jumlah_saudara' => 'nullable|integer|min:0',
+            'alamat' => 'nullable|string',
+            'rt' => 'nullable|string|max:5',
+            'rw' => 'nullable|string|max:5',
+            'kelurahan' => 'nullable|string|max:50',
+            'kecamatan' => 'nullable|string|max:50',
+            'kota' => 'nullable|string|max:50',
+            'provinsi' => 'nullable|string|max:50',
+            'kode_pos' => 'nullable|string|max:10',
+            'telepon' => 'nullable|string|max:20',
+            'email_siswa' => 'nullable|email',
+            'asal_sekolah' => 'nullable|string|max:100',
+            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'tinggi_badan' => 'nullable|numeric|min:0|max:300',
+            'berat_badan' => 'nullable|numeric|min:0|max:200',
+            'golongan_darah' => 'nullable|in:A,B,AB,O',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'status' => 'nullable|in:aktif,lulus,pindah,keluar,DO',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Update User
+            $userData = [
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+            ];
+
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            $siswa->user->update($userData);
+
+            // Handle foto upload
+            $fotoPath = $siswa->foto;
+            if ($request->hasFile('foto')) {
+                if ($siswa->foto) {
+                    Storage::disk('public')->delete($siswa->foto);
+                }
+                $fotoPath = $request->file('foto')->store('foto-siswa', 'public');
+            }
+
+            // Update Siswa
+            $siswa->update([
+                'orang_tua_id' => $validated['orang_tua_id'],
+                'nisn' => $validated['nisn'],
+                'nis' => $validated['nis'],
+                'nik' => $validated['nik'],
+                'nama_lengkap' => $validated['nama_lengkap'],
+                'jenis_kelamin' => $validated['jenis_kelamin'],
+                'tempat_lahir' => $validated['tempat_lahir'],
+                'tanggal_lahir' => $validated['tanggal_lahir'],
+                'agama' => $validated['agama'],
+                'anak_ke' => $validated['anak_ke'],
+                'jumlah_saudara' => $validated['jumlah_saudara'],
+                'alamat' => $validated['alamat'],
+                'rt' => $validated['rt'],
+                'rw' => $validated['rw'],
+                'kelurahan' => $validated['kelurahan'],
+                'kecamatan' => $validated['kecamatan'],
+                'kota' => $validated['kota'],
+                'provinsi' => $validated['provinsi'],
+                'kode_pos' => $validated['kode_pos'],
+                'telepon' => $validated['telepon'],
+                'email' => $validated['email_siswa'] ?? $validated['email'],
+                'asal_sekolah' => $validated['asal_sekolah'],
+                'tahun_lulus_smp' => $validated['tahun_lulus_smp'],
+                'tinggi_badan' => $validated['tinggi_badan'],
+                'berat_badan' => $validated['berat_badan'],
+                'golongan_darah' => $validated['golongan_darah'],
+                'foto' => $fotoPath,
+                'status' => $validated['status'] ?? $siswa->status,
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Siswa berhasil diperbarui',
+                'siswa.index',
+                $siswa->load('user', 'orangTua')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal memperbarui siswa: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function destroy(Siswa $siswa)
+    {
+        // Check jika masih ada di kelas aktif
+        if ($siswa->kelasAktif()->exists()) {
+            return $this->errorResponse('Siswa tidak dapat dihapus karena masih terdaftar di kelas', 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            if ($siswa->foto) {
+                Storage::disk('public')->delete($siswa->foto);
+            }
+
+            $siswa->user->delete();
+
+            DB::commit();
+
+            return $this->successResponse('Siswa berhasil dihapus', 'siswa.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal menghapus siswa: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Assign siswa ke kelas (AJAX)
+     */
+    public function assignKelas(Request $request, Siswa $siswa)
+    {
+        $validated = $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'tanggal_masuk' => 'nullable|date',
+        ]);
+
+        // Check kuota kelas
+        $kelas = Kelas::find($validated['kelas_id']);
+        $jumlahSiswa = $kelas->siswaKelas()->where('status', 'aktif')->count();
+
+        if ($jumlahSiswa >= $kelas->kuota) {
+            return $this->errorResponse('Kelas sudah penuh (kuota: ' . $kelas->kuota . ')', 400);
+        }
+
+        // Check jika sudah ada di kelas lain yang aktif
+        $kelasAktif = $siswa->kelasAktif()->first();
+        if ($kelasAktif && $kelasAktif->id != $validated['kelas_id']) {
+            return $this->errorResponse('Siswa masih terdaftar di kelas ' . $kelasAktif->nama, 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Jika sudah ada di kelas yang sama, skip
+            $existing = SiswaKelas::where('siswa_id', $siswa->id)
+                ->where('kelas_id', $validated['kelas_id'])
+                ->where('status', 'aktif')
+                ->first();
+
+            if ($existing) {
+                return $this->errorResponse('Siswa sudah terdaftar di kelas ini', 400);
+            }
+
+            // Create siswa_kelas
+            SiswaKelas::create([
+                'siswa_id' => $siswa->id,
+                'kelas_id' => $validated['kelas_id'],
+                'tanggal_masuk' => $validated['tanggal_masuk'] ?? now(),
+                'status' => 'aktif',
+            ]);
+
+            DB::commit();
+
+            return $this->jsonSuccess(
+                ['kelas' => $kelas->load('semester', 'jurusan')],
+                'Siswa berhasil ditugaskan ke kelas ' . $kelas->nama
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal assign kelas: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Remove siswa dari kelas (AJAX)
+     */
+    public function removeKelas(Siswa $siswa, Kelas $kelas)
+    {
+        $siswaKelas = SiswaKelas::where('siswa_id', $siswa->id)
+            ->where('kelas_id', $kelas->id)
+            ->where('status', 'aktif')
+            ->first();
+
+        if (!$siswaKelas) {
+            return $this->errorResponse('Siswa tidak terdaftar di kelas ini', 404);
+        }
+
+        $siswaKelas->update([
+            'status' => 'pindah',
+            'tanggal_keluar' => now(),
+        ]);
+
+        return $this->jsonSuccess(null, 'Siswa berhasil dikeluarkan dari kelas');
+    }
+
+    /**
+     * Check NISN duplicate (AJAX validation)
+     */
+    public function checkNisn(Request $request)
+    {
+        $nisn = $request->get('nisn');
+        $excludeId = $request->get('exclude_id');
+
+        $exists = Siswa::where('nisn', $nisn)
+            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+            ->exists();
+
+        return response()->json([
+            'available' => !$exists,
+            'message' => $exists ? 'NISN sudah digunakan' : 'NISN tersedia',
+        ]);
+    }
+
+    /**
+     * Search siswa (AJAX autocomplete)
+     */
+    public function search(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        $siswa = Siswa::where('nama_lengkap', 'like', "%{$term}%")
+            ->orWhere('nisn', 'like', "%{$term}%")
+            ->orWhere('nis', 'like', "%{$term}%")
+            ->limit(10)
+            ->get()
+            ->map(function ($s) {
+                return [
+                    'id' => $s->id,
+                    'text' => $s->nama_lengkap . " ({$s->nisn})",
+                    'nisn' => $s->nisn,
+                    'nis' => $s->nis,
+                    'nama' => $s->nama_lengkap,
+                ];
+            });
+
+        return response()->json($siswa);
+    }
+}
+
+
+// ============================================
+// ORANG TUA CONTROLLER - HYBRID WITH DATATABLES
+// ============================================
+
+// app/Http/Controllers/OrangTuaController.php
+namespace App\Http\Controllers;
+
+use App\Models\OrangTua;
+use App\Models\User;
+use App\Traits\HybridResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Yajra\DataTables\Facades\DataTables;
+
+class OrangTuaController extends Controller
+{
+    use HybridResponse;
+
+    public function index(Request $request)
+    {
+        if ($request->ajax()) {
+            return $this->dataTable();
+        }
+
+        return view('user-data.orang-tua.index');
+    }
+
+    public function dataTable()
+    {
+        $orangTua = OrangTua::with('user')
+            ->withCount('siswa')
+            ->select('orang_tua.*');
+
+        return DataTables::of($orangTua)
+            ->addIndexColumn()
+            ->addColumn('nama_lengkap', function ($row) {
+                return $row->nama_ayah ?? $row->nama_ibu ?? $row->nama_wali ?? '-';
+            })
+            ->addColumn('telepon', function ($row) {
+                return $row->telepon_ayah ?? $row->telepon_ibu ?? $row->telepon_wali ?? '-';
+            })
+            ->addColumn('jumlah_anak', function ($row) {
+                return $row->siswa_count;
+            })
+            ->addColumn('has_account', function ($row) {
+                if ($row->user_id) {
+                    return '<span class="badge bg-success">Ya</span>';
+                }
+                return '<span class="badge bg-secondary">Tidak</span>';
+            })
+            ->addColumn('action', function ($row) {
+                $createAccount = '';
+                if (!$row->user_id) {
+                    $createAccount = '
+                        <button type="button"
+                                class="btn btn-sm btn-success btn-create-account"
+                                data-id="' . $row->id . '"
+                                title="Buat Akun">
+                            <i class="bi bi-person-plus"></i>
+                        </button>
+                    ';
+                }
+
+                return '
+                    <div class="btn-group" role="group">
+                        <a href="' . route('orang-tua.show', $row->id) . '"
+                           class="btn btn-sm btn-info">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-warning btn-edit"
+                                data-id="' . $row->id . '">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        ' . $createAccount . '
+                        <button type="button"
+                                class="btn btn-sm btn-danger btn-delete"
+                                data-id="' . $row->id . '">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                ';
+            })
+            ->rawColumns(['has_account', 'action'])
+            ->make(true);
+    }
+
+    public function create()
+    {
+        if (request()->ajax()) {
+            return view('user-data.orang-tua.form', [
+                'orangTua' => null,
+                'action' => route('orang-tua.store'),
+                'method' => 'POST',
+            ]);
+        }
+
+        return view('user-data.orang-tua.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            // Data Ayah
+            'nik_ayah' => 'nullable|string|size:16',
+            'nama_ayah' => 'nullable|string|max:100',
+            'pekerjaan_ayah' => 'nullable|string|max:50',
+            'pendidikan_ayah' => 'nullable|string|max:50',
+            'penghasilan_ayah' => 'nullable|string|max:50',
+            'telepon_ayah' => 'nullable|string|max:20',
+
+            // Data Ibu
+            'nik_ibu' => 'nullable|string|size:16',
+            'nama_ibu' => 'nullable|string|max:100',
+            'pekerjaan_ibu' => 'nullable|string|max:50',
+            'pendidikan_ibu' => 'nullable|string|max:50',
+            'penghasilan_ibu' => 'nullable|string|max:50',
+            'telepon_ibu' => 'nullable|string|max:20',
+
+            // Data Wali (opsional)
+            'nama_wali' => 'nullable|string|max:100',
+            'pekerjaan_wali' => 'nullable|string|max:50',
+            'telepon_wali' => 'nullable|string|max:20',
+
+            // Alamat
+            'alamat' => 'nullable|string',
+
+            // User account (opsional)
+            'create_account' => 'nullable|boolean',
+            'username' => 'required_if:create_account,true|nullable|string|max:50|unique:users,username',
+            'email' => 'required_if:create_account,true|nullable|email|unique:users,email',
+            'password' => 'required_if:create_account,true|nullable|string|min:6',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $userId = null;
+
+            // Create User jika diminta
+            if ($request->create_account) {
+                $user = User::create([
+                    'username' => $validated['username'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => 'orang_tua',
+                    'is_active' => true,
+                ]);
+                $userId = $user->id;
+            }
+
+            // Create Orang Tua
+            $orangTua = OrangTua::create([
+                'user_id' => $userId,
+                'nik_ayah' => $validated['nik_ayah'],
+                'nama_ayah' => $validated['nama_ayah'],
+                'pekerjaan_ayah' => $validated['pekerjaan_ayah'],
+                'pendidikan_ayah' => $validated['pendidikan_ayah'],
+                'penghasilan_ayah' => $validated['penghasilan_ayah'],
+                'telepon_ayah' => $validated['telepon_ayah'],
+                'nik_ibu' => $validated['nik_ibu'],
+                'nama_ibu' => $validated['nama_ibu'],
+                'pekerjaan_ibu' => $validated['pekerjaan_ibu'],
+                'pendidikan_ibu' => $validated['pendidikan_ibu'],
+                'penghasilan_ibu' => $validated['penghasilan_ibu'],
+                'telepon_ibu' => $validated['telepon_ibu'],
+                'nama_wali' => $validated['nama_wali'],
+                'pekerjaan_wali' => $validated['pekerjaan_wali'],
+                'telepon_wali' => $validated['telepon_wali'],
+                'alamat' => $validated['alamat'],
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Data orang tua berhasil ditambahkan',
+                'orang-tua.index',
+                $orangTua->load('user')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal menambahkan data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function show(OrangTua $orangTua)
+    {
+        $orangTua->load(['user', 'siswa.kelasAktif']);
+
+        return view('user-data.orang-tua.show', compact('orangTua'));
+    }
+
+    public function edit(OrangTua $orangTua)
+    {
+        $orangTua->load('user');
+
+        if (request()->ajax()) {
+            return view('user-data.orang-tua.form', [
+                'orangTua' => $orangTua,
+                'action' => route('orang-tua.update', $orangTua),
+                'method' => 'PUT',
+            ]);
+        }
+
+        return view('user-data.orang-tua.edit', compact('orangTua'));
+    }
+
+    public function update(Request $request, OrangTua $orangTua)
+    {
+        $validated = $request->validate([
+            // Data Ayah
+            'nik_ayah' => 'nullable|string|size:16',
+            'nama_ayah' => 'nullable|string|max:100',
+            'pekerjaan_ayah' => 'nullable|string|max:50',
+            'pendidikan_ayah' => 'nullable|string|max:50',
+            'penghasilan_ayah' => 'nullable|string|max:50',
+            'telepon_ayah' => 'nullable|string|max:20',
+
+            // Data Ibu
+            'nik_ibu' => 'nullable|string|size:16',
+            'nama_ibu' => 'nullable|string|max:100',
+            'pekerjaan_ibu' => 'nullable|string|max:50',
+            'pendidikan_ibu' => 'nullable|string|max:50',
+            'penghasilan_ibu' => 'nullable|string|max:50',
+            'telepon_ibu' => 'nullable|string|max:20',
+
+            // Data Wali
+            'nama_wali' => 'nullable|string|max:100',
+            'pekerjaan_wali' => 'nullable|string|max:50',
+            'telepon_wali' => 'nullable|string|max:20',
+
+            // Alamat
+            'alamat' => 'nullable|string',
+
+            // Update User (jika ada)
+            'username' => 'nullable|string|max:50|unique:users,username,' . ($orangTua->user_id ?? 'NULL'),
+            'email' => 'nullable|email|unique:users,email,' . ($orangTua->user_id ?? 'NULL'),
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Update User jika ada
+            if ($orangTua->user) {
+                $userData = [];
+
+                if ($request->filled('username')) {
+                    $userData['username'] = $validated['username'];
+                }
+                if ($request->filled('email')) {
+                    $userData['email'] = $validated['email'];
+                }
+                if ($request->filled('password')) {
+                    $userData['password'] = Hash::make($validated['password']);
+                }
+
+                if (!empty($userData)) {
+                    $orangTua->user->update($userData);
+                }
+            }
+
+            // Update Orang Tua
+            $orangTua->update([
+                'nik_ayah' => $validated['nik_ayah'],
+                'nama_ayah' => $validated['nama_ayah'],
+                'pekerjaan_ayah' => $validated['pekerjaan_ayah'],
+                'pendidikan_ayah' => $validated['pendidikan_ayah'],
+                'penghasilan_ayah' => $validated['penghasilan_ayah'],
+                'telepon_ayah' => $validated['telepon_ayah'],
+                'nik_ibu' => $validated['nik_ibu'],
+                'nama_ibu' => $validated['nama_ibu'],
+                'pekerjaan_ibu' => $validated['pekerjaan_ibu'],
+                'pendidikan_ibu' => $validated['pendidikan_ibu'],
+                'penghasilan_ibu' => $validated['penghasilan_ibu'],
+                'telepon_ibu' => $validated['telepon_ibu'],
+                'nama_wali' => $validated['nama_wali'],
+                'pekerjaan_wali' => $validated['pekerjaan_wali'],
+                'telepon_wali' => $validated['telepon_wali'],
+                'alamat' => $validated['alamat'],
+            ]);
+
+            DB::commit();
+
+            return $this->successResponse(
+                'Data orang tua berhasil diperbarui',
+                'orang-tua.index',
+                $orangTua->load('user')
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal memperbarui data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    public function destroy(OrangTua $orangTua)
+    {
+        // Check jika masih punya anak
+        if ($orangTua->siswa()->exists()) {
+            return $this->errorResponse('Orang tua tidak dapat dihapus karena masih memiliki anak terdaftar', 400);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Delete user jika ada
+            if ($orangTua->user) {
+                $orangTua->user->delete();
+            }
+
+            // OrangTua akan terhapus otomatis karena cascade
+
+            DB::commit();
+
+            return $this->successResponse('Data orang tua berhasil dihapus', 'orang-tua.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal menghapus data: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Create user account untuk orang tua (AJAX)
+     */
+    public function createAccount(Request $request, OrangTua $orangTua)
+    {
+        if ($orangTua->user_id) {
+            return $this->errorResponse('Orang tua sudah memiliki akun', 400);
+        }
+
+        $validated = $request->validate([
+            'username' => 'required|string|max:50|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'username' => $validated['username'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'orang_tua',
+                'is_active' => true,
+            ]);
+
+            $orangTua->update(['user_id' => $user->id]);
+
+            DB::commit();
+
+            return $this->jsonSuccess(
+                ['user' => $user],
+                'Akun berhasil dibuat'
+            );
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return $this->errorResponse('Gagal membuat akun: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Search orang tua (AJAX autocomplete)
+     */
+    public function search(Request $request)
+    {
+        $term = $request->get('term', '');
+
+        $orangTua = OrangTua::where(function ($q) use ($term) {
+            $q->where('nama_ayah', 'like', "%{$term}%")
+                ->orWhere('nama_ibu', 'like', "%{$term}%")
+                ->orWhere('nama_wali', 'like', "%{$term}%")
+                ->orWhere('telepon_ayah', 'like', "%{$term}%")
+                ->orWhere('telepon_ibu', 'like', "%{$term}%");
+        })
+            ->limit(10)
+            ->get()
+            ->map(function ($ot) {
+                $nama = $ot->nama_ayah ?? $ot->nama_ibu ?? $ot->nama_wali;
+                $telepon = $ot->telepon_ayah ?? $ot->telepon_ibu ?? $ot->telepon_wali;
+
+                return [
+                    'id' => $ot->id,
+                    'text' => $nama . ($telepon ? " ({$telepon})" : ''),
+                    'nama' => $nama,
+                    'telepon' => $telepon,
+                ];
+            });
+
+        return response()->json($orangTua);
+    }
+}

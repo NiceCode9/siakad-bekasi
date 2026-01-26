@@ -160,6 +160,60 @@ Route::middleware('auth')->group(function () {
         Route::get('/guru/{guru}', [App\Http\Controllers\JadwalPelajaranController::class, 'viewByGuru'])->name('by-guru');
         Route::get('/get-mapel-by-kelas', [App\Http\Controllers\JadwalPelajaranController::class, 'getMataPelajaranByKelas'])->name('get-mapel-by-kelas');
     });
+
+    // Guru Routes
+    Route::prefix('guru')->name('guru.')->group(function () {
+        Route::get('/', [App\Http\Controllers\GuruController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\GuruController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\GuruController::class, 'store'])->name('store');
+        Route::get('/{guru}', [App\Http\Controllers\GuruController::class, 'show'])->name('show');
+        Route::get('/{guru}/edit', [App\Http\Controllers\GuruController::class, 'edit'])->name('edit');
+        Route::put('/{guru}', [App\Http\Controllers\GuruController::class, 'update'])->name('update');
+        Route::delete('/{guru}', [App\Http\Controllers\GuruController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::post('/{guru}/toggle-active', [App\Http\Controllers\GuruController::class, 'toggleActive'])->name('toggle-active');
+        Route::get('/search/autocomplete', [App\Http\Controllers\GuruController::class, 'search'])->name('search');
+        Route::get('/{guru}/data', [App\Http\Controllers\GuruController::class, 'getById'])->name('get-by-id');
+        Route::get('/export/excel', [App\Http\Controllers\GuruController::class, 'export'])->name('export');
+        Route::post('/import/excel', [App\Http\Controllers\GuruController::class, 'import'])->name('import');
+    });
+
+    // Routes untuk Siswa
+    Route::prefix('siswa')->name('siswa.')->group(function () {
+        Route::get('/', [App\Http\Controllers\SiswaController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\SiswaController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\SiswaController::class, 'store'])->name('store');
+        Route::get('/{siswa}', [App\Http\Controllers\SiswaController::class, 'show'])->name('show');
+        Route::get('/{siswa}/edit', [App\Http\Controllers\SiswaController::class, 'edit'])->name('edit');
+        Route::put('/{siswa}', [App\Http\Controllers\SiswaController::class, 'update'])->name('update');
+        Route::delete('/{siswa}', [App\Http\Controllers\SiswaController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::post('/{siswa}/assign-kelas', [App\Http\Controllers\SiswaController::class, 'assignKelas'])->name('assign-kelas');
+        Route::delete('/{siswa}/remove-kelas/{kelas}', [App\Http\Controllers\SiswaController::class, 'removeKelas'])->name('remove-kelas');
+        Route::get('/check-nisn', [App\Http\Controllers\SiswaController::class, 'checkNisn'])->name('check-nisn');
+        Route::get('/search/autocomplete', [App\Http\Controllers\SiswaController::class, 'search'])->name('search');
+        Route::get('/export/excel', [App\Http\Controllers\SiswaController::class, 'export'])->name('export');
+        Route::post('/import/excel', [App\Http\Controllers\SiswaController::class, 'import'])->name('import');
+    });
+
+    // Routes untuk Orang Tua
+    Route::prefix('orang-tua')->name('orang-tua.')->group(function () {
+        Route::get('/', [App\Http\Controllers\OrangTuaController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\OrangTuaController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\OrangTuaController::class, 'store'])->name('store');
+        Route::get('/{orangTua}', [App\Http\Controllers\OrangTuaController::class, 'show'])->name('show');
+        Route::get('/{orangTua}/edit', [App\Http\Controllers\OrangTuaController::class, 'edit'])->name('edit');
+        Route::put('/{orangTua}', [App\Http\Controllers\OrangTuaController::class, 'update'])->name('update');
+        Route::delete('/{orangTua}', [App\Http\Controllers\OrangTuaController::class, 'destroy'])->name('destroy');
+
+        // Additional routes
+        Route::post('/{orangTua}/create-account', [App\Http\Controllers\OrangTuaController::class, 'createAccount'])->name('create-account');
+        Route::get('/search/autocomplete', [App\Http\Controllers\OrangTuaController::class, 'search'])->name('search');
+        Route::get('/export/excel', [App\Http\Controllers\OrangTuaController::class, 'export'])->name('export');
+        Route::post('/import/excel', [App\Http\Controllers\OrangTuaController::class, 'import'])->name('import');
+    });
 });
 
 require __DIR__ . '/auth.php';
