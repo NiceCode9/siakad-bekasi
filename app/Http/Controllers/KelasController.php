@@ -6,8 +6,10 @@ use App\Models\Kelas;
 use App\Models\Semester;
 use App\Models\Jurusan;
 use App\Models\Guru;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Yajra\DataTables\Facades\DataTables;
 
 class KelasController extends Controller
@@ -24,10 +26,12 @@ class KelasController extends Controller
             if ($request->filled('semester_id')) {
                 $query->where('semester_id', $request->semester_id);
             } else {
-                // Default: semester aktif
-                $semesterAktif = Semester::active()->first();
-                if ($semesterAktif) {
-                    $query->where('semester_id', $semesterAktif->id);
+                // Default: semua semester dari tahun akademik aktif
+                $tahunAkademikAktif = TahunAkademik::active()->first();
+                if ($tahunAkademikAktif) {
+                    $query->whereHas('semester', function ($q) use ($tahunAkademikAktif) {
+                        $q->where('tahun_akademik_id', $tahunAkademikAktif->id);
+                    });
                 }
             }
 
@@ -74,6 +78,7 @@ class KelasController extends Controller
         }
 
         // Data untuk filter
+        $semesterAktif = TahunAkademik::active()->first()->semester()->orderBy('tanggal_mulai', 'desc')->first()->id;
         $semester = Semester::orderBy('tanggal_mulai', 'desc')->get();
         $jurusan = Jurusan::active()->get();
 
@@ -323,8 +328,44 @@ class KelasController extends Controller
                 ->with('success', count($kelasAsal) . ' kelas berhasil dicopy');
         } catch (\Exception $e) {
             DB::rollBack();
+            Log::error('Gagal copy kelas: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Gagal copy kelas: ' . $e->getMessage());
         }
+    }
+    public function duplicateClassesFromPreviousYear(Request $request)
+    {
+        $semesterTujuan = Semester::findOrFail($request->semester_tujuan_id);
+        $semesterSumber = Semester::findOrFail($request->semester_sumber_id);
+
+        $kelasSumber = Kelas::where('semester_id', $semesterSumber->id)->get();
+
+        foreach ($kelasSumber as $kelas) {
+            Kelas::create([
+                'semester_id' => $semesterTujuan->id,
+                'jurusan_id' => $kelas->jurusan_id,
+                'tingkat' => $kelas->tingkat,
+                'nama' => $kelas->nama,
+                'kode' => $this->generateKodeKelas($semesterTujuan, $kelas),
+                'wali_kelas_id' => null, // Reset wali kelas, assign manual nanti
+                'kuota' => $kelas->kuota,
+                'ruang_kelas' => $kelas->ruang_kelas,
+            ]);
+        }
+
+        return response()->json(['message' => 'Kelas berhasil diduplikasi']);
+    }
+
+    private function generateKodeKelas($semester, $kelasLama)
+    {
+        // Contoh: X-RPL-1-20252 (tingkat-jurusan-nomor-tahun+semester)
+        // $tahunKode = substr($semester->tahunAkademik->kode, 0, 4); // 2025
+        $tahunKode = $semester->tahunAkademik->kode; // 2025
+        $semesterKode = $semester->nama == 'Ganjil' ? '1' : '2';
+
+        return $kelasLama->tingkat . '-' .
+            $kelasLama->jurusan->kode . '-' .
+            $kelasLama->nama . '-' .
+            $tahunKode . $semesterKode;
     }
 }

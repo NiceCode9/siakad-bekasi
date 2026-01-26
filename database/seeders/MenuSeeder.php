@@ -75,7 +75,8 @@ class MenuSeeder extends Seeder
         ]);
         $menuMenu->permissions()->attach(Permission::where('name', 'view-menus')->first());
 
-        // Master Data
+
+        // Master Data (Parent)
         $masterData = Menu::create([
             'name' => 'Master Data',
             'slug' => 'master-data',
@@ -133,27 +134,6 @@ class MenuSeeder extends Seeder
             'order' => 5,
         ]);
         $kelasMenu->permissions()->attach(Permission::where('name', 'view-jurusan')->first());
-        // Mata Pelajaran
-        $mataPelajaranMenu = Menu::create([
-            'name' => 'Mata Pelajaran',
-            'slug' => 'mata-pelajaran',
-            'icon' => 'iconsminds-open-book',
-            'url' => '/mata-pelajaran',
-            'parent_id' => $masterData->id,
-            'order' => 6,
-        ]);
-        $mataPelajaranMenu->permissions()->attach(Permission::where('name', 'view-mata-pelajaran')->first());
-        // JadwalMataPelajaran
-        $jadwalPelajaranMenu = Menu::create([
-            'name' => 'Jadwal Pelajaran',
-            'slug' => 'jadwal-pelajaran',
-            'icon' => 'iconsminds-calendar-4',
-            'url' => '/jadwal-pelajaran',
-            'parent_id' => $masterData->id,
-            'order' => 7,
-        ]);
-        $jadwalPelajaranMenu->permissions()->attach(Permission::where('name', 'view-jadwal-pelajaran')->first());
-
         // Guru Menu
         $guruMenu = Menu::create([
             'name' => 'Guru',
@@ -164,7 +144,6 @@ class MenuSeeder extends Seeder
             'order' => 8,
         ]);
         $guruMenu->permissions()->attach(Permission::where('name', 'view-guru')->first());
-
         // Siswa Menu
         $siswaMenu = Menu::create([
             'name' => 'Siswa',
@@ -175,7 +154,6 @@ class MenuSeeder extends Seeder
             'order' => 9,
         ]);
         $siswaMenu->permissions()->attach(Permission::where('name', 'view-siswa')->first());
-
         // Orang Tua Menu
         $orangTuaMenu = Menu::create([
             'name' => 'Orang Tua',
@@ -186,6 +164,36 @@ class MenuSeeder extends Seeder
             'order' => 10,
         ]);
         $orangTuaMenu->permissions()->attach(Permission::where('name', 'view-ortu')->first());
+
+
+        // Pembelajaran (Parent)
+        $pembelajaran = Menu::create([
+            'name' => 'Pembelajaran',
+            'slug' => 'pembelajaran',
+            'icon' => 'iconminds-book-open',
+            'url' => '#',
+            'order' => 3,
+        ]);
+        // Mata Pelajaran
+        $mataPelajaranMenu = Menu::create([
+            'name' => 'Mata Pelajaran',
+            'slug' => 'mata-pelajaran',
+            'icon' => 'iconsminds-open-book',
+            'url' => '/mata-pelajaran',
+            'parent_id' => $pembelajaran->id,
+            'order' => 1,
+        ]);
+        $mataPelajaranMenu->permissions()->attach(Permission::where('name', 'view-mata-pelajaran')->first());
+        // JadwalMataPelajaran
+        $jadwalPelajaranMenu = Menu::create([
+            'name' => 'Jadwal Pelajaran',
+            'slug' => 'jadwal-pelajaran',
+            'icon' => 'iconsminds-calendar-4',
+            'url' => '/jadwal-pelajaran',
+            'parent_id' => $pembelajaran->id,
+            'order' => 2,
+        ]);
+        $jadwalPelajaranMenu->permissions()->attach(Permission::where('name', 'view-jadwal-pelajaran')->first());
 
 
 

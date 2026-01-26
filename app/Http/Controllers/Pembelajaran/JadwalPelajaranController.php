@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pembelajaran;
 
+use App\Http\Controllers\Controller;
 use App\Models\JadwalPelajaran;
 use App\Models\MataPelajaranGuru;
 use App\Models\Kelas;

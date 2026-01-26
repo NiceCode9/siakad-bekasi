@@ -25,6 +25,13 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             MenuSeeder::class,
             UserSeeder::class,
+            KurikulumSeeder::class,
+            TahunAkademikSeeder::class,
+            SemesterSeeder::class,
+            JurusanSeeder::class,
+            KelasSeeder::class,
+            KelompokMapelSeeder::class,
+            KomponenNilaiSeeder::class,
         ]);
     }
 }

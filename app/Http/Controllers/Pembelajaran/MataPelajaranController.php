@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Pembelajaran;
 
+use App\Http\Controllers\Controller;
 use App\Models\MataPelajaran;
 use App\Models\Kurikulum;
 use App\Models\KelompokMapel;
@@ -134,6 +135,12 @@ class MataPelajaranController extends Controller
         $stats = [
             'total_kelas' => $mataPelajaran->mataPelajaranKelas()->count(),
             'total_bank_soal' => $mataPelajaran->bankSoal()->count(),
+            'total_guru_mengajar' => $mataPelajaran->mataPelajaranGuru()
+                ->distinct('guru_id')
+                ->count(),
+            'total_kelas' => $mataPelajaran->mataPelajaranGuru()
+                ->distinct('kelas_id')
+                ->count(),
         ];
 
         return view('master-data.mata-pelajaran.show', compact('mataPelajaran', 'stats'));

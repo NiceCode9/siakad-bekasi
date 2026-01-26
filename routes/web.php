@@ -132,33 +132,33 @@ Route::middleware('auth')->group(function () {
 
     // Mata Pelajaran Routes
     Route::prefix('mata-pelajaran')->name('mata-pelajaran.')->group(function () {
-        Route::get('/', [App\Http\Controllers\MataPelajaranController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\MataPelajaranController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\MataPelajaranController::class, 'store'])->name('store');
-        Route::get('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'show'])->name('show');
-        Route::get('/{mataPelajaran}/edit', [App\Http\Controllers\MataPelajaranController::class, 'edit'])->name('edit');
-        Route::put('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'update'])->name('update');
-        Route::delete('/{mataPelajaran}', [App\Http\Controllers\MataPelajaranController::class, 'destroy'])->name('destroy');
+        Route::get('/', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'store'])->name('store');
+        Route::get('/{mataPelajaran}', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'show'])->name('show');
+        Route::get('/{mataPelajaran}/edit', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'edit'])->name('edit');
+        Route::put('/{mataPelajaran}', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'update'])->name('update');
+        Route::delete('/{mataPelajaran}', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'destroy'])->name('destroy');
 
         // Additional routes
-        Route::post('/{mataPelajaran}/toggle-active', [App\Http\Controllers\MataPelajaranController::class, 'toggleActive'])->name('toggle-active');
-        Route::post('/{mataPelajaran}/assign-to-kelas', [App\Http\Controllers\MataPelajaranController::class, 'assignToKelas'])->name('assign-to-kelas');
+        Route::post('/{mataPelajaran}/toggle-active', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'toggleActive'])->name('toggle-active');
+        Route::post('/{mataPelajaran}/assign-to-kelas', [App\Http\Controllers\Pembelajaran\MataPelajaranController::class, 'assignToKelas'])->name('assign-to-kelas');
     });
 
     // Jadwal Pelajaran Routes
     Route::prefix('jadwal-pelajaran')->name('jadwal-pelajaran.')->group(function () {
-        Route::get('/', [App\Http\Controllers\JadwalPelajaranController::class, 'index'])->name('index');
-        Route::get('/create', [App\Http\Controllers\JadwalPelajaranController::class, 'create'])->name('create');
-        Route::post('/', [App\Http\Controllers\JadwalPelajaranController::class, 'store'])->name('store');
-        Route::get('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'show'])->name('show');
-        Route::get('/{jadwalPelajaran}/edit', [App\Http\Controllers\JadwalPelajaranController::class, 'edit'])->name('edit');
-        Route::put('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'update'])->name('update');
-        Route::delete('/{jadwalPelajaran}', [App\Http\Controllers\JadwalPelajaranController::class, 'destroy'])->name('destroy');
+        Route::get('/', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'store'])->name('store');
+        Route::get('/{jadwalPelajaran}', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'show'])->name('show');
+        Route::get('/{jadwalPelajaran}/edit', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'edit'])->name('edit');
+        Route::put('/{jadwalPelajaran}', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'update'])->name('update');
+        Route::delete('/{jadwalPelajaran}', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'destroy'])->name('destroy');
 
         // Additional routes
-        Route::get('/kelas/{kelas}', [App\Http\Controllers\JadwalPelajaranController::class, 'viewByKelas'])->name('by-kelas');
-        Route::get('/guru/{guru}', [App\Http\Controllers\JadwalPelajaranController::class, 'viewByGuru'])->name('by-guru');
-        Route::get('/get-mapel-by-kelas', [App\Http\Controllers\JadwalPelajaranController::class, 'getMataPelajaranByKelas'])->name('get-mapel-by-kelas');
+        Route::get('/kelas/{kelas}', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'viewByKelas'])->name('by-kelas');
+        Route::get('/guru/{guru}', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'viewByGuru'])->name('by-guru');
+        Route::get('/get-mapel-by-kelas', [App\Http\Controllers\Pembelajaran\JadwalPelajaranController::class, 'getMataPelajaranByKelas'])->name('get-mapel-by-kelas');
     });
 
     // Guru Routes
