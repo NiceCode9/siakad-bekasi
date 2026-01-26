@@ -79,7 +79,7 @@ class MenuSeeder extends Seeder
         $masterData = Menu::create([
             'name' => 'Master Data',
             'slug' => 'master-data',
-            'icon' => 'iconsminds-database',
+            'icon' => 'iconsminds-data-cloud',
             'url' => '#',
             'order' => 2,
         ]);
@@ -107,7 +107,7 @@ class MenuSeeder extends Seeder
         $semesterMenu = Menu::create([
             'name' => 'Semester',
             'slug' => 'semester',
-            'icon' => 'iconsminds-time',
+            'icon' => 'iconsminds-timer',
             'url' => '/semester',
             'parent_id' => $masterData->id,
             'order' => 3,
@@ -153,6 +153,41 @@ class MenuSeeder extends Seeder
             'order' => 7,
         ]);
         $jadwalPelajaranMenu->permissions()->attach(Permission::where('name', 'view-jadwal-pelajaran')->first());
+
+        // Guru Menu
+        $guruMenu = Menu::create([
+            'name' => 'Guru',
+            'slug' => 'guru',
+            'icon' => 'iconsminds-business-man-woman',
+            'url' => '/guru',
+            'parent_id' => $masterData->id,
+            'order' => 8,
+        ]);
+        $guruMenu->permissions()->attach(Permission::where('name', 'view-guru')->first());
+
+        // Siswa Menu
+        $siswaMenu = Menu::create([
+            'name' => 'Siswa',
+            'slug' => 'siswa',
+            'icon' => 'iconsminds-student-male-female',
+            'url' => '/siswa',
+            'parent_id' => $masterData->id,
+            'order' => 9,
+        ]);
+        $siswaMenu->permissions()->attach(Permission::where('name', 'view-siswa')->first());
+
+        // Orang Tua Menu
+        $orangTuaMenu = Menu::create([
+            'name' => 'Orang Tua',
+            'slug' => 'orang-tua',
+            'icon' => 'iconsminds-conference',
+            'url' => '/orang-tua',
+            'parent_id' => $masterData->id,
+            'order' => 10,
+        ]);
+        $orangTuaMenu->permissions()->attach(Permission::where('name', 'view-ortu')->first());
+
+
 
         // Reports (Parent)
         $reports = Menu::create([
