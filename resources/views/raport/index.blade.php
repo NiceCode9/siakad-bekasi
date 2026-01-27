@@ -21,8 +21,8 @@
         <div class="col-12">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="mb-4">Daftar Siswa Kelas: {{ $kelas->nama ?? 'Semua Kelas' }} (Semester {{ $semester->nama }})</h5>
-                    
+                    <h5 class="mb-4">Daftar Siswa Kelas: {{ $kelas ? $kelas->nama : 'Semua Kelas' }} (Semester {{$semester ? $semester->nama :'' }})</h5>
+
                     <div class="table-responsive">
                         <table class="table table-striped table-bordered datatable">
                             <thead>

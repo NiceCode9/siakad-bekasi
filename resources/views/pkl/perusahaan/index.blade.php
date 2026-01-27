@@ -39,7 +39,7 @@
             serverSide: true,
             ajax: "{{ route('perusahaan-pkl.index') }}",
             columns: [
-                { data: 'DT_RowIndex', name: 'DT_RowIndex' },
+                { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
                 { data: 'nama', name: 'nama' },
                 { data: 'bidang_usaha', name: 'bidang_usaha' },
                 { data: 'alamat', name: 'alamat' },
