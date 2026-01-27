@@ -81,6 +81,30 @@ class RolePermissionSeeder extends Seeder
             // Reports (example)
             'view-reports',
             'export-reports',
+
+            // CBT
+            'view-cbt',
+            'view-bank-soal', 'create-bank-soal', 'edit-bank-soal', 'delete-bank-soal',
+            'view-jadwal-ujian', 'create-jadwal-ujian', 'edit-jadwal-ujian', 'delete-jadwal-ujian',
+            'view-ujian-siswa',
+
+            // PKL
+            'view-pkl',
+            'view-tempat-pkl', 'create-tempat-pkl', 'edit-tempat-pkl', 'delete-tempat-pkl',
+            'view-pkl-siswa', 'create-pkl-siswa', 'edit-pkl-siswa', 'delete-pkl-siswa',
+            'view-jurnal-pkl', 'create-jurnal-pkl', 'edit-jurnal-pkl', 'delete-jurnal-pkl', 'approve-jurnal-pkl',
+            'view-pkl-nilai', 'edit-pkl-nilai',
+
+            // Raport
+            'view-raport',
+            'manage-raport',
+            'approve-raport',
+
+            // Module 11: Legger
+            'view-legger',
+            'create-legger',
+            'edit-legger',
+            'delete-legger',
         ];
 
         foreach ($permissions as $permission) {
@@ -90,6 +114,14 @@ class RolePermissionSeeder extends Seeder
         // Super Admin - all permissions
         $superAdmin = Role::firstOrCreate(['name' => 'super-admin']);
         $superAdmin->givePermissionTo(Permission::all());
+
+        // Kepala Sekolah
+        $kepsek = Role::firstOrCreate(['name' => 'kepala-sekolah']);
+        $kepsek->givePermissionTo([
+            'view-dashboard',
+            'view-reports',
+            'approve-raport',
+        ]);
 
         // Admin - most permissions
         $admin = Role::firstOrCreate(['name' => 'admin']);
@@ -102,12 +134,29 @@ class RolePermissionSeeder extends Seeder
             'view-permissions',
             'view-menus',
             'view-reports',
+            'view-cbt',
+            'view-bank-soal',
+            'view-jadwal-ujian',
+            // PKL
+            'view-pkl',
+            'view-tempat-pkl', 'create-tempat-pkl', 'edit-tempat-pkl', 'delete-tempat-pkl',
+            'view-pkl-siswa', 'create-pkl-siswa', 'edit-pkl-siswa', 'delete-pkl-siswa',
+            'view-jurnal-pkl', 'create-jurnal-pkl', 'edit-jurnal-pkl', 'delete-jurnal-pkl', 'approve-jurnal-pkl',
+            'view-pkl-nilai', 'edit-pkl-nilai',
+            // Raport
+            'view-raport',
+            'manage-raport',
+            'approve-raport',
         ]);
 
         // User - basic permissions
         $user = Role::firstOrCreate(['name' => 'siswa']);
         $user->givePermissionTo([
             'view-dashboard',
+            'view-ujian-siswa',
+            'view-pkl',
+            'view-jurnal-pkl', 'create-jurnal-pkl', 'edit-jurnal-pkl',
+            'view-raport',
         ]);
 
         // Guru - medium permissions
@@ -117,6 +166,14 @@ class RolePermissionSeeder extends Seeder
             'view-users',
             'view-reports',
             'export-reports',
+            'view-cbt',
+            'view-bank-soal', 'create-bank-soal', 'edit-bank-soal', 'delete-bank-soal',
+            'view-jadwal-ujian', 'create-jadwal-ujian', 'edit-jadwal-ujian', 'delete-jadwal-ujian',
+            'view-pkl',
+            'view-jurnal-pkl', 'approve-jurnal-pkl',
+            'view-pkl-nilai', 'edit-pkl-nilai',
+            'view-raport',
+            'manage-raport',
         ]);
     }
 }

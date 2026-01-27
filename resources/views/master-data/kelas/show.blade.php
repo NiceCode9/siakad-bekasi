@@ -249,6 +249,12 @@
                     <div class="tab-pane fade" id="mapel" role="tabpanel">
                         <div class="card">
                             <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">Daftar Mata Pelajaran</h6>
+                                    <a href="{{ route('kelas.mata-pelajaran.index', $kelas->id) }}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-cog"></i> Kelola Mata Pelajaran
+                                    </a>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table table-sm table-bordered table-hover">
                                         <thead class="thead-light">

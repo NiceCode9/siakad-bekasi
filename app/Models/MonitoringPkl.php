@@ -19,6 +19,8 @@ class MonitoringPkl extends Model
         'solusi',
         'catatan',
         'foto',
+        'status',
+        'catatan_pembimbing',
     ];
 
     protected $casts = [

@@ -14,7 +14,7 @@ class NilaiEkstrakurikuler extends Model
     protected $fillable = [
         'siswa_id',
         'semester_id',
-        'nama_ekskul',
+        'ekstrakurikuler_id',
         'nilai',
         'predikat',
         'keterangan',
@@ -33,5 +33,10 @@ class NilaiEkstrakurikuler extends Model
     public function semester()
     {
         return $this->belongsTo(Semester::class);
+    }
+
+    public function ekstrakurikuler()
+    {
+        return $this->belongsTo(Ekstrakurikuler::class);
     }
 }

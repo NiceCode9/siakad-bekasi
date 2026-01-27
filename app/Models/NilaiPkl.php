@@ -44,14 +44,17 @@ class NilaiPkl extends Model
     // Helpers
     public function hitungNilaiAkhir()
     {
-        // Formula: (Sikap 30%) + (Keterampilan 40%) + (Laporan 30%)
-        if ($this->nilai_sikap_kerja && $this->nilai_keterampilan && $this->nilai_laporan) {
-            $this->nilai_akhir =
-                ($this->nilai_sikap_kerja * 0.30) +
-                ($this->nilai_keterampilan * 0.40) +
-                ($this->nilai_laporan * 0.30);
-            $this->save();
-        }
+        // 1. Industri = Average(Sikap Kerja, Keterampilan)
+        $industri = ($this->nilai_sikap_kerja + $this->nilai_keterampilan) / 2;
+        $this->nilai_dari_industri = $industri;
+
+        // 2. Sekolah = Average(Laporan, Nilai Sekolah)
+        $sekolah = ($this->nilai_laporan + $this->nilai_dari_sekolah) / 2;
+        
+        // 3. Final = (40% Industri) + (60% Sekolah)
+        $this->nilai_akhir = ($industri * 0.40) + ($sekolah * 0.60);
+        
+        $this->save();
         return $this->nilai_akhir;
     }
 }

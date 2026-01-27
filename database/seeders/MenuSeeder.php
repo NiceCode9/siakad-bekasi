@@ -176,36 +176,208 @@ class MenuSeeder extends Seeder
         ]);
         $siswaMenu->permissions()->attach(Permission::where('name', 'view-siswa')->first());
 
-        // Orang Tua Menu
-        $orangTuaMenu = Menu::create([
-            'name' => 'Orang Tua',
-            'slug' => 'orang-tua',
-            'icon' => 'iconsminds-conference',
-            'url' => '/orang-tua',
+        // $orangTuaMenu->permissions()->attach(Permission::where('name', 'view-ortu')->first());
+
+        // Kenaikan Kelas
+        $kenaikanKelasMenu = Menu::create([
+            'name' => 'Kenaikan Kelas',
+            'slug' => 'kenaikan-kelas',
+            'icon' => 'simple-icon-arrow-up-circle',
+            'url' => '/kenaikan-kelas',
             'parent_id' => $masterData->id,
-            'order' => 10,
+            'order' => 11,
         ]);
-        $orangTuaMenu->permissions()->attach(Permission::where('name', 'view-ortu')->first());
+        $kenaikanKelasMenu->permissions()->attach(Permission::where('name', 'manage-kenaikan-kelas')->first());
+        $kenaikanKelasMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
 
 
+
+        // Module Pembelajaran / E-Learning
+        $cbtMenu = Menu::create([
+            'name' => 'Pembelajaran',
+            'slug' => 'pembelajaran',
+            'icon' => 'iconsminds-tablet-with-text',
+            'url' => '#',
+            'order' => 20,
+        ]);
+        $cbtMenu->permissions()->attach(Permission::where('name', 'view-cbt')->first());
+        $cbtMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+
+        // E-Learning Home
+        $elearningMenu = Menu::create([
+            'name' => 'E-Learning',
+            'slug' => 'elearning',
+            'icon' => 'simple-icon-screen-desktop',
+            'url' => '/elearning',
+            'parent_id' => $cbtMenu->id,
+            'order' => 1,
+        ]);
+        $elearningMenu->permissions()->attach(Permission::where('name', 'view-elearning')->first());
+        $elearningMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'siswa'])->get());
+
+        // Bank Soal
+        $bankSoalMenu = Menu::create([
+            'name' => 'Bank Soal',
+            'slug' => 'bank-soal',
+            'icon' => 'simple-icon-question',
+            'url' => '/bank-soal',
+            'parent_id' => $cbtMenu->id,
+            'order' => 2,
+        ]);
+        $bankSoalMenu->permissions()->attach(Permission::where('name', 'view-bank-soal')->first());
+        $bankSoalMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+
+        // Jadwal Ujian
+        $jadwalUjianMenu = Menu::create([
+            'name' => 'Jadwal Ujian',
+            'slug' => 'jadwal-ujian',
+            'icon' => 'simple-icon-calendar',
+            'url' => '/jadwal-ujian',
+            'parent_id' => $cbtMenu->id,
+            'order' => 3,
+        ]);
+        $jadwalUjianMenu->permissions()->attach(Permission::where('name', 'view-jadwal-ujian')->first());
+        $jadwalUjianMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+
+        // Jurnal Mengajar
+        $jurnalMengajarMenu = Menu::create([
+            'name' => 'Jurnal Mengajar',
+            'slug' => 'jurnal-mengajar',
+            'icon' => 'simple-icon-book-open',
+            'url' => '/jurnal-mengajar',
+            'parent_id' => $cbtMenu->id,
+            'order' => 4,
+        ]);
+        $jurnalMengajarMenu->permissions()->attach(Permission::where('name', 'view-jurnal-mengajar')->first());
+        $jurnalMengajarMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+
+        // Ujian Siswa (Root or Child? usually independent for student dashboard, but let's put under Pembelajaran too or separate)
+        // For Students, they might not see 'Pembelajaran' parent if they don't have view-cbt permission.
+        // I gave 'view-cbt' to Guru/Admin. Siswa only has 'view-ujian-siswa'.
+        // So Siswa won't see parent 'Pembelajaran' if it requires 'view-cbt'.
+        // I should probably give 'view-cbt' to Siswa OR make a separate root menu for Siswa.
+        // Let's make separate menu "Ujian Saya" for Siswa at root level?
+        
+        $ujianSiswaMenu = Menu::create([
+            'name' => 'Ujian Saya',
+            'slug' => 'ujian-siswa',
+            'icon' => 'iconsminds-student-hat',
+            'url' => '/ujian-siswa',
+            'order' => 5,
+        ]);
+        $ujianSiswaMenu->permissions()->attach(Permission::where('name', 'view-ujian-siswa')->first());
+        $ujianSiswaMenu->roles()->attach(Role::where('name', 'siswa')->first());
+
+
+        // Module PKL
+        $pklMenu = Menu::create([
+            'name' => 'PKL / Magang',
+            'slug' => 'pkl',
+            'icon' => 'iconsminds-factory',
+            'url' => '#',
+            'order' => 21,
+        ]);
+        $pklMenu->permissions()->attach(Permission::where('name', 'view-pkl')->first());
+        $pklMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+
+        // Tempat PKL
+        $tempatPklMenu = Menu::create([
+            'name' => 'Data Industri',
+            'slug' => 'tempat-pkl',
+            'icon' => 'simple-icon-organization',
+            'url' => '/tempat-pkl',
+            'parent_id' => $pklMenu->id,
+            'order' => 1,
+        ]);
+        $tempatPklMenu->permissions()->attach(Permission::where('name', 'view-tempat-pkl')->first());
+        $tempatPklMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+
+        // Penempatan
+        $pklSiswaMenu = Menu::create([
+            'name' => 'Penempatan Siswa',
+            'slug' => 'pkl-siswa',
+            'icon' => 'simple-icon-people',
+            'url' => '/pkl-siswa',
+            'parent_id' => $pklMenu->id,
+            'order' => 2,
+        ]);
+        $pklSiswaMenu->permissions()->attach(Permission::where('name', 'view-pkl-siswa')->first());
+        $pklSiswaMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+
+        // Jurnal PKL (Siswa)
+        $jurnalPklSiswa = Menu::create([
+            'name' => 'Jurnal PKL Saya',
+            'slug' => 'jurnal-pkl-siswa',
+            'icon' => 'simple-icon-notebook',
+            'url' => '/jurnal-pkl',
+            'parent_id' => $pklMenu->id,
+            'order' => 3,
+        ]);
+        $jurnalPklSiswa->permissions()->attach(Permission::where('name', 'view-jurnal-pkl')->first());
+        $jurnalPklSiswa->roles()->attach(Role::where('name', 'siswa')->first());
+
+        // Jurnal PKL (Guru/Pembimbing)
+        $jurnalPklGuru = Menu::create([
+            'name' => 'Monitoring Jurnal',
+            'slug' => 'jurnal-pkl-pembimbing',
+            'icon' => 'simple-icon-check',
+            'url' => '/jurnal-pkl/pembimbing',
+            'parent_id' => $pklMenu->id,
+            'order' => 4,
+        ]);
+        $jurnalPklGuru->permissions()->attach(Permission::where('name', 'approve-jurnal-pkl')->first());
+        $jurnalPklGuru->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+
+        // Nilai PKL
+        $nilaiPklMenu = Menu::create([
+            'name' => 'Penilaian PKL',
+            'slug' => 'pkl-nilai',
+            'icon' => 'simple-icon-calculator',
+            'url' => '/id/pkl-nilai',
+            'parent_id' => $pklMenu->id,
+            'order' => 5,
+        ]);
+        $nilaiPklMenu->permissions()->attach(Permission::where('name', 'view-pkl-nilai')->first());
+        $nilaiPklMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah'])->get());
 
         // Reports (Parent)
         $reports = Menu::create([
             'name' => 'Reports',
             'slug' => 'reports',
-            'icon' => 'bi bi-file-earmark-text',
-            'url' => '/admin/reports',
-            'order' => 3,
+            'icon' => 'iconsminds-folder-with-document',
+            'url' => '#',
+            'order' => 30,
         ]);
         $reports->permissions()->attach(Permission::where('name', 'view-reports')->first());
 
-        // Attach menu ke role (contoh: Dashboard untuk semua role)
+        // Legger Nilai (Child)
+        $leggerMenu = Menu::create([
+            'name' => 'Legger Nilai',
+            'slug' => 'legger',
+            'icon' => 'simple-icon-notebook',
+            'url' => '/legger',
+            'parent_id' => $reports->id,
+            'order' => 1,
+        ]);
+        $leggerMenu->permissions()->attach(Permission::where('name', 'view-legger')->first());
+        $leggerMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah'])->get());
+
+        // Raport (Child)
+        $raportMenu = Menu::create([
+            'name' => 'Raport',
+            'slug' => 'raport',
+            'icon' => 'simple-icon-graduation',
+            'url' => '/raport',
+            'parent_id' => $reports->id,
+            'order' => 2,
+        ]);
+        $raportMenu->permissions()->attach(Permission::where('name', 'view-raport')->first());
+        $raportMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah', 'siswa'])->get());
+
+        // Attach menu ke role
         $dashboard->roles()->attach(Role::all());
-
-        // Settings hanya untuk admin dan super-admin
         $settings->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
-
-        // Reports untuk manager, admin, super-admin
-        $reports->roles()->attach(Role::whereIn('name', ['manager', 'admin', 'super-admin'])->get());
+        $cbtMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+        $reports->roles()->attach(Role::whereIn('name', ['manager', 'admin', 'super-admin', 'kepala-sekolah', 'guru'])->get());
     }
 }

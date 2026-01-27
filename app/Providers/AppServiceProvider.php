@@ -21,9 +21,17 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Implicitly grant "Super Admin" role all permissions
-        // This works in the app by using gate-related functions like auth()->user->can() and @can()
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;
+        });
+
+        // Shared data for sidebar and header
+        \Illuminate\Support\Facades\View::composer('*', function ($view) {
+            if (auth()->check()) {
+                $unreadNotifications = auth()->user()->notifikasi()->unread()->latest()->limit(5)->get();
+                $unreadCount = auth()->user()->notifikasi()->unread()->count();
+                $view->with(compact('unreadNotifications', 'unreadCount'));
+            }
         });
     }
 }

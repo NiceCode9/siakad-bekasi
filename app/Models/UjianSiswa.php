@@ -23,6 +23,8 @@ class UjianSiswa extends Model
         'nilai',
         'ip_address',
         'user_agent',
+        'session_id',
+        'violation_count',
     ];
 
     protected $casts = [
