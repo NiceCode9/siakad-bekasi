@@ -127,7 +127,7 @@ class MataPelajaranController extends Controller
             'kurikulum',
             'kelompokMapel',
             'mataPelajaranKelas.kelas.semester',
-            'mataPelajaranKelas.guru'
+            'mataPelajaranKelas.mataPelajaranGuru.guru'
         ]);
 
         // Statistik
@@ -218,13 +218,17 @@ class MataPelajaranController extends Controller
             'jam_per_minggu' => 'required|integer|min:1|max:20',
         ]);
 
-        foreach ($validated['kelas_id'] as $kelasId) {
-            $mataPelajaran->mataPelajaranKelas()->updateOrCreate(
+       foreach ($validated['kelas_id'] as $kelasId) {
+            // Buat atau update MataPelajaranKelas
+            $mataPelajaranKelas = $mataPelajaran->mataPelajaranKelas()->updateOrCreate(
                 ['kelas_id' => $kelasId],
-                [
-                    'guru_id' => $validated['guru_id'],
-                    'jam_per_minggu' => $validated['jam_per_minggu']
-                ]
+                ['jam_per_minggu' => $validated['jam_per_minggu']]
+            );
+            
+            // Buat MataPelajaranGuru
+            $mataPelajaranKelas->mataPelajaranGuru()->updateOrCreate(
+                ['guru_id' => $validated['guru_id']],
+                ['mata_pelajaran_kelas_id' => $mataPelajaranKelas->id]
             );
         }
 

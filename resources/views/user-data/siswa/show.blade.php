@@ -326,7 +326,7 @@
                     $('#formModalBody').html(
                         '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
                     $('#formModal').modal('show');
-                    $.get("{{ url('user-data/siswa') }}/" + id + "/edit", function(data) {
+                    $.get("{{ url('siswa') }}/" + id + "/edit", function(data) {
                         $('#formModalBody').html(data);
                     });
                 });

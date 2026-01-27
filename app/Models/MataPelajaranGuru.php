@@ -21,7 +21,6 @@ class MataPelajaranGuru extends Model
     {
         return $this->belongsTo(MataPelajaranKelas::class);
     }
-
     public function guru()
     {
         return $this->belongsTo(Guru::class);

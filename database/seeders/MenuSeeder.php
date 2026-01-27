@@ -377,7 +377,6 @@ class MenuSeeder extends Seeder
         // Attach menu ke role
         $dashboard->roles()->attach(Role::all());
         $settings->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
-        $cbtMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
         $reports->roles()->attach(Role::whereIn('name', ['manager', 'admin', 'super-admin', 'kepala-sekolah', 'guru'])->get());
     }
 }

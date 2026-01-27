@@ -22,12 +22,12 @@
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="pendidikan-tab" data-toggle="tab" href="#pendidikan" role="tab">
+            <a class="nav-link" id="pendidikan-tab" data-toggle="tab" href="#pdd" role="tab">
                 <i class="fas fa-graduation-cap"></i> Pendidikan
             </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="fisik-tab" data-toggle="tab" href="#fisik" role="tab">
+            <a class="nav-link" id="fisik-tab" data-toggle="tab" href="#df" role="tab">
                 <i class="fas fa-heartbeat"></i> Data Fisik
             </a>
         </li>
@@ -285,7 +285,7 @@
         </div>
 
         <!-- Tab Pendidikan -->
-        <div class="tab-pane fade" id="pendidikan" role="tabpanel">
+        <div class="tab-pane fade" id="pdd" role="tabpanel">
             <div class="form-group">
                 <label>Asal Sekolah (SMP)</label>
                 <input type="text" name="asal_sekolah" class="form-control form-control-sm"
@@ -312,7 +312,7 @@
         </div>
 
         <!-- Tab Data Fisik -->
-        <div class="tab-pane fade" id="fisik" role="tabpanel">
+        <div class="tab-pane fade" id="df" role="tabpanel">
             <div class="row">
                 <div class="col-md-4">
                     <div class="form-group">

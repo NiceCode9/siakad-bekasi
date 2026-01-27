@@ -156,8 +156,8 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::resource('mata-pelajaran', MataPelajaranController::class);
-    Route::post('mata-pelajaran/{mataPelajaran}/toggle-active', [MataPelajaranController::class, 'toggleActive'])->name('toggle-active');
-    Route::post('mata-pelajaran/{mataPelajaran}/assign-to-kelas', [MataPelajaranController::class, 'assignToKelas'])->name('assign-to-kelas');
+    Route::post('mata-pelajaran/{mataPelajaran}/toggle-active', [MataPelajaranController::class, 'toggleActive'])->name('mata-pelajaran.toggle-active');
+    Route::post('mata-pelajaran/{mataPelajaran}/assign-to-kelas', [MataPelajaranController::class, 'assignToKelas'])->name('mata-pelajaran.assign-to-kelas');
 
     Route::resource('guru', GuruController::class);
     Route::post('guru/{guru}/toggle-active', [GuruController::class, 'toggleActive'])->name('toggle-active');

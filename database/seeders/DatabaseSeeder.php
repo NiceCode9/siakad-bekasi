@@ -22,9 +22,30 @@ class DatabaseSeeder extends Seeder
         //     'email' => 'test@example.com',
         // ]);
         $this->call([
+            // Role & Permission Setup
             RolePermissionSeeder::class,
             MenuSeeder::class,
+            
+            // Master Data - Academic Structure
+            KurikulumSeeder::class,
+            TahunAkademikSeeder::class,
+            SemesterSeeder::class,
+            JurusanSeeder::class,
+            
+            // Master Data - Subject & Assessment
+            KelompokMapelSeeder::class,
+            KomponenNilaiSeeder::class,
+            MataPelajaranSeeder::class,
+            EkstrakurikulerSeeder::class,
+            
+            // User Accounts
             UserSeeder::class,
+            
+            // Sample Operational Data
+            GuruSeeder::class,
+            KelasSeeder::class,
+            SiswaSeeder::class,
+            OrangTuaSeeder::class,
         ]);
     }
 }

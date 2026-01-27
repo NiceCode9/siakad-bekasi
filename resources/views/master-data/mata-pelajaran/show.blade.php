@@ -200,7 +200,16 @@
                                                     </a>
                                                 </td>
                                                 <td>{{ $mpk->kelas->semester->nama ?? '-' }}</td>
-                                                <td>{{ $mpk->guru->nama_lengkap ?? '-' }}</td>
+                                                <td>
+                                                    @if($mpk->mataPelajaranGuru->count() > 0)
+                                                        @foreach($mpk->mataPelajaranGuru as $mpg)
+                                                            {{ $mpg->guru->nama_lengkap ?? '-' }}
+                                                            @if(!$loop->last), @endif
+                                                        @endforeach
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
                                                 <td>{{ $mpk->jam_per_minggu ?? '-' }} jam</td>
                                                 <td>
                                                     <a href="{{ route('kelas.show', $mpk->kelas->id) }}"

@@ -272,7 +272,9 @@
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $mpk->mataPelajaran->kode ?? '-' }}</td>
                                                     <td>{{ $mpk->mataPelajaran->nama ?? '-' }}</td>
-                                                    <td>{{ $mpk->guru->nama_lengkap ?? '-' }}</td>
+                                                    <td>{{ $mpk->mataPelajaranGuru->map(function ($guru) {
+                                                        return $guru->guru->nama_lengkap;
+                                                    })->implode(', ')?? '-' }}</td>
                                                     <td>
                                                         @if ($mpk->mataPelajaran->jenis == 'wajib')
                                                             <span class="badge badge-primary">Wajib</span>
