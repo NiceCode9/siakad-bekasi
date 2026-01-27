@@ -41,16 +41,14 @@ use App\Http\Controllers\MateriAjarController;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\ForumDiskusiController;
 use App\Http\Controllers\JurnalMengajarController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     // 1. Profile
