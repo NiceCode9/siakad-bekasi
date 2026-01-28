@@ -42,9 +42,13 @@
                                             <td>{{ \Carbon\Carbon::parse($item->tanggal_mulai)->format('d/m/Y') }}</td>
                                             <td>{{ \Carbon\Carbon::parse($item->tanggal_selesai)->format('d/m/Y') }}</td>
                                             <td>
+                                                @php
+                                                    $activeSemester = $item->semester->where('is_active', true)->first();
+                                                @endphp
                                                 @if ($item->is_active)
-                                                    <button class="btn btn-success btn-sm" disabled>
-                                                        <i class="simple-icon-check"></i> Aktif
+                                                    <button class="btn btn-success btn-sm btn-set-active"
+                                                        data-id="{{ $item->id }}" data-active-semester="{{ $activeSemester->id ?? '' }}">
+                                                        <i class="simple-icon-check"></i> Aktif ({{ $activeSemester ? $activeSemester->nama : 'Pilih Semester' }})
                                                     </button>
                                                 @else
                                                     <button class="btn btn-outline-primary btn-sm btn-set-active"
@@ -370,6 +374,7 @@
 
             $(document).on('click', '.btn-set-active', function() {
                 let id = $(this).data('id');
+                let currentActiveSemesterId = $(this).data('active-semester');
                 $('#activate_tahun_akademik_id').val(id);
                 
                 $.ajax({
@@ -379,10 +384,17 @@
                         let html = '';
                         if (response.data && response.data.length > 0) {
                             response.data.forEach(function(semester, index) {
+                                let isChecked = '';
+                                if (currentActiveSemesterId) {
+                                    isChecked = (semester.id == currentActiveSemesterId) ? 'checked' : '';
+                                } else {
+                                    isChecked = (index === 0) ? 'checked' : '';
+                                }
+
                                 html += `
                                     <div class="custom-control custom-radio mb-2">
                                         <input type="radio" id="semester_${semester.id}" name="semester_id" 
-                                            class="custom-control-input" value="${semester.id}" ${index === 0 ? 'checked' : ''}>
+                                            class="custom-control-input" value="${semester.id}" ${isChecked}>
                                         <label class="custom-control-label" for="semester_${semester.id}">
                                             ${semester.nama} (${semester.kode})
                                         </label>

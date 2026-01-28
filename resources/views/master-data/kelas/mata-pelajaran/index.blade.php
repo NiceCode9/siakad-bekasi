@@ -168,7 +168,7 @@
                 dropdownParent: $('#modalAssignGuru'),
                 placeholder: 'Cari Guru...',
                 ajax: {
-                    url: "{{ route('mata-pelajaran-kelas.get-gurus') }}",
+                    url: "{{ route('api.get-gurus') }}",
                     dataType: 'json',
                     delay: 250,
                     processResults: function (data) {

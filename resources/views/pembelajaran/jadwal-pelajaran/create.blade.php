@@ -159,7 +159,7 @@
 
                 if (kelasId) {
                     $.ajax({
-                        url: "{{ route('jadwal-pelajaran.get-mapel-by-kelas') }}",
+                        url: "{{ route('api.get-mapel-by-kelas') }}",
                         type: 'GET',
                         data: {
                             kelas_id: kelasId

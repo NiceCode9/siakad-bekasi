@@ -303,30 +303,5 @@ class JadwalPelajaranController extends Controller
 
         return view('pembelajaran.jadwal-pelajaran.by-guru', compact('guru', 'jadwalPerHari'));
     }
-
-    /**
-     * Get mata pelajaran guru by kelas (AJAX)
-     */
-    public function getMataPelajaranByKelas(Request $request)
-    {
-        $kelasId = $request->kelas_id;
-
-        $mataPelajaranKelas = MataPelajaranKelas::where('kelas_id', $kelasId)
-            ->with([
-                'mataPelajaran',
-                'guru'
-            ])
-            ->get()
-            ->map(function ($mpk) {
-                return [
-                    'id' => $mpk->id,
-                    'label' => $mpk->mataPelajaran->nama . ' - ' . ($mpk->guru->nama_lengkap ?? 'Belum ada guru'),
-                    'mapel' => $mpk->mataPelajaran->nama,
-                    'guru' => $mpk->guru->nama_lengkap ?? 'Belum ada guru',
-                ];
-            });
-
-        return response()->json($mataPelajaranKelas);
-    }
 }
 

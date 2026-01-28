@@ -11,7 +11,7 @@ class TahunAkademikController extends Controller
 {
     public function index()
     {
-        $tahunAkademik = TahunAkademik::with('kurikulum')
+        $tahunAkademik = TahunAkademik::with(['kurikulum', 'semester'])
             ->orderBy('tanggal_mulai', 'desc')
             ->get();
 

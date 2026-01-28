@@ -58,6 +58,7 @@ Route::middleware('auth')->group(function () {
     // Api controller for resource data 
     Route::controller(ApiController::class)->name('api.')->group(function(){
         Route::get('get-gurus', 'getGurus')->name('get-gurus');
+        Route::get('/get-mapel-by-kelas', 'getMataPelajaranByKelas')->name('get-mapel-by-kelas');
     });
 
 
@@ -201,7 +202,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{jadwalPelajaran}', [JadwalPelajaranController::class, 'destroy'])->name('destroy');
         Route::get('/kelas/{kelas}', [JadwalPelajaranController::class, 'viewByKelas'])->name('by-kelas');
         Route::get('/guru/{guru}', [JadwalPelajaranController::class, 'viewByGuru'])->name('by-guru');
-        Route::get('/get-mapel-by-kelas', [JadwalPelajaranController::class, 'getMataPelajaranByKelas'])->name('get-mapel-by-kelas');
     });
 
     Route::get('presensi/rekap', [PresensiController::class, 'rekap'])->name('presensi.rekap');
