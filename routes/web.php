@@ -123,6 +123,26 @@ Route::middleware('auth')->group(function () {
             Route::post('/{id}/assign-permission', [UserController::class, 'assignPermission'])->name('assign-permission');
             Route::post('/{id}/reset-password', [UserController::class, 'resetPassword'])->name('reset-password');
         });
+
+        // Log Aktivitas
+        Route::prefix('log-aktivitas')->name('log-aktivitas.')->group(function () {
+            Route::get('/', [LogAktivitasController::class, 'index'])->name('index');
+            Route::get('/{id}', [LogAktivitasController::class, 'show'])->name('show');
+            Route::post('/clear', [LogAktivitasController::class, 'clear'])->name('clear');
+            Route::delete('/{id}', [LogAktivitasController::class, 'destroy'])->name('destroy');
+        });
+
+        // Pengaturan Sistem
+        Route::prefix('pengaturan')->name('pengaturan.')->group(function () {
+            Route::get('/', [PengaturanController::class, 'index'])->name('index');
+            Route::patch('/', [PengaturanController::class, 'update'])->name('update');
+        });
+
+        // Smart Roll-over
+        Route::prefix('roll-over')->name('roll-over.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\RollOverController::class, 'index'])->name('index');
+            Route::post('/process', [\App\Http\Controllers\Admin\RollOverController::class, 'process'])->name('process');
+        });
     });
 
     // 3. Master Data
@@ -294,16 +314,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [TugasController::class, 'store'])->name('store');
         Route::post('/{id}/submit', [TugasController::class, 'submit'])->name('submit');
         Route::post('/submission/{id}/grade', [TugasController::class, 'grade'])->name('grade');
-        // Log Aktivitas
-    Route::get('/admin/log-aktivitas', [LogAktivitasController::class, 'index'])->name('admin.log-aktivitas.index');
-    Route::get('/admin/log-aktivitas/{id}', [LogAktivitasController::class, 'show'])->name('admin.log-aktivitas.show');
-    Route::post('/admin/log-aktivitas/clear', [LogAktivitasController::class, 'clear'])->name('admin.log-aktivitas.clear');
-    Route::delete('/admin/log-aktivitas/{id}', [LogAktivitasController::class, 'destroy'])->name('admin.log-aktivitas.destroy');
-
-    // Pengaturan Sistem
-    Route::get('/admin/pengaturan', [PengaturanController::class, 'index'])->name('admin.pengaturan.index');
-    Route::patch('/admin/pengaturan', [PengaturanController::class, 'update'])->name('admin.pengaturan.update');
-});
+    });
 
 
 

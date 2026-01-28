@@ -13,331 +13,435 @@ class MenuSeeder extends Seeder
     public function run(): void
     {
         // Dashboard
-        $dashboard = Menu::create([
-            'name' => 'Dashboard',
-            'slug' => 'dashboard',
-            'icon' => 'iconsminds-home',
-            'url' => '/dashboard',
-            'order' => 1,
-        ]);
-        $dashboard->permissions()->attach(Permission::where('name', 'view-dashboard')->first());
+        $dashboard = Menu::firstOrCreate(
+            ['slug' => 'dashboard'],
+            [
+                'name' => 'Dashboard',
+                'icon' => 'iconsminds-home',
+                'url' => '/dashboard',
+                'order' => 1,
+            ]
+        );
+        $dashboard->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-dashboard'])->id]);
 
         // Settings (Parent)
-        $settings = Menu::create([
-            'name' => 'Settings',
-            'slug' => 'settings',
-            'icon' => 'iconsminds-gear',
-            'url' => '#',
-            'order' => 2,
-        ]);
+        $settings = Menu::firstOrCreate(
+            ['slug' => 'settings'],
+            [
+                'name' => 'Settings',
+                'icon' => 'iconsminds-gear',
+                'url' => '#',
+                'order' => 2,
+            ]
+        );
 
         // User Management (Child)
-        $userMenu = Menu::create([
-            'name' => 'Users',
-            'slug' => 'users',
-            'icon' => 'iconsminds-male-female',
-            'url' => '/admin/users',
-            'parent_id' => $settings->id,
-            'order' => 1,
-        ]);
-        $userMenu->permissions()->attach(Permission::where('name', 'view-users')->first());
+        $userMenu = Menu::firstOrCreate(
+            ['slug' => 'users'],
+            [
+                'name' => 'Users',
+                'icon' => 'iconsminds-male-female',
+                'url' => '/admin/users',
+                'parent_id' => $settings->id,
+                'order' => 1,
+            ]
+        );
+        $userMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-users'])->id]);
 
         // Role Management (Child)
-        $roleMenu = Menu::create([
-            'name' => 'Roles',
-            'slug' => 'roles',
-            'icon' => 'iconsminds-shield',
-            'url' => '/admin/roles',
-            'parent_id' => $settings->id,
-            'order' => 2,
-        ]);
-        $roleMenu->permissions()->attach(Permission::where('name', 'view-roles')->first());
+        $roleMenu = Menu::firstOrCreate(
+            ['slug' => 'roles'],
+            [
+                'name' => 'Roles',
+                'icon' => 'iconsminds-shield',
+                'url' => '/admin/roles',
+                'parent_id' => $settings->id,
+                'order' => 2,
+            ]
+        );
+        $roleMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-roles'])->id]);
 
         // Permission Management (Child)
-        $permissionMenu = Menu::create([
-            'name' => 'Permissions',
-            'slug' => 'permissions',
-            'icon' => 'simple-icon-key',
-            'url' => '/admin/permissions',
-            'parent_id' => $settings->id,
-            'order' => 3,
-        ]);
-        $permissionMenu->permissions()->attach(Permission::where('name', 'view-permissions')->first());
+        $permissionMenu = Menu::firstOrCreate(
+            ['slug' => 'permissions'],
+            [
+                'name' => 'Permissions',
+                'icon' => 'simple-icon-key',
+                'url' => '/admin/permissions',
+                'parent_id' => $settings->id,
+                'order' => 3,
+            ]
+        );
+        $permissionMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-permissions'])->id]);
 
         // Menu Management (Child)
-        $menuMenu = Menu::create([
-            'name' => 'Menus',
-            'slug' => 'menus',
-            'icon' => 'simple-icon-menu',
-            'url' => '/admin/menu',
-            'parent_id' => $settings->id,
-            'order' => 4,
-        ]);
-        $menuMenu->permissions()->attach(Permission::where('name', 'view-menus')->first());
+        $menuMenu = Menu::firstOrCreate(
+            ['slug' => 'menus'],
+            [
+                'name' => 'Menus',
+                'icon' => 'simple-icon-menu',
+                'url' => '/admin/menu',
+                'parent_id' => $settings->id,
+                'order' => 4,
+            ]
+        );
+        $menuMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-menus'])->id]);
+
+        // Pengaturan Sistem (Child)
+        $pengaturanMenu = Menu::firstOrCreate(
+            ['slug' => 'pengaturan'],
+            [
+                'name' => 'Pengaturan Sistem',
+                'icon' => 'simple-icon-settings',
+                'url' => '/admin/pengaturan',
+                'parent_id' => $settings->id,
+                'order' => 5,
+            ]
+        );
+        $pengaturanMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-pengaturan'])->id]);
+
+        // Log Aktivitas (Child)
+        $logMenu = Menu::firstOrCreate(
+            ['slug' => 'log-aktivitas'],
+            [
+                'name' => 'Log Aktivitas',
+                'icon' => 'simple-icon-clock',
+                'url' => '/admin/log-aktivitas',
+                'parent_id' => $settings->id,
+                'order' => 6,
+            ]
+        );
+        $logMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-log-aktivitas'])->id]);
+
+        // Salin Data Semester (Child)
+        $rollOverMenu = Menu::firstOrCreate(
+            ['slug' => 'roll-over'],
+            [
+                'name' => 'Salin Data Semester',
+                'icon' => 'simple-icon-rocket',
+                'url' => '/admin/roll-over',
+                'parent_id' => $settings->id,
+                'order' => 7,
+            ]
+        );
+        $rollOverMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-roll-over'])->id]);
 
         // Master Data
-        $masterData = Menu::create([
-            'name' => 'Master Data',
-            'slug' => 'master-data',
-            'icon' => 'iconsminds-data-cloud',
-            'url' => '#',
-            'order' => 2,
-        ]);
+        $masterData = Menu::firstOrCreate(
+            ['slug' => 'master-data'],
+            [
+                'name' => 'Master Data',
+                'icon' => 'iconsminds-data-cloud',
+                'url' => '#',
+                'order' => 20,
+            ]
+        );
+        
         // kurikulum
-        $kurikulumMenu = Menu::create([
-            'name' => 'Kurikulum',
-            'slug' => 'kurikulum',
-            'icon' => 'iconsminds-book',
-            'url' => '/kurikulum',
-            'parent_id' => $masterData->id,
-            'order' => 1,
-        ]);
-        $kurikulumMenu->permissions()->attach(Permission::where('name', 'view-kurikulum')->first());
+        $kurikulumMenu = Menu::firstOrCreate(
+            ['slug' => 'kurikulum'],
+            [
+                'name' => 'Kurikulum',
+                'icon' => 'iconsminds-book',
+                'url' => '/kurikulum',
+                'parent_id' => $masterData->id,
+                'order' => 1,
+            ]
+        );
+        $kurikulumMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-kurikulum'])->id]);
+
         // Tahun Akademik
-        $tahunAkademikMenu = Menu::create([
-            'name' => 'Tahun Akademik',
-            'slug' => 'tahun-akademik',
-            'icon' => 'iconsminds-calendar-4',
-            'url' => '/tahun-akademik',
-            'parent_id' => $masterData->id,
-            'order' => 2,
-        ]);
-        $tahunAkademikMenu->permissions()->attach(Permission::where('name', 'view-tahun-akademik')->first());
+        $tahunAkademikMenu = Menu::firstOrCreate(
+            ['slug' => 'tahun-akademik'],
+            [
+                'name' => 'Tahun Akademik',
+                'icon' => 'iconsminds-calendar-4',
+                'url' => '/tahun-akademik',
+                'parent_id' => $masterData->id,
+                'order' => 2,
+            ]
+        );
+        $tahunAkademikMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-tahun-akademik'])->id]);
 
         // Semester
-        $semesterMenu = Menu::create([
-            'name' => 'Semester',
-            'slug' => 'semester',
-            'icon' => 'iconsminds-timer',
-            'url' => '/semester',
-            'parent_id' => $masterData->id,
-            'order' => 3,
-        ]);
-        $semesterMenu->permissions()->attach(Permission::where('name', 'view-semester')->first());
+        $semesterMenu = Menu::firstOrCreate(
+            ['slug' => 'semester'],
+            [
+                'name' => 'Semester',
+                'icon' => 'iconsminds-timer',
+                'url' => '/semester',
+                'parent_id' => $masterData->id,
+                'order' => 3,
+            ]
+        );
+        $semesterMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-semester'])->id]);
 
         // Jurusan
-        $jurusanMenu = Menu::create([
-            'name' => 'Jurusan',
-            'slug' => 'jurusan',
-            'icon' => 'simple-icon-graduation',
-            'url' => '/jurusan',
-            'parent_id' => $masterData->id,
-            'order' => 4,
-        ]);
-        $jurusanMenu->permissions()->attach(Permission::where('name', 'view-jurusan')->first());
+        $jurusanMenu = Menu::firstOrCreate(
+            ['slug' => 'jurusan'],
+            [
+                'name' => 'Jurusan',
+                'icon' => 'simple-icon-graduation',
+                'url' => '/jurusan',
+                'parent_id' => $masterData->id,
+                'order' => 4,
+            ]
+        );
+        $jurusanMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jurusan'])->id]);
+
         // Kelas
-        $kelasMenu = Menu::create([
-            'name' => 'Kelas',
-            'slug' => 'kelas',
-            'icon' => 'iconsminds-office',
-            'url' => '/kelas',
-            'parent_id' => $masterData->id,
-            'order' => 5,
-        ]);
-        $kelasMenu->permissions()->attach(Permission::where('name', 'view-jurusan')->first());
+        $kelasMenu = Menu::firstOrCreate(
+            ['slug' => 'kelas'],
+            [
+                'name' => 'Kelas',
+                'icon' => 'iconsminds-office',
+                'url' => '/kelas',
+                'parent_id' => $masterData->id,
+                'order' => 5,
+            ]
+        );
+        $kelasMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-kelas'])->id]);
+
         // Mata Pelajaran
-        $mataPelajaranMenu = Menu::create([
-            'name' => 'Mata Pelajaran',
-            'slug' => 'mata-pelajaran',
-            'icon' => 'iconsminds-open-book',
-            'url' => '/mata-pelajaran',
-            'parent_id' => $masterData->id,
-            'order' => 6,
-        ]);
-        $mataPelajaranMenu->permissions()->attach(Permission::where('name', 'view-mata-pelajaran')->first());
+        $mataPelajaranMenu = Menu::firstOrCreate(
+            ['slug' => 'mata-pelajaran'],
+            [
+                'name' => 'Mata Pelajaran',
+                'icon' => 'iconsminds-open-book',
+                'url' => '/mata-pelajaran',
+                'parent_id' => $masterData->id,
+                'order' => 6,
+            ]
+        );
+        $mataPelajaranMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-mata-pelajaran'])->id]);
+
         // JadwalMataPelajaran
-        $jadwalPelajaranMenu = Menu::create([
-            'name' => 'Jadwal Pelajaran',
-            'slug' => 'jadwal-pelajaran',
-            'icon' => 'iconsminds-calendar-4',
-            'url' => '/jadwal-pelajaran',
-            'parent_id' => $masterData->id,
-            'order' => 7,
-        ]);
-        $jadwalPelajaranMenu->permissions()->attach(Permission::where('name', 'view-jadwal-pelajaran')->first());
+        $jadwalPelajaranMenu = Menu::firstOrCreate(
+            ['slug' => 'jadwal-pelajaran'],
+            [
+                'name' => 'Jadwal Pelajaran',
+                'icon' => 'iconsminds-calendar-4',
+                'url' => '/jadwal-pelajaran',
+                'parent_id' => $masterData->id,
+                'order' => 7,
+            ]
+        );
+        $jadwalPelajaranMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jadwal-pelajaran'])->id]);
 
         // Guru Menu
-        $guruMenu = Menu::create([
-            'name' => 'Guru',
-            'slug' => 'guru',
-            'icon' => 'iconsminds-business-man-woman',
-            'url' => '/guru',
-            'parent_id' => $masterData->id,
-            'order' => 8,
-        ]);
-        $guruMenu->permissions()->attach(Permission::where('name', 'view-guru')->first());
+        $guruMenu = Menu::firstOrCreate(
+            ['slug' => 'guru'],
+            [
+                'name' => 'Guru',
+                'icon' => 'iconsminds-business-man-woman',
+                'url' => '/guru',
+                'parent_id' => $masterData->id,
+                'order' => 8,
+            ]
+        );
+        $guruMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-guru'])->id]);
 
         // Siswa Menu
-        $siswaMenu = Menu::create([
-            'name' => 'Siswa',
-            'slug' => 'siswa',
-            'icon' => 'iconsminds-student-male-female',
-            'url' => '/siswa',
-            'parent_id' => $masterData->id,
-            'order' => 9,
-        ]);
-        $siswaMenu->permissions()->attach(Permission::where('name', 'view-siswa')->first());
+        $siswaMenu = Menu::firstOrCreate(
+            ['slug' => 'siswa'],
+            [
+                'name' => 'Siswa',
+                'icon' => 'iconsminds-student-male-female',
+                'url' => '/siswa',
+                'parent_id' => $masterData->id,
+                'order' => 9,
+            ]
+        );
+        $siswaMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-siswa'])->id]);
 
         // Kenaikan Kelas
-        $kenaikanKelasMenu = Menu::create([
-            'name' => 'Kenaikan Kelas',
-            'slug' => 'kenaikan-kelas',
-            'icon' => 'simple-icon-arrow-up-circle',
-            'url' => '/kenaikan-kelas',
-            'parent_id' => $masterData->id,
-            'order' => 11,
-        ]);
-        $kenaikanKelasMenu->permissions()->attach(Permission::where('name', 'manage-kenaikan-kelas')->first());
-        $kenaikanKelasMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+        $kenaikanKelasMenu = Menu::firstOrCreate(
+            ['slug' => 'kenaikan-kelas'],
+            [
+                'name' => 'Kenaikan Kelas',
+                'icon' => 'simple-icon-arrow-up-circle',
+                'url' => '/kenaikan-kelas',
+                'parent_id' => $masterData->id,
+                'order' => 11,
+            ]
+        );
+        $kenaikanKelasMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'manage-kenaikan-kelas'])->id]);
 
         // Module Pembelajaran / E-Learning
-        $cbtMenu = Menu::create([
-            'name' => 'Pembelajaran',
-            'slug' => 'pembelajaran',
-            'icon' => 'iconsminds-tablet-with-text',
-            'url' => '#',
-            'order' => 20,
-        ]);
-        $cbtMenu->permissions()->attach(Permission::where('name', 'view-cbt')->first());
-        $cbtMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+        $cbtMenu = Menu::firstOrCreate(
+            ['slug' => 'pembelajaran'],
+            [
+                'name' => 'Pembelajaran',
+                'icon' => 'iconsminds-tablet-with-text',
+                'url' => '#',
+                'order' => 30,
+            ]
+        );
+        $cbtMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-cbt'])->id]);
 
         // E-Learning Home
-        $elearningMenu = Menu::create([
-            'name' => 'E-Learning',
-            'slug' => 'elearning',
-            'icon' => 'simple-icon-screen-desktop',
-            'url' => '/elearning',
-            'parent_id' => $cbtMenu->id,
-            'order' => 1,
-        ]);
-        $elearningMenu->permissions()->attach(Permission::where('name', 'view-elearning')->first());
-        $elearningMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'siswa'])->get());
+        $elearningMenu = Menu::firstOrCreate(
+            ['slug' => 'elearning'],
+            [
+                'name' => 'E-Learning',
+                'icon' => 'simple-icon-screen-desktop',
+                'url' => '/elearning',
+                'parent_id' => $cbtMenu->id,
+                'order' => 1,
+            ]
+        );
+        $elearningMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-elearning'])->id]);
 
         // Bank Soal
-        $bankSoalMenu = Menu::create([
-            'name' => 'Bank Soal',
-            'slug' => 'bank-soal',
-            'icon' => 'simple-icon-question',
-            'url' => '/bank-soal',
-            'parent_id' => $cbtMenu->id,
-            'order' => 2,
-        ]);
-        $bankSoalMenu->permissions()->attach(Permission::where('name', 'view-bank-soal')->first());
-        $bankSoalMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+        $bankSoalMenu = Menu::firstOrCreate(
+            ['slug' => 'bank-soal'],
+            [
+                'name' => 'Bank Soal',
+                'icon' => 'simple-icon-question',
+                'url' => '/bank-soal',
+                'parent_id' => $cbtMenu->id,
+                'order' => 2,
+            ]
+        );
+        $bankSoalMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-bank-soal'])->id]);
 
         // Jadwal Ujian
-        $jadwalUjianMenu = Menu::create([
-            'name' => 'Jadwal Ujian',
-            'slug' => 'jadwal-ujian',
-            'icon' => 'simple-icon-calendar',
-            'url' => '/jadwal-ujian',
-            'parent_id' => $cbtMenu->id,
-            'order' => 3,
-        ]);
-        $jadwalUjianMenu->permissions()->attach(Permission::where('name', 'view-jadwal-ujian')->first());
-        $jadwalUjianMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+        $jadwalUjianMenu = Menu::firstOrCreate(
+            ['slug' => 'jadwal-ujian'],
+            [
+                'name' => 'Jadwal Ujian',
+                'icon' => 'simple-icon-calendar',
+                'url' => '/jadwal-ujian',
+                'parent_id' => $cbtMenu->id,
+                'order' => 3,
+            ]
+        );
+        $jadwalUjianMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jadwal-ujian'])->id]);
 
         // Jurnal Mengajar
-        $jurnalMengajarMenu = Menu::create([
-            'name' => 'Jurnal Mengajar',
-            'slug' => 'jurnal-mengajar',
-            'icon' => 'simple-icon-book-open',
-            'url' => '/jurnal-mengajar',
-            'parent_id' => $cbtMenu->id,
-            'order' => 4,
-        ]);
-        $jurnalMengajarMenu->permissions()->attach(Permission::where('name', 'view-jurnal-mengajar')->first());
-        $jurnalMengajarMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin'])->get());
+        $jurnalMengajarMenu = Menu::firstOrCreate(
+            ['slug' => 'jurnal-mengajar'],
+            [
+                'name' => 'Jurnal Mengajar',
+                'icon' => 'simple-icon-book-open',
+                'url' => '/jurnal-mengajar',
+                'parent_id' => $cbtMenu->id,
+                'order' => 4,
+            ]
+        );
+        $jurnalMengajarMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jurnal-mengajar'])->id]);
 
-        $ujianSiswaMenu = Menu::create([
-            'name' => 'Ujian Saya',
-            'slug' => 'ujian-siswa',
-            'icon' => 'iconsminds-student-hat',
-            'url' => '/ujian-siswa',
-            'order' => 5,
-        ]);
-        $ujianSiswaMenu->permissions()->attach(Permission::where('name', 'view-ujian-siswa')->first());
-        $ujianSiswaMenu->roles()->attach(Role::where('name', 'siswa')->first());
+        // Ujian Saya
+        $ujianSiswaMenu = Menu::firstOrCreate(
+            ['slug' => 'ujian-siswa'],
+            [
+                'name' => 'Ujian Saya',
+                'icon' => 'iconsminds-student-hat',
+                'url' => '/ujian-siswa',
+                'order' => 40,
+            ]
+        );
+        $ujianSiswaMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-ujian-siswa'])->id]);
 
         // Module PKL
-        $pklMenu = Menu::create([
-            'name' => 'PKL / Magang',
-            'slug' => 'pkl',
-            'icon' => 'iconsminds-factory',
-            'url' => '#',
-            'order' => 21,
-        ]);
-        $pklMenu->permissions()->attach(Permission::where('name', 'view-pkl')->first());
-        $pklMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+        $pklMenu = Menu::firstOrCreate(
+            ['slug' => 'pkl'],
+            [
+                'name' => 'PKL / Magang',
+                'icon' => 'iconsminds-factory',
+                'url' => '#',
+                'order' => 50,
+            ]
+        );
+        $pklMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-pkl'])->id]);
 
         // Tempat PKL
-        $tempatPklMenu = Menu::create([
-            'name' => 'Data Industri',
-            'slug' => 'tempat-pkl',
-            'icon' => 'simple-icon-organization',
-            'url' => '/tempat-pkl',
-            'parent_id' => $pklMenu->id,
-            'order' => 1,
-        ]);
-        $tempatPklMenu->permissions()->attach(Permission::where('name', 'view-tempat-pkl')->first());
-        $tempatPklMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+        $tempatPklMenu = Menu::firstOrCreate(
+            ['slug' => 'tempat-pkl'],
+            [
+                'name' => 'Data Industri',
+                'icon' => 'simple-icon-organization',
+                'url' => '/tempat-pkl',
+                'parent_id' => $pklMenu->id,
+                'order' => 1,
+            ]
+        );
+        $tempatPklMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-tempat-pkl'])->id]);
 
         // Penempatan
-        $pklSiswaMenu = Menu::create([
-            'name' => 'Penempatan Siswa',
-            'slug' => 'pkl-siswa',
-            'icon' => 'simple-icon-people',
-            'url' => '/pkl-siswa',
-            'parent_id' => $pklMenu->id,
-            'order' => 2,
-        ]);
-        $pklSiswaMenu->permissions()->attach(Permission::where('name', 'view-pkl-siswa')->first());
-        $pklSiswaMenu->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
+        $pklSiswaMenu = Menu::firstOrCreate(
+            ['slug' => 'pkl-siswa'],
+            [
+                'name' => 'Penempatan Siswa',
+                'icon' => 'simple-icon-people',
+                'url' => '/pkl-siswa',
+                'parent_id' => $pklMenu->id,
+                'order' => 2,
+            ]
+        );
+        $pklSiswaMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-pkl-siswa'])->id]);
 
         // Nilai PKL
-        $nilaiPklMenu = Menu::create([
-            'name' => 'Penilaian PKL',
-            'slug' => 'pkl-nilai',
-            'icon' => 'simple-icon-calculator',
-            'url' => '/id/pkl-nilai',
-            'parent_id' => $pklMenu->id,
-            'order' => 5,
-        ]);
-        $nilaiPklMenu->permissions()->attach(Permission::where('name', 'view-pkl-nilai')->first());
-        $nilaiPklMenu->roles()->attach(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah'])->get());
+        $nilaiPklMenu = Menu::firstOrCreate(
+            ['slug' => 'pkl-nilai'],
+            [
+                'name' => 'Penilaian PKL',
+                'icon' => 'simple-icon-calculator',
+                'url' => '/pkl-nilai',
+                'parent_id' => $pklMenu->id,
+                'order' => 5,
+            ]
+        );
+        $nilaiPklMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-pkl-nilai'])->id]);
 
         // Reports
-        $reports = Menu::create([
-            'name' => 'Reports',
-            'slug' => 'reports',
-            'icon' => 'iconsminds-folder-with-document',
-            'url' => '#',
-            'order' => 30,
-        ]);
-        $reports->permissions()->attach(Permission::where('name', 'view-reports')->first());
+        $reports = Menu::firstOrCreate(
+            ['slug' => 'reports'],
+            [
+                'name' => 'Reports',
+                'icon' => 'iconsminds-folder-with-document',
+                'url' => '#',
+                'order' => 60,
+            ]
+        );
+        $reports->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-reports'])->id]);
 
-        $leggerMenu = Menu::create([
-            'name' => 'Legger Nilai',
-            'slug' => 'legger',
-            'icon' => 'simple-icon-notebook',
-            'url' => '/legger',
-            'parent_id' => $reports->id,
-            'order' => 1,
-        ]);
-        $leggerMenu->permissions()->attach(Permission::where('name', 'view-legger')->first());
+        $leggerMenu = Menu::firstOrCreate(
+            ['slug' => 'legger'],
+            [
+                'name' => 'Legger Nilai',
+                'icon' => 'simple-icon-notebook',
+                'url' => '/legger',
+                'parent_id' => $reports->id,
+                'order' => 1,
+            ]
+        );
+        $leggerMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-legger'])->id]);
 
-        $raportMenu = Menu::create([
-            'name' => 'Raport',
-            'slug' => 'raport',
-            'icon' => 'simple-icon-graduation',
-            'url' => '/raport',
-            'parent_id' => $reports->id,
-            'order' => 2,
-        ]);
-        $raportMenu->permissions()->attach(Permission::where('name', 'view-raport')->first());
+        $raportMenu = Menu::firstOrCreate(
+            ['slug' => 'raport'],
+            [
+                'name' => 'Raport',
+                'icon' => 'simple-icon-graduation',
+                'url' => '/raport',
+                'parent_id' => $reports->id,
+                'order' => 2,
+            ]
+        );
+        $raportMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-raport'])->id]);
 
-        $dashboard->roles()->attach(Role::all());
-        $settings->roles()->attach(Role::whereIn('name', ['admin', 'super-admin'])->get());
-        $reports->roles()->attach(Role::whereIn('name', ['manager', 'admin', 'super-admin', 'kepala-sekolah', 'guru'])->get());
+        // Assign Roles
+        $adminRoles = Role::whereIn('name', ['admin', 'super-admin'])->get();
+        $academicRoles = Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah', 'siswa'])->get();
+        $allRoles = Role::all();
+
+        $dashboard->roles()->syncWithoutDetaching($allRoles);
+        $settings->roles()->syncWithoutDetaching($adminRoles);
+        $masterData->roles()->syncWithoutDetaching($adminRoles);
+        $cbtMenu->roles()->syncWithoutDetaching($academicRoles);
+        $elearningMenu->roles()->syncWithoutDetaching($academicRoles);
+        $reports->roles()->syncWithoutDetaching($academicRoles);
+        $pklMenu->roles()->syncWithoutDetaching($academicRoles);
+        $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());
     }
 }

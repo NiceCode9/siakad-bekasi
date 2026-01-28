@@ -15,7 +15,12 @@ class JadwalPelajaranController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = JadwalPelajaran::with([
+            $semesterAktif = Semester::active()->first();
+            $query = JadwalPelajaran::whereHas('mataPelajaranKelas.kelas', function($q) use ($semesterAktif) {
+                if ($semesterAktif) {
+                    $q->where('semester_id', $semesterAktif->id);
+                }
+            })->with([
                 'mataPelajaranKelas.mataPelajaran',
                 'mataPelajaranKelas.kelas',
                 'mataPelajaranKelas.guru'
@@ -288,8 +293,14 @@ class JadwalPelajaranController extends Controller
     {
         $guru = \App\Models\Guru::findOrFail($guruId);
 
-        $jadwal = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($guruId) {
+        $semesterAktif = \App\Models\Semester::active()->first();
+        $jadwal = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($guruId, $semesterAktif) {
             $q->where('guru_id', $guruId);
+            if ($semesterAktif) {
+                $q->whereHas('kelas', function($qk) use ($semesterAktif) {
+                    $qk->where('semester_id', $semesterAktif->id);
+                });
+            }
         })
             ->with([
                 'mataPelajaranKelas.mataPelajaran',

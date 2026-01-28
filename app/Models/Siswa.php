@@ -82,6 +82,9 @@ class Siswa extends Model
     {
         return $this->belongsToMany(Kelas::class, 'siswa_kelas')
             ->wherePivot('status', 'aktif')
+            ->whereHas('semester', function($q) {
+                $q->active();
+            })
             ->withPivot('tanggal_masuk', 'tanggal_keluar', 'status')
             ->withTimestamps();
     }

@@ -12,11 +12,14 @@ class ELearningController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $subjects = [];
+        $semesterAktif = \App\Models\Semester::active()->first();
 
         if ($user->hasRole('guru')) {
             $subjects = MataPelajaranKelas::with(['kelas', 'mataPelajaran'])
                 ->where('guru_id', $user->guru->id)
+                ->whereHas('kelas', function($q) use ($semesterAktif) {
+                    if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+                })
                 ->get();
         } elseif ($user->hasRole('siswa')) {
             $siswa = $user->siswa;
@@ -27,7 +30,11 @@ class ELearningController extends Controller
                     ->get();
             }
         } elseif ($user->hasRole(['admin', 'super-admin'])) {
-            $subjects = MataPelajaranKelas::with(['kelas', 'mataPelajaran', 'guru'])->get();
+            $subjects = MataPelajaranKelas::with(['kelas', 'mataPelajaran', 'guru'])
+                ->whereHas('kelas', function($q) use ($semesterAktif) {
+                    if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+                })
+                ->get();
         }
 
         return view('elearning.index', compact('subjects'));

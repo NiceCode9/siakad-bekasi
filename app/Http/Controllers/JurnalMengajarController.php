@@ -14,12 +14,16 @@ class JurnalMengajarController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $semesterAktif = \App\Models\Semester::active()->first();
         if ($user->hasRole('guru')) {
-            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas', function ($q) use ($user) {
+            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas.kelas', function ($q) use ($user, $semesterAktif) {
                 $q->where('guru_id', $user->guru->id);
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
             })->with('jadwalPelajaran.mataPelajaranKelas.mataPelajaran')->latest()->get();
         } else {
-            $journals = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru'])->latest()->get();
+            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas.kelas', function ($q) use ($semesterAktif) {
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+            })->with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru'])->latest()->get();
         }
 
         return view('jurnal-mengajar.index', compact('journals'));
@@ -30,9 +34,11 @@ class JurnalMengajarController extends Controller
         $user = Auth::user();
         $schedules = [];
 
+        $semesterAktif = \App\Models\Semester::active()->first();
         if ($user->hasRole('guru')) {
-            $schedules = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($user) {
+            $schedules = JadwalPelajaran::whereHas('mataPelajaranKelas.kelas', function ($q) use ($user, $semesterAktif) {
                 $q->where('guru_id', $user->guru->id);
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
             })->with('mataPelajaranKelas.mataPelajaran', 'mataPelajaranKelas.kelas')->get();
         }
 

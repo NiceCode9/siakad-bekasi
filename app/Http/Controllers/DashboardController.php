@@ -34,10 +34,11 @@ class DashboardController extends Controller
 
     private function getAdminDashboard()
     {
+        $semesterAktif = \App\Models\Semester::active()->first();
         return [
-            'totalSiswa' => Siswa::count(),
-            'totalGuru' => Guru::count(),
-            'totalKelas' => Kelas::count(),
+            'totalSiswa' => Siswa::active()->count(),
+            'totalGuru' => Guru::active()->count(),
+            'totalKelas' => $semesterAktif ? Kelas::where('semester_id', $semesterAktif->id)->count() : 0,
             'recentNotifications' => Notifikasi::latest()->limit(5)->get(),
         ];
     }
@@ -45,16 +46,21 @@ class DashboardController extends Controller
     private function getGuruDashboard($user)
     {
         $guru = $user->guru;
+        $semesterAktif = \App\Models\Semester::active()->first();
+        
         return [
-            'todaySchedules' => JadwalPelajaran::whereHas('mataPelajaranKelas', function($q) use ($guru) {
+            'todaySchedules' => JadwalPelajaran::whereHas('mataPelajaranKelas.kelas', function($q) use ($guru, $semesterAktif) {
                 $q->where('guru_id', $guru->id);
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
             })->where('hari', $this->getTodayIndonesian())->get(),
             'pendingGrades' => PengumpulanTugas::where('status', 'dikirim')
-                ->whereHas('tugas.mataPelajaranKelas', function($q) use ($guru) {
+                ->whereHas('tugas.mataPelajaranKelas.kelas', function($q) use ($guru, $semesterAktif) {
                     $q->where('guru_id', $guru->id);
+                    if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
                 })->count(),
-            'recentTasks' => Tugas::whereHas('mataPelajaranKelas', function($q) use ($guru) {
+            'recentTasks' => Tugas::whereHas('mataPelajaranKelas.kelas', function($q) use ($guru, $semesterAktif) {
                 $q->where('guru_id', $guru->id);
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
             })->latest()->limit(5)->get(),
         ];
     }
@@ -85,18 +91,28 @@ class DashboardController extends Controller
             $q->wherePivot('status', 'aktif');
         }])->get();
 
+        $semesterAktif = \App\Models\Semester::active()->first();
         $childData = [];
         foreach ($children as $child) {
             $childData[] = [
                 'siswa' => $child,
                 'recentGrades' => \App\Models\Nilai::where('siswa_id', $child->id)
+                    ->when($semesterAktif, fn($q) => $q->where('semester_id', $semesterAktif->id))
                     ->with('mataPelajaranKelas.mataPelajaran')
                     ->latest()
                     ->limit(3)
                     ->get(),
                 'attendanceSummary' => [
-                    'hadir' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)->where('status', 'hadir')->count(),
-                    'absen' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)->whereIn('status', ['sakit', 'izin', 'alfa'])->count(),
+                    'hadir' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)
+                        ->whereHas('kelas', function($q) use ($semesterAktif) {
+                            if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+                        })
+                        ->where('status', 'H')->count(),
+                    'absen' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)
+                        ->whereHas('kelas', function($q) use ($semesterAktif) {
+                            if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+                        })
+                        ->whereIn('status', ['I', 'S', 'A'])->count(),
                 ]
             ];
         }

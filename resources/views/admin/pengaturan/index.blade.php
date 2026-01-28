@@ -1,131 +1,124 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="p-6">
-    <div class="mb-6">
-        <h2 class="text-2xl font-semibold text-gray-800 dark:text-white">Pengaturan Sistem</h2>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Konfigurasi profile sekolah dan parameter aplikasi.</p>
+    <div class="row">
+        <div class="col-12">
+            <h1>Pengaturan Sistem</h1>
+            <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
+                <ol class="breadcrumb pt-0">
+                    <li class="breadcrumb-item">
+                        <a href="{{ route('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item active" aria-current="page">Pengaturan</li>
+                </ol>
+            </nav>
+            <div class="separator mb-5"></div>
+        </div>
     </div>
 
-    @if(session('success'))
-    <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">
-        {{ session('success') }}
-    </div>
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show rounded mb-4" role="alert">
+            {{ session('success') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
     @endif
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-        <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            @method('PATCH')
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form action="{{ route('admin.pengaturan.update') }}" method="POST" enctype="multipart/form-data">
+                        @csrf
+                        @method('PATCH')
 
-            <div class="flex flex-col md:flex-row">
-                <!-- Tabs Navigation -->
-                <div class="w-full md:w-64 bg-gray-50 dark:bg-gray-900/50 p-4 border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-700">
-                    <nav class="space-y-1">
-                        @foreach($pengaturan as $kategori => $items)
-                        <button type="button" 
-                                onclick="showTab('tab-{{ Str::slug($kategori) }}')" 
-                                class="tab-btn w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                                data-tab="tab-{{ Str::slug($kategori) }}">
-                            {{ $kategori }}
-                        </button>
-                        @endforeach
-                    </nav>
-                </div>
+                        <ul class="nav nav-tabs separator-tabs ml-0 mb-5" role="tablist">
+                            @foreach ($pengaturan as $kategori => $items)
+                                <li class="nav-item">
+                                    <a class="nav-link {{ $loop->first ? 'active' : '' }}" id="{{ Str::slug($kategori) }}-tab"
+                                        data-toggle="tab" href="#{{ Str::slug($kategori) }}" role="tab"
+                                        aria-controls="{{ Str::slug($kategori) }}"
+                                        aria-selected="{{ $loop->first ? 'true' : 'false' }}">{{ $kategori }}</a>
+                                </li>
+                            @endforeach
+                        </ul>
 
-                <!-- Tabs Content -->
-                <div class="flex-1 p-6 md:p-8">
-                    @foreach($pengaturan as $kategori => $items)
-                    <div id="tab-{{ Str::slug($kategori) }}" class="tab-content hidden animate-fade-in">
-                        <h3 class="text-lg font-semibold mb-6 text-gray-800 dark:text-white border-b border-gray-100 dark:border-gray-700 pb-2">
-                            Pengaturan {{ $kategori }}
-                        </h3>
-                        
-                        <div class="space-y-6">
-                            @foreach($items as $item)
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {{ str_replace('_', ' ', ucwords($item->kunci, '_')) }}
-                                    </label>
-                                    @if($item->deskripsi)
-                                    <p class="text-xs text-gray-500 mt-1">{{ $item->deskripsi }}</p>
-                                    @endif
-                                </div>
-                                <div class="md:col-span-2">
-                                    @if($item->kunci === 'logo_sekolah')
-                                        <div class="flex items-center gap-4">
-                                            @if($item->nilai)
-                                                <img src="{{ asset('storage/' . $item->nilai) }}" class="h-16 w-16 object-contain rounded-lg border dark:border-gray-700" alt="Logo">
-                                            @else
-                                                <div class="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
-                                                    <i class="fas fa-image"></i>
+                        <div class="tab-content">
+                            @foreach ($pengaturan as $kategori => $items)
+                                <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}"
+                                    id="{{ Str::slug($kategori) }}" role="tabpanel"
+                                    aria-labelledby="{{ Str::slug($kategori) }}-tab">
+                                    
+                                    <div class="row">
+                                        <div class="col-12 col-lg-8">
+                                            @foreach ($items as $item)
+                                                <div class="form-group mb-4">
+                                                    <label class="font-weight-bold">{{ str_replace('_', ' ', ucwords($item->kunci, '_')) }}</label>
+                                                    
+                                                    @if ($item->deskripsi)
+                                                        <p class="text-muted text-small mb-2">{{ $item->deskripsi }}</p>
+                                                    @endif
+
+                                                    @if ($item->kunci === 'logo_sekolah')
+                                                        <div class="d-flex align-items-center">
+                                                            @if ($item->nilai)
+                                                                <img src="{{ asset('storage/' . $item->nilai) }}" 
+                                                                     class="img-thumbnail mr-3" 
+                                                                     style="height: 80px; width: 80px; object-fit: contain;" 
+                                                                     alt="Logo">
+                                                            @else
+                                                                <div class="bg-light d-flex align-items-center justify-center mr-3 rounded border" 
+                                                                     style="height: 80px; width: 80px;">
+                                                                    <i class="simple-icon-picture text-muted" style="font-size: 2rem;"></i>
+                                                                </div>
+                                                            @endif
+                                                            <div class="custom-file">
+                                                                <input type="file" class="custom-file-input" id="logo_sekolah" name="logo_sekolah">
+                                                                <label class="custom-file-label" for="logo_sekolah">Pilih file...</label>
+                                                            </div>
+                                                        </div>
+                                                    @elseif($item->tipe === 'boolean')
+                                                        <div class="custom-switch custom-switch-primary mb-2">
+                                                            <input type="hidden" name="{{ $item->kunci }}" value="0">
+                                                            <input class="custom-switch-input" id="switch-{{ $item->kunci }}" 
+                                                                   type="checkbox" name="{{ $item->kunci }}" value="1" 
+                                                                   {{ $item->nilai == '1' ? 'checked' : '' }}>
+                                                            <label class="custom-switch-btn" for="switch-{{ $item->kunci }}"></label>
+                                                        </div>
+                                                    @elseif($item->tipe === 'number')
+                                                        <input type="number" name="{{ $item->kunci }}" value="{{ $item->nilai }}" 
+                                                               class="form-control" placeholder="{{ str_replace('_', ' ', ucwords($item->kunci, '_')) }}">
+                                                    @else
+                                                        <input type="text" name="{{ $item->kunci }}" value="{{ $item->nilai }}" 
+                                                               class="form-control" placeholder="{{ str_replace('_', ' ', ucwords($item->kunci, '_')) }}">
+                                                    @endif
                                                 </div>
-                                            @endif
-                                            <input type="file" name="logo_sekolah" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                            @endforeach
                                         </div>
-                                    @elseif($item->tipe === 'boolean')
-                                        <label class="relative inline-flex items-center cursor-pointer">
-                                            <input type="hidden" name="{{ $item->kunci }}" value="0">
-                                            <input type="checkbox" name="{{ $item->kunci }}" value="1" {{ $item->nilai == '1' ? 'checked' : '' }} class="sr-only peer">
-                                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-                                        </label>
-                                    @elseif($item->tipe === 'number')
-                                        <input type="number" name="{{ $item->kunci }}" value="{{ $item->nilai }}" class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
-                                    @else
-                                        <input type="text" name="{{ $item->kunci }}" value="{{ $item->nilai }}" class="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none">
-                                    @endif
+                                    </div>
                                 </div>
-                            </div>
                             @endforeach
                         </div>
-                    </div>
-                    @endforeach
 
-                    <div class="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 flex justify-end">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors shadow-sm">
-                            Simpan Perubahan
-                        </button>
-                    </div>
+                        <div class="mt-4 border-top pt-4">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm">
+                                <i class="simple-icon-check mr-2"></i> Simpan Perubahan
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+@endsection
 
 @push('scripts')
-<script>
-    function showTab(tabId) {
-        // Hide all contents
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-        // Remove active styling from all buttons
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm');
-            el.classList.add('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-800/50');
+    <script>
+        // Update file input label
+        $('.custom-file-input').on('change', function() {
+            let fileName = $(this).val().split('\\').pop();
+            $(this).next('.custom-file-label').addClass("selected").html(fileName);
         });
-
-        // Show target content
-        document.getElementById(tabId).classList.remove('hidden');
-        // Add active styling to target button
-        const activeBtn = document.querySelector(`[data-tab="${tabId}"]`);
-        activeBtn.classList.remove('text-gray-600', 'dark:text-gray-400', 'hover:bg-gray-100', 'dark:hover:bg-gray-800/50');
-        activeBtn.classList.add('bg-white', 'dark:bg-gray-800', 'text-blue-600', 'shadow-sm');
-    }
-
-    // Default tab
-    document.addEventListener('DOMContentLoaded', () => {
-        const firstTabId = document.querySelector('.tab-content').id;
-        showTab(firstTabId);
-    });
-</script>
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.3s ease-out forwards;
-    }
-</style>
+    </script>
 @endpush
-@endsection
