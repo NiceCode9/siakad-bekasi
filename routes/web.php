@@ -41,7 +41,10 @@ use App\Http\Controllers\MateriAjarController;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\ForumDiskusiController;
 use App\Http\Controllers\JurnalMengajarController;
+use App\Http\Controllers\Admin\LogAktivitasController;
+use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\DashboardController;
+
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -284,7 +287,18 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [TugasController::class, 'store'])->name('store');
         Route::post('/{id}/submit', [TugasController::class, 'submit'])->name('submit');
         Route::post('/submission/{id}/grade', [TugasController::class, 'grade'])->name('grade');
-    });
+        // Log Aktivitas
+    Route::get('/admin/log-aktivitas', [LogAktivitasController::class, 'index'])->name('admin.log-aktivitas.index');
+    Route::get('/admin/log-aktivitas/{id}', [LogAktivitasController::class, 'show'])->name('admin.log-aktivitas.show');
+    Route::post('/admin/log-aktivitas/clear', [LogAktivitasController::class, 'clear'])->name('admin.log-aktivitas.clear');
+    Route::delete('/admin/log-aktivitas/{id}', [LogAktivitasController::class, 'destroy'])->name('admin.log-aktivitas.destroy');
+
+    // Pengaturan Sistem
+    Route::get('/admin/pengaturan', [PengaturanController::class, 'index'])->name('admin.pengaturan.index');
+    Route::patch('/admin/pengaturan', [PengaturanController::class, 'update'])->name('admin.pengaturan.update');
+});
+
+
 
     Route::prefix('forum')->name('forum.')->group(function () {
         Route::get('/{id}', [ForumDiskusiController::class, 'show'])->name('show');
