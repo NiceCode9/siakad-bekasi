@@ -256,7 +256,7 @@
                     <div class="tab-pane fade" id="mengajar" role="tabpanel">
                         <div class="card">
                             <div class="card-body">
-                                @if ($guru->mataPelajaranGuru->count() > 0)
+                                @if ($guru->mataPelajaranKelas->count() > 0)
                                     <div class="table-responsive">
                                         <table class="table table-sm table-bordered table-hover">
                                             <thead class="thead-light">
@@ -269,14 +269,14 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                @foreach ($guru->mataPelajaranGuru as $mpg)
+                                                @foreach ($guru->mataPelajaranKelas as $mpk)
                                                     <tr>
                                                         <td>{{ $loop->iteration }}</td>
-                                                        <td>{{ $mpg->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</td>
-                                                        <td>{{ $mpg->mataPelajaranKelas->kelas->nama ?? '-' }}</td>
-                                                        <td>{{ $mpg->mataPelajaranKelas->jam_per_minggu ?? '-' }} jam</td>
+                                                        <td>{{ $mpk->mataPelajaran->nama ?? '-' }}</td>
+                                                        <td>{{ $mpk->kelas->nama ?? '-' }}</td>
+                                                        <td>{{ $mpk->jam_per_minggu ?? '-' }} jam</td>
                                                         <td>
-                                                            <a href="{{ route('kelas.show', $mpg->mataPelajaranKelas->kelas->id) }}"
+                                                            <a href="{{ route('kelas.show', $mpk->kelas->id) }}"
                                                                 class="btn btn-info btn-sm">
                                                                 <i class="fas fa-eye"></i>
                                                             </a>

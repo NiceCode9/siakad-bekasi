@@ -272,9 +272,7 @@
                                                     <td>{{ $loop->iteration }}</td>
                                                     <td>{{ $mpk->mataPelajaran->kode ?? '-' }}</td>
                                                     <td>{{ $mpk->mataPelajaran->nama ?? '-' }}</td>
-                                                    <td>{{ $mpk->mataPelajaranGuru->map(function ($guru) {
-                                                        return $guru->guru->nama_lengkap;
-                                                    })->implode(', ')?? '-' }}</td>
+                                                    <td>{{ $mpk->guru->nama_lengkap ?? '-' }}</td>
                                                     <td>
                                                         @if ($mpk->mataPelajaran->jenis == 'wajib')
                                                             <span class="badge badge-primary">Wajib</span>
@@ -315,13 +313,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Pilih Guru <span class="text-danger">*</span></label>
-                            <select name="wali_kelas_id" class="form-control" required>
-                                <option value="">-- Pilih Guru --</option>
-                                @foreach (\App\Models\Guru::active()->orderBy('nama_lengkap')->get() as $g)
-                                    <option value="{{ $g->id }}">{{ $g->nama_lengkap }} ({{ $g->nip }})
-                                    </option>
-                                @endforeach
-                            </select>
+                            <select name="wali_kelas_id" id="wali_kelas_id" class="form-control" style="width:100%;" required></select>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -342,10 +334,29 @@
 
 @endsection
 
+@push('styles')
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+@endpush
+
 @push('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
+            $('#wali_kelas_id').select2({
+                dropdownParent: $('#assignWaliKelasModal'),
+                placeholder: 'Cari guru...',
+                allowClear: true,
+                ajax: {
+                    url: "{{ route('api.get-gurus') }}",
+                    dataType: 'json',
+                    delay: 250,
+                    processResults: function (data) {
+                        return { results: data };
+                    },
+                    cache: true
+                }
+            });
             // Remove Wali Kelas
             $('#btnRemoveWaliKelas').click(function() {
                 Swal.fire({

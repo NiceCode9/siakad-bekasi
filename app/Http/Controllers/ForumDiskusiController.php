@@ -13,7 +13,7 @@ class ForumDiskusiController extends Controller
 
     public function show($id)
     {
-        $forum = ForumDiskusi::with(['pembuat', 'forumKomentar.user', 'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran'])->findOrFail($id);
+        $forum = ForumDiskusi::with(['pembuat', 'forumKomentar.user', 'mataPelajaranKelas.mataPelajaran'])->findOrFail($id);
         $forum->increment('view_count');
 
         return view('elearning.forum_detail', compact('forum'));
@@ -22,17 +22,18 @@ class ForumDiskusiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'mata_pelajaran_guru_id' => 'required|exists:mata_pelajaran_guru,id',
+            'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
             'judul' => 'required|string|max:255',
             'konten' => 'required|string',
         ]);
 
         ForumDiskusi::create([
-            'mata_pelajaran_guru_id' => $request->mata_pelajaran_guru_id,
+            'mata_pelajaran_kelas_id' => $request->mata_pelajaran_kelas_id,
             'pembuat_id' => Auth::id(),
             'judul' => $request->judul,
             'konten' => $request->konten,
         ]);
+
 
         return back()->with('success', 'Topik diskusi berhasil dibuat.');
     }

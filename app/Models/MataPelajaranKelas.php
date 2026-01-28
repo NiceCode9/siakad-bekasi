@@ -14,6 +14,7 @@ class MataPelajaranKelas extends Model
     protected $fillable = [
         'mata_pelajaran_id',
         'kelas_id',
+        'guru_id',
         'jam_per_minggu',
     ];
 
@@ -28,10 +29,31 @@ class MataPelajaranKelas extends Model
         return $this->belongsTo(Kelas::class);
     }
 
-    public function mataPelajaranGuru()
+    public function guru()
     {
-        return $this->hasMany(MataPelajaranGuru::class);
+        return $this->belongsTo(Guru::class);
     }
+
+    public function jadwalPelajaran()
+    {
+        return $this->hasMany(JadwalPelajaran::class);
+    }
+
+    public function materiAjar()
+    {
+        return $this->hasMany(MateriAjar::class);
+    }
+
+    public function tugas()
+    {
+        return $this->hasMany(Tugas::class);
+    }
+
+    public function forumDiskusi()
+    {
+        return $this->hasMany(ForumDiskusi::class);
+    }
+
 
     public function jadwalUjian()
     {

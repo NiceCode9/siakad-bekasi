@@ -24,7 +24,7 @@
                                 <option value="">Pilih Jadwal...</option>
                                 @foreach($schedules as $schedule)
                                     <option value="{{ $schedule->id }}">
-                                        {{ $schedule->hari }} | {{ $schedule->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }} ({{ $schedule->mataPelajaranGuru->mataPelajaranKelas->kelas->nama }})
+                                        {{ $schedule->hari }} | {{ $schedule->mataPelajaranKelas->mataPelajaran->nama }} ({{ $schedule->mataPelajaranKelas->kelas->nama }})
                                     </option>
                                 @endforeach
                             </select>

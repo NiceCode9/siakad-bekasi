@@ -22,7 +22,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4>{{ $journal->jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }}</h4>
+                        <h4>{{ $journal->jadwalPelajaran->mataPelajaranKelas->mataPelajaran->nama }}</h4>
                         @if($journal->is_approved)
                             <span class="badge badge-success">APPROVED</span>
                         @else
@@ -32,8 +32,8 @@
 
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <p><strong>Guru:</strong> {{ $journal->jadwalPelajaran->mataPelajaranGuru->guru->nama }}</p>
-                            <p><strong>Kelas:</strong> {{ $journal->jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->nama }}</p>
+                            <p><strong>Guru:</strong> {{ $journal->jadwalPelajaran->mataPelajaranKelas->guru->nama }}</p>
+                            <p><strong>Kelas:</strong> {{ $journal->jadwalPelajaran->mataPelajaranKelas->kelas->nama }}</p>
                             <p><strong>Tanggal:</strong> {{ $journal->tanggal->format('l, d F Y') }}</p>
                         </div>
                         <div class="col-md-6 text-md-right">

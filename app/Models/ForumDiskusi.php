@@ -12,7 +12,7 @@ class ForumDiskusi extends Model
     protected $table = 'forum_diskusi';
 
     protected $fillable = [
-        'mata_pelajaran_guru_id',
+        'mata_pelajaran_kelas_id',
         'pembuat_id',
         'judul',
         'konten',
@@ -27,10 +27,11 @@ class ForumDiskusi extends Model
     ];
 
     // Relationships
-    public function mataPelajaranGuru()
+    public function mataPelajaranKelas()
     {
-        return $this->belongsTo(MataPelajaranGuru::class);
+        return $this->belongsTo(MataPelajaranKelas::class);
     }
+
 
     public function pembuat()
     {

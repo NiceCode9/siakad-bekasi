@@ -36,10 +36,10 @@
                             @foreach($journals as $journal)
                             <tr>
                                 <td>{{ $journal->tanggal->format('d/m/Y') }}</td>
-                                <td>{{ $journal->jadwalPelajaran->mataPelajaranGuru->guru->nama }}</td>
+                                <td>{{ $journal->jadwalPelajaran->mataPelajaranKelas->guru->nama }}</td>
                                 <td>
-                                    {{ $journal->jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }}<br>
-                                    <small class="text-muted">{{ $journal->jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->nama }}</small>
+                                    {{ $journal->jadwalPelajaran->mataPelajaranKelas->mataPelajaran->nama }}<br>
+                                    <small class="text-muted">{{ $journal->jadwalPelajaran->mataPelajaranKelas->kelas->nama }}</small>
                                 </td>
                                 <td>{{ $journal->jam_mulai->format('H:i') }} - {{ $journal->jam_selesai->format('H:i') }}</td>
                                 <td>{{ $journal->jumlah_hadir }} / {{ ($journal->jumlah_hadir + $journal->jumlah_tidak_hadir) }}</td>

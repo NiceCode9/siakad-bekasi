@@ -25,7 +25,7 @@
                             <div class="form-group">
                                 <label>Kelas</label>
                                 <input type="text" class="form-control"
-                                    value="{{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->nama ?? '-' }}"
+                                    value="{{ $jadwalPelajaran->mataPelajaranKelas->kelas->nama ?? '-' }}"
                                     readonly>
                                 <small class="form-text text-muted">Kelas tidak dapat diubah</small>
                             </div>
@@ -33,7 +33,7 @@
                             <div class="form-group">
                                 <label>Mata Pelajaran & Guru</label>
                                 <input type="text" class="form-control"
-                                    value="{{ ($jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama ?? '-') . ' - ' . ($jadwalPelajaran->mataPelajaranGuru->guru->nama_lengkap ?? '-') }}"
+                                    value="{{ ($jadwalPelajaran->mataPelajaranKelas->mataPelajaran->nama ?? '-') . ' - ' . ($jadwalPelajaran->mataPelajaranKelas->guru->nama_lengkap ?? '-') }}"
                                     readonly>
                                 <small class="form-text text-muted">Mata pelajaran dan guru tidak dapat diubah</small>
                             </div>

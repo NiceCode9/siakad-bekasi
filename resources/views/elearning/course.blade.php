@@ -1,16 +1,16 @@
 @extends('layouts.app')
 
-@section('title', $subject->mataPelajaranKelas->mataPelajaran->nama)
+@section('title', $subject->mataPelajaran->nama)
 
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1>{{ $subject->mataPelajaranKelas->mataPelajaran->nama }} - {{ $subject->mataPelajaranKelas->kelas->nama }}</h1>
+            <h1>{{ $subject->mataPelajaran->nama }} - {{ $subject->kelas->nama }}</h1>
             <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
                 <ol class="breadcrumb pt-0">
                     <li class="breadcrumb-item"><a href="{{ route('elearning.index') }}">E-Learning</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ $subject->mataPelajaranKelas->mataPelajaran->nama }}</li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ $subject->mataPelajaran->nama }}</li>
                 </ol>
             </nav>
             <div class="separator mb-5"></div>
@@ -147,7 +147,7 @@
     <div class="modal-dialog" role="document">
         <form action="{{ route('materi.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="mata_pelajaran_guru_id" value="{{ $subject->id }}">
+            <input type="hidden" name="mata_pelajaran_kelas_id" value="{{ $subject->id }}">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title">Tambah Materi</h5></div>
                 <div class="modal-body">
@@ -180,7 +180,7 @@
     <div class="modal-dialog" role="document">
         <form action="{{ route('tugas.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="mata_pelajaran_guru_id" value="{{ $subject->id }}">
+            <input type="hidden" name="mata_pelajaran_kelas_id" value="{{ $subject->id }}">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title">Buat Tugas Baru</h5></div>
                 <div class="modal-body">
@@ -203,7 +203,7 @@
     <div class="modal-dialog" role="document">
         <form action="{{ route('forum.store') }}" method="POST">
             @csrf
-            <input type="hidden" name="mata_pelajaran_guru_id" value="{{ $subject->id }}">
+            <input type="hidden" name="mata_pelajaran_kelas_id" value="{{ $subject->id }}">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title">Buat Topik Diskusi</h5></div>
                 <div class="modal-body">

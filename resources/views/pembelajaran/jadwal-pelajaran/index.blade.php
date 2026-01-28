@@ -126,15 +126,15 @@
                     },
                     {
                         data: 'kelas_nama',
-                        name: 'mataPelajaranGuru.mataPelajaranKelas.kelas.nama'
+                        name: 'mataPelajaranKelas.kelas.nama'
                     },
                     {
                         data: 'mapel_nama',
-                        name: 'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran.nama'
+                        name: 'mataPelajaranKelas.mataPelajaran.nama'
                     },
                     {
                         data: 'guru_nama',
-                        name: 'mataPelajaranGuru.guru.nama_lengkap'
+                        name: 'mataPelajaranKelas.guru.nama_lengkap'
                     },
                     {
                         data: 'ruang',

@@ -71,8 +71,8 @@
                         <div class="d-flex flex-row mb-3 pb-3 border-bottom">
                             <div class="pl-3">
                                 <a href="#">
-                                    <p class="font-weight-medium mb-0">{{ $schedule->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }}</p>
-                                    <p class="text-muted mb-0 text-small">{{ $schedule->jam_mulai->format('H:i') }} - {{ $schedule->jam_selesai->format('H:i') }} | Kelas {{ $schedule->mataPelajaranGuru->mataPelajaranKelas->kelas->nama }}</p>
+                                    <p class="font-weight-medium mb-0">{{ $schedule->mataPelajaranKelas->mataPelajaran->nama }}</p>
+                                    <p class="text-muted mb-0 text-small">{{ $schedule->jam_mulai->format('H:i') }} - {{ $schedule->jam_selesai->format('H:i') }} | Kelas {{ $schedule->mataPelajaranKelas->kelas->nama }}</p>
                                 </a>
                             </div>
                         </div>
@@ -131,8 +131,8 @@
                             @forelse($todaySchedules as $schedule)
                             <tr>
                                 <td>{{ $schedule->jam_mulai->format('H:i') }}</td>
-                                <td>{{ $schedule->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }}</td>
-                                <td>{{ $schedule->mataPelajaranGuru->guru->nama }}</td>
+                                <td>{{ $schedule->mataPelajaranKelas->mataPelajaran->nama }}</td>
+                                <td>{{ $schedule->mataPelajaranKelas->guru->nama }}</td>
                             </tr>
                             @empty
                             <tr>
@@ -153,7 +153,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <div>
                                 <strong>{{ $task->judul }}</strong><br>
-                                <small>{{ $task->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama }}</small>
+                                <small>{{ $task->mataPelajaranKelas->mataPelajaran->nama }}</small>
                             </div>
                             <span class="badge badge-pill badge-danger">{{ $task->tanggal_deadline->format('d M') }}</span>
                         </li>

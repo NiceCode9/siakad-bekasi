@@ -11,7 +11,6 @@
     <link rel="stylesheet" href="{{ asset('assets') }}/font/simple-line-icons/css/simple-line-icons.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/dataTables.bootstrap4.min.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/datatables.responsive.bootstrap4.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/bootstrap.min.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/bootstrap.rtl.only.min.css" />
@@ -19,6 +18,7 @@
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/perfect-scrollbar.css" />
 
     <link rel="stylesheet" href="{{ asset('assets') }}/css/main.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
 
     @stack('styles')
 </head>
@@ -220,6 +220,7 @@
 
     <script src="{{ asset('assets') }}/js/vendor/datatables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"></script>
 
     @stack('scripts')
 </body>

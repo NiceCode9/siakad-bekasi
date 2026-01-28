@@ -195,14 +195,14 @@ class GuruController extends Controller
         $guru->load([
             'user',
             'kelasWali.semester.tahunAkademik',
-            'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-            'mataPelajaranGuru.mataPelajaranKelas.kelas',
+            'mataPelajaranKelas.mataPelajaran',
+            'mataPelajaranKelas.kelas',
         ]);
 
         // Statistik
         $stats = [
             'total_wali_kelas' => $guru->kelasWali()->count(),
-            'total_mengajar' => $guru->mataPelajaranGuru()->count(),
+            'total_mengajar' => $guru->mataPelajaranKelas()->count(),
             'total_bank_soal' => $guru->bankSoal()->count(),
         ];
 
@@ -323,8 +323,8 @@ class GuruController extends Controller
         }
 
         // Check jika masih mengajar
-        if ($guru->mataPelajaranGuru()->exists()) {
-            return $this->errorResponse('Guru tidak dapat dihapus karena masih mengajar', 400);
+        if ($guru->mataPelajaranKelas()->exists()) {
+            return $this->errorResponse('Guru tidak dapat dihapus because masih mengajar', 400);
         }
 
         DB::beginTransaction();

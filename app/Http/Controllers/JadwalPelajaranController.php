@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\JadwalPelajaran;
-use App\Models\MataPelajaranGuru;
+use App\Models\MataPelajaranKelas;
 use App\Models\Kelas;
 use App\Models\Semester;
 use Illuminate\Http\Request;
@@ -16,14 +16,14 @@ class JadwalPelajaranController extends Controller
     {
         if ($request->ajax()) {
             $query = JadwalPelajaran::with([
-                'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-                'mataPelajaranGuru.mataPelajaranKelas.kelas',
-                'mataPelajaranGuru.guru'
+                'mataPelajaranKelas.mataPelajaran',
+                'mataPelajaranKelas.kelas',
+                'mataPelajaranKelas.guru'
             ]);
 
             // Filter by kelas
             if ($request->filled('kelas_id')) {
-                $query->whereHas('mataPelajaranGuru.mataPelajaranKelas', function ($q) use ($request) {
+                $query->whereHas('mataPelajaranKelas', function ($q) use ($request) {
                     $q->where('kelas_id', $request->kelas_id);
                 });
             }
@@ -36,13 +36,13 @@ class JadwalPelajaranController extends Controller
             return DataTables::of($query)
                 ->addIndexColumn()
                 ->addColumn('kelas_nama', function ($row) {
-                    return $row->mataPelajaranGuru->mataPelajaranKelas->kelas->nama ?? '-';
+                    return $row->mataPelajaranKelas->kelas->nama ?? '-';
                 })
                 ->addColumn('mapel_nama', function ($row) {
-                    return $row->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama ?? '-';
+                    return $row->mataPelajaranKelas->mataPelajaran->nama ?? '-';
                 })
                 ->addColumn('guru_nama', function ($row) {
-                    return $row->mataPelajaranGuru->guru->nama_lengkap ?? '-';
+                    return $row->mataPelajaranKelas->guru->nama_lengkap ?? '-';
                 })
                 ->addColumn('waktu', function ($row) {
                     return $row->jam_mulai->format('H:i') . ' - ' . $row->jam_selesai->format('H:i');
@@ -109,7 +109,7 @@ class JadwalPelajaranController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'mata_pelajaran_guru_id' => 'required|exists:mata_pelajaran_guru,id',
+            'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
             'hari' => 'required|in:Senin,Selasa,Rabu,Kamis,Jumat,Sabtu',
             'jam_mulai' => 'required|date_format:H:i',
             'jam_selesai' => 'required|date_format:H:i|after:jam_mulai',
@@ -118,7 +118,7 @@ class JadwalPelajaranController extends Controller
 
         // Validasi bentrok
         $bentrok = $this->checkBentrok(
-            $validated['mata_pelajaran_guru_id'],
+            $validated['mata_pelajaran_kelas_id'],
             $validated['hari'],
             $validated['jam_mulai'],
             $validated['jam_selesai']
@@ -139,9 +139,9 @@ class JadwalPelajaranController extends Controller
     public function show(JadwalPelajaran $jadwalPelajaran)
     {
         $jadwalPelajaran->load([
-            'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-            'mataPelajaranGuru.mataPelajaranKelas.kelas',
-            'mataPelajaranGuru.guru'
+            'mataPelajaranKelas.mataPelajaran',
+            'mataPelajaranKelas.kelas',
+            'mataPelajaranKelas.guru'
         ]);
 
         return view('pembelajaran.jadwal-pelajaran.show', compact('jadwalPelajaran'));
@@ -150,9 +150,9 @@ class JadwalPelajaranController extends Controller
     public function edit(JadwalPelajaran $jadwalPelajaran)
     {
         $jadwalPelajaran->load([
-            'mataPelajaranGuru.mataPelajaranKelas.kelas',
-            'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-            'mataPelajaranGuru.guru'
+            'mataPelajaranKelas.kelas',
+            'mataPelajaranKelas.mataPelajaran',
+            'mataPelajaranKelas.guru'
         ]);
 
         $hari = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -171,7 +171,7 @@ class JadwalPelajaranController extends Controller
 
         // Validasi bentrok (exclude jadwal ini)
         $bentrok = $this->checkBentrok(
-            $jadwalPelajaran->mata_pelajaran_guru_id,
+            $jadwalPelajaran->mata_pelajaran_kelas_id,
             $validated['hari'],
             $validated['jam_mulai'],
             $validated['jam_selesai'],
@@ -203,18 +203,18 @@ class JadwalPelajaranController extends Controller
     /**
      * Check bentrok jadwal
      */
-    private function checkBentrok($mataPelajaranGuruId, $hari, $jamMulai, $jamSelesai, $excludeId = null)
+    private function checkBentrok($mataPelajaranKelasId, $hari, $jamMulai, $jamSelesai, $excludeId = null)
     {
-        $mpg = MataPelajaranGuru::with([
-            'mataPelajaranKelas.kelas',
+        $mpk = MataPelajaranKelas::with([
+            'kelas',
             'guru'
-        ])->find($mataPelajaranGuruId);
+        ])->find($mataPelajaranKelasId);
 
-        if (!$mpg) return null;
+        if (!$mpk) return null;
 
         // 1. Check bentrok guru (guru tidak bisa mengajar 2 kelas di waktu sama)
-        $bentrokGuru = JadwalPelajaran::whereHas('mataPelajaranGuru', function ($q) use ($mpg) {
-            $q->where('guru_id', $mpg->guru_id);
+        $bentrokGuru = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($mpk) {
+            $q->where('guru_id', $mpk->guru_id);
         })
             ->where('hari', $hari)
             ->where(function ($q) use ($jamMulai, $jamSelesai) {
@@ -231,12 +231,12 @@ class JadwalPelajaranController extends Controller
         }
 
         if ($bentrokGuru->exists()) {
-            return "Guru {$mpg->guru->nama_lengkap} sudah mengajar di hari {$hari} pada jam {$jamMulai} - {$jamSelesai}";
+            return "Guru {$mpk->guru->nama_lengkap} sudah mengajar di hari {$hari} pada jam {$jamMulai} - {$jamSelesai}";
         }
 
         // 2. Check bentrok kelas (kelas tidak bisa ada 2 mapel di waktu sama)
-        $bentrokKelas = JadwalPelajaran::whereHas('mataPelajaranGuru.mataPelajaranKelas', function ($q) use ($mpg) {
-            $q->where('kelas_id', $mpg->mataPelajaranKelas->kelas_id);
+        $bentrokKelas = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($mpk) {
+            $q->where('kelas_id', $mpk->kelas_id);
         })
             ->where('hari', $hari)
             ->where(function ($q) use ($jamMulai, $jamSelesai) {
@@ -253,7 +253,7 @@ class JadwalPelajaranController extends Controller
         }
 
         if ($bentrokKelas->exists()) {
-            return "Kelas {$mpg->mataPelajaranKelas->kelas->nama} sudah ada jadwal di hari {$hari} pada jam {$jamMulai} - {$jamSelesai}";
+            return "Kelas {$mpk->kelas->nama} sudah ada jadwal di hari {$hari} pada jam {$jamMulai} - {$jamSelesai}";
         }
 
         return null;
@@ -264,12 +264,12 @@ class JadwalPelajaranController extends Controller
      */
     public function viewByKelas(Kelas $kelas)
     {
-        $jadwal = JadwalPelajaran::whereHas('mataPelajaranGuru.mataPelajaranKelas', function ($q) use ($kelas) {
+        $jadwal = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($kelas) {
             $q->where('kelas_id', $kelas->id);
         })
             ->with([
-                'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-                'mataPelajaranGuru.guru'
+                'mataPelajaranKelas.mataPelajaran',
+                'mataPelajaranKelas.guru'
             ])
             ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
             ->orderBy('jam_mulai')
@@ -288,12 +288,12 @@ class JadwalPelajaranController extends Controller
     {
         $guru = \App\Models\Guru::findOrFail($guruId);
 
-        $jadwal = JadwalPelajaran::whereHas('mataPelajaranGuru', function ($q) use ($guruId) {
+        $jadwal = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($guruId) {
             $q->where('guru_id', $guruId);
         })
             ->with([
-                'mataPelajaranGuru.mataPelajaranKelas.mataPelajaran',
-                'mataPelajaranGuru.mataPelajaranKelas.kelas'
+                'mataPelajaranKelas.mataPelajaran',
+                'mataPelajaranKelas.kelas'
             ])
             ->orderByRaw("FIELD(hari, 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu')")
             ->orderBy('jam_mulai')
@@ -311,23 +311,22 @@ class JadwalPelajaranController extends Controller
     {
         $kelasId = $request->kelas_id;
 
-        $mataPelajaranGuru = MataPelajaranGuru::whereHas('mataPelajaranKelas', function ($q) use ($kelasId) {
-            $q->where('kelas_id', $kelasId);
-        })
+        $mataPelajaranKelas = MataPelajaranKelas::where('kelas_id', $kelasId)
             ->with([
-                'mataPelajaranKelas.mataPelajaran',
+                'mataPelajaran',
                 'guru'
             ])
             ->get()
-            ->map(function ($mpg) {
+            ->map(function ($mpk) {
                 return [
-                    'id' => $mpg->id,
-                    'label' => $mpg->mataPelajaranKelas->mataPelajaran->nama . ' - ' . $mpg->guru->nama_lengkap,
-                    'mapel' => $mpg->mataPelajaranKelas->mataPelajaran->nama,
-                    'guru' => $mpg->guru->nama_lengkap,
+                    'id' => $mpk->id,
+                    'label' => $mpk->mataPelajaran->nama . ' - ' . ($mpk->guru->nama_lengkap ?? 'Belum ada guru'),
+                    'mapel' => $mpk->mataPelajaran->nama,
+                    'guru' => $mpk->guru->nama_lengkap ?? 'Belum ada guru',
                 ];
             });
 
-        return response()->json($mataPelajaranGuru);
+        return response()->json($mataPelajaranKelas);
     }
 }
+

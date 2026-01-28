@@ -12,7 +12,7 @@ class JadwalPelajaran extends Model
     protected $table = 'jadwal_pelajaran';
 
     protected $fillable = [
-        'mata_pelajaran_guru_id',
+        'mata_pelajaran_kelas_id',
         'hari',
         'jam_mulai',
         'jam_selesai',
@@ -25,10 +25,11 @@ class JadwalPelajaran extends Model
     ];
 
     // Relationships
-    public function mataPelajaranGuru()
+    public function mataPelajaranKelas()
     {
-        return $this->belongsTo(MataPelajaranGuru::class);
+        return $this->belongsTo(MataPelajaranKelas::class);
     }
+
 
     public function jurnalMengajar()
     {

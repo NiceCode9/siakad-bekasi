@@ -76,6 +76,7 @@
         </div>
     </div>
 
+    <!-- Modal Form -->
     <div class="modal fade" id="tahunAkademikModal" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -117,20 +118,39 @@
                             <label for="tanggal_selesai">Tanggal Selesai <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" name="tanggal_selesai" id="tanggal_selesai">
                         </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
-                        <div class="form-group row mb-1">
-                            <label class="col-12 col-form-label">Status Aktif</label>
-                            <div class="col-12">
-                                <div class="custom-switch custom-switch-small custom-switch-secondary mb-2">
-                                    <input class="custom-switch-input" id="is_active" name="is_active" type="checkbox">
-                                    <label class="custom-switch-btn" for="is_active"></label>
-                                </div>
+    <!-- Modal Activation -->
+    <div class="modal fade" id="activateSemesterModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Pilih Semester untuk Diaktifkan</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <form id="activateSemesterForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="activate_tahun_akademik_id">
+                        <div class="form-group">
+                            <label>Semester <span class="text-danger">*</span></label>
+                            <div id="semester-options-container">
+                                <!-- Radio buttons will be injected here -->
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary" id="btn-save">Simpan</button>
+                        <button type="submit" class="btn btn-primary">Aktifkan</button>
                     </div>
                 </form>
             </div>
@@ -208,7 +228,6 @@
                 $('#tahunAkademikForm')[0].reset();
                 $('#tahun_akademik_id').val('');
                 $('#modalTitle').text('Tambah Tahun Akademik');
-                $('#is_active').prop('checked', false);
                 clearValidationErrors();
                 loadKurikulum();
                 $('#tahunAkademikModal').modal('show');
@@ -222,21 +241,18 @@
                         ':tahunAkademik', id),
                     type: 'GET',
                     success: function(response) {
-                        console.log(response);
                         $('#tahun_akademik_id').val(response.data.id);
                         $('#kode').val(response.data.kode);
                         $('#nama').val(response.data.nama);
                         $('#kurikulum_id').val(response.data.kurikulum_id);
                         $('#tanggal_mulai').val(response.data.tanggal_mulai);
                         $('#tanggal_selesai').val(response.data.tanggal_selesai);
-                        $('#is_active').prop('checked', response.data.is_active);
 
                         loadKurikulum(response.data.kurikulum_id);
                         $('#modalTitle').text('Edit Tahun Akademik');
                         $('#tahunAkademikModal').modal('show');
                     },
                     error: function(xhr) {
-                        console.log(xhr);
                         Swal.fire('Error!', 'Gagal memuat data tahun akademik', 'error');
                     }
                 });
@@ -254,8 +270,7 @@
                     nama: $('#nama').val(),
                     kurikulum_id: $('#kurikulum_id').val(),
                     tanggal_mulai: $('#tanggal_mulai').val(),
-                    tanggal_selesai: $('#tanggal_selesai').val(),
-                    is_active: $('#is_active').is(':checked') ? 1 : 0
+                    tanggal_selesai: $('#tanggal_selesai').val()
                 };
 
                 if (id) {
@@ -292,16 +307,9 @@
 
                             $.each(errors, function(field, messages) {
                                 let input = $('[name="' + field + '"]');
-
-                                if (input.attr('type') === 'checkbox') {
-                                    input.closest('.form-group')
-                                        .append('<div class="text-danger mt-1">' +
-                                            messages[0] + '</div>');
-                                } else {
-                                    input.addClass('is-invalid');
-                                    input.after('<div class="invalid-feedback">' +
-                                        messages[0] + '</div>');
-                                }
+                                input.addClass('is-invalid');
+                                input.after('<div class="invalid-feedback">' +
+                                    messages[0] + '</div>');
                             });
                         } else {
                             Swal.fire({
@@ -317,7 +325,6 @@
                 });
             });
 
-            // Delete Button
             $(document).on('click', '.btn-delete', function() {
                 var id = $(this).data('id');
 
@@ -361,10 +368,43 @@
                 });
             });
 
-            // Set Active Tahun Akademik
             $(document).on('click', '.btn-set-active', function() {
-                let button = $(this);
-                let id = button.data('id');
+                let id = $(this).data('id');
+                $('#activate_tahun_akademik_id').val(id);
+                
+                $.ajax({
+                    url: "{{ route('tahun-akademik.get-semesters', ':id') }}".replace(':id', id),
+                    type: 'GET',
+                    success: function(response) {
+                        let html = '';
+                        if (response.data && response.data.length > 0) {
+                            response.data.forEach(function(semester, index) {
+                                html += `
+                                    <div class="custom-control custom-radio mb-2">
+                                        <input type="radio" id="semester_${semester.id}" name="semester_id" 
+                                            class="custom-control-input" value="${semester.id}" ${index === 0 ? 'checked' : ''}>
+                                        <label class="custom-control-label" for="semester_${semester.id}">
+                                            ${semester.nama} (${semester.kode})
+                                        </label>
+                                    </div>
+                                `;
+                            });
+                            $('#semester-options-container').html(html);
+                            $('#activateSemesterModal').modal('show');
+                        } else {
+                            Swal.fire('Error!', 'Tahun akademik ini tidak memiliki data semester.', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error!', 'Gagal memuat data semester.', 'error');
+                    }
+                });
+            });
+
+            $('#activateSemesterForm').submit(function(e) {
+                e.preventDefault();
+                let id = $('#activate_tahun_akademik_id').val();
+                let semesterId = $('input[name="semester_id"]:checked').val();
 
                 Swal.fire({
                     title: 'Aktifkan Tahun Akademik?',
@@ -376,8 +416,9 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         $.ajax({
-                            url: "{{ route('tahun-akademik.set-active', ':tahunAkademik') }}"
-                                .replace(':tahunAkademik', id),
+                            url: "{{ route('tahun-akademik.set-active', [':id', ':semester']) }}"
+                                .replace(':id', id)
+                                .replace(':semester', semesterId),
                             type: 'POST',
                             success: function(response) {
                                 Swal.fire({
@@ -393,8 +434,7 @@
                             error: function(xhr) {
                                 Swal.fire(
                                     'Gagal!',
-                                    xhr.responseJSON?.message ||
-                                    'Tidak dapat mengaktifkan tahun akademik',
+                                    xhr.responseJSON?.message || 'Tidak dapat mengaktifkan tahun akademik',
                                     'error'
                                 );
                             }

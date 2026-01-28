@@ -100,6 +100,11 @@ class TahunAkademikController extends Controller
             TahunAkademik::where('is_active', true)
                 ->where('id', '!=', $tahunAkademik->id)
                 ->update(['is_active' => false]);
+            
+            // Activation preferred via setActive to specify semester.
+        } else {
+            // Jika dinonaktifkan, nonaktifkan semua semesternya
+            $tahunAkademik->semester()->update(['is_active' => false]);
         }
 
         $tahunAkademik->update($validated);
@@ -112,12 +117,11 @@ class TahunAkademikController extends Controller
 
     public function destroy(TahunAkademik $tahunAkademik)
     {
-        // Check jika masih ada kelas
         if ($tahunAkademik->semester()->whereHas('kelas')->exists()) {
             return response()->json([
-                'status' => 'success',
+                'status' => 'error',
                 'message' => 'Tahun Akademik tidak dapat dihapus karena masih ada kelas'
-            ]);
+            ], 422);
         }
 
         $tahunAkademik->delete();
@@ -128,45 +132,60 @@ class TahunAkademikController extends Controller
         ]);
     }
 
-    public function setActive(TahunAkademik $tahunAkademik)
+    public function setActive(Request $request, TahunAkademik $tahunAkademik, $semesterId = null)
     {
+        $semesterId = $semesterId ?: $request->semester_id;
+
+        if (!$semesterId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'ID Semester harus dipilih'
+            ], 422);
+        }
+
         DB::beginTransaction();
         try {
-            // Nonaktifkan semua tahun akademik
-            TahunAkademik::where('is_active', true)->update(['is_active' => false]);
-
-            // Nonaktifkan semua semester
-            DB::table('semester')->update(['is_active' => false]);
-
-            // Aktifkan tahun akademik yang dipilih
+            TahunAkademik::where('id', '!=', $tahunAkademik->id)->update(['is_active' => false]);
             $tahunAkademik->update(['is_active' => true]);
+
+            \App\Models\Semester::where('is_active', true)->update(['is_active' => false]);
+
+            $semester = \App\Models\Semester::where('tahun_akademik_id', $tahunAkademik->id)
+                ->where('id', $semesterId)
+                ->first();
+
+            if (!$semester) {
+                throw new \Exception("Semester tidak ditemukan di Tahun Akademik ini.");
+            }
+
+            $semester->update(['is_active' => true]);
 
             DB::commit();
             return response()->json([
                 'status' => 'success',
-                'message' => 'Berhasil mengaktifkan tahun akademik'
+                'message' => 'Berhasil mengaktifkan Tahun Akademik: ' . $tahunAkademik->nama . ' (' . $semester->nama . ')'
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengaktifkan tahun akademik: ' . $e->getMessage()
-            ]);
+                'message' => 'Gagal mengaktifkan: ' . $e->getMessage()
+            ], 500);
         }
     }
 
-    /**
-     * Helper: Create default semester (Ganjil & Genap)
-     */
+    public function getSemesters(TahunAkademik $tahunAkademik)
+    {
+        $semesters = $tahunAkademik->semester()->get();
+        return response()->json(['data' => $semesters]);
+    }
+
     private function createDefaultSemester(TahunAkademik $tahunAkademik)
     {
         $tanggalMulai = \Carbon\Carbon::parse($tahunAkademik->tanggal_mulai);
         $tanggalSelesai = \Carbon\Carbon::parse($tahunAkademik->tanggal_selesai);
-
-        // Hitung tengah tahun
         $tengah = $tanggalMulai->copy()->addMonths(6);
 
-        // Semester Ganjil (Semester 1)
         $tahunAkademik->semester()->create([
             'nama' => 'Ganjil',
             'kode' => $tahunAkademik->kode . '-1',
@@ -175,7 +194,6 @@ class TahunAkademikController extends Controller
             'is_active' => false,
         ]);
 
-        // Semester Genap (Semester 2)
         $tahunAkademik->semester()->create([
             'nama' => 'Genap',
             'kode' => $tahunAkademik->kode . '-2',

@@ -36,12 +36,12 @@
 
                             <div class="form-group">
                                 <label>Mata Pelajaran & Guru <span class="text-danger">*</span></label>
-                                <select name="mata_pelajaran_guru_id" id="mata_pelajaran_guru_id"
-                                    class="form-control @error('mata_pelajaran_guru_id') is-invalid @enderror" required
+                                <select name="mata_pelajaran_kelas_id" id="mata_pelajaran_kelas_id"
+                                    class="form-control @error('mata_pelajaran_kelas_id') is-invalid @enderror" required
                                     disabled>
                                     <option value="">-- Pilih Kelas Terlebih Dahulu --</option>
                                 </select>
-                                @error('mata_pelajaran_guru_id')
+                                @error('mata_pelajaran_kelas_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <small class="form-text text-muted">Pilih kelas terlebih dahulu</small>
@@ -152,7 +152,7 @@
             // Load mata pelajaran ketika kelas dipilih
             $('#kelas_id').change(function() {
                 var kelasId = $(this).val();
-                var mapelSelect = $('#mata_pelajaran_guru_id');
+                var mapelSelect = $('#mata_pelajaran_kelas_id');
 
                 mapelSelect.html('<option value="">Loading...</option>');
                 mapelSelect.prop('disabled', true);

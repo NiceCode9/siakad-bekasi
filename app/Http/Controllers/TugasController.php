@@ -14,7 +14,7 @@ class TugasController extends Controller
 
     public function show($id)
     {
-        $tugas = Tugas::with(['mataPelajaranGuru.mataPelajaranKelas.mataPelajaran', 'pengumpulanTugas.siswa'])->findOrFail($id);
+        $tugas = Tugas::with(['mataPelajaranKelas.mataPelajaran', 'pengumpulanTugas.siswa'])->findOrFail($id);
         $submission = null;
 
         if (Auth::user()->hasRole('siswa')) {
@@ -29,7 +29,7 @@ class TugasController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'mata_pelajaran_guru_id' => 'required|exists:mata_pelajaran_guru,id',
+            'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
             'judul' => 'required|string|max:255',
             'tanggal_deadline' => 'required|date',
             'file_lampiran' => 'nullable|file|max:5120',
@@ -46,12 +46,12 @@ class TugasController extends Controller
         $tugas = Tugas::create($data);
 
         // Notify Students
-        $students = $tugas->mataPelajaranGuru->mataPelajaranKelas->kelas->siswa;
+        $students = $tugas->mataPelajaranKelas->kelas->siswa;
         foreach($students as $siswa) {
             $this->notifyUser(
                 $siswa->user_id, 
                 'Tugas Baru: ' . $tugas->judul,
-                'Guru Anda telah mempublikasikan tugas baru untuk mata pelajaran ' . $tugas->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama,
+                'Guru Anda telah mempublikasikan tugas baru untuk mata pelajaran ' . $tugas->mataPelajaranKelas->mataPelajaran->nama,
                 'info',
                 route('tugas.show', $tugas->id)
             );

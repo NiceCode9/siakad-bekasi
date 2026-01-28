@@ -70,29 +70,29 @@
                         <table class="table table-borderless">
                             <tr>
                                 <td width="35%"><strong>Kelas</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->nama ?? '-' }}</td>
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->kelas->nama ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Tingkat</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->tingkat ?? '-' }}
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->kelas->tingkat ?? '-' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Jurusan</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->jurusan->nama ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->kelas->jurusan->nama ?? '-' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Wali Kelas</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->waliKelas->nama_lengkap ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->kelas->waliKelas->nama_lengkap ?? '-' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Semester</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->kelas->semester->nama ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->kelas->semester->nama ?? '-' }}
                                 </td>
                             </tr>
                         </table>
@@ -110,21 +110,21 @@
                             <tr>
                                 <td width="35%"><strong>Kode</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->kode ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->mataPelajaran->kode ?? '-' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Nama</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}
                                 </td>
                             </tr>
                             <tr>
                                 <td><strong>Jenis</strong></td>
                                 <td>:
-                                    @if ($jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->jenis == 'umum')
+                                    @if ($jadwalPelajaran->mataPelajaranKelas->mataPelajaran->jenis == 'umum')
                                         <span class="badge badge-primary">Umum</span>
-                                    @elseif($jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->jenis == 'kejuruan')
+                                    @elseif($jadwalPelajaran->mataPelajaranKelas->mataPelajaran->jenis == 'kejuruan')
                                         <span class="badge badge-success">Kejuruan</span>
                                     @else
                                         <span class="badge badge-info">Muatan Lokal</span>
@@ -134,7 +134,7 @@
                             <tr>
                                 <td><strong>KKM</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->kkm ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->mataPelajaran->kkm ?? '-' }}
                                 </td>
                             </tr>
                         </table>
@@ -149,20 +149,21 @@
                         <table class="table table-borderless">
                             <tr>
                                 <td width="35%"><strong>NIP</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->guru->nip ?? '-' }}</td>
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->guru->nip ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Nama</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->guru->nama_lengkap ?? '-' }}</td>
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->guru->nama_lengkap ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Email</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->guru->email ?? '-' }}</td>
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->guru->email ?? '-' }}</td>
                             </tr>
                             <tr>
                                 <td><strong>Telepon</strong></td>
-                                <td>: {{ $jadwalPelajaran->mataPelajaranGuru->guru->telepon ?? '-' }}</td>
+                                <td>: {{ $jadwalPelajaran->mataPelajaranKelas->guru->telepon ?? '-' }}</td>
                             </tr>
+
                         </table>
                     </div>
                 </div>

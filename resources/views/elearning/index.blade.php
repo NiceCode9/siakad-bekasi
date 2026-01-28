@@ -19,12 +19,12 @@
                         <div class="text-center mb-3">
                             <i class="iconsminds-blackboard text-primary" style="font-size: 40px;"></i>
                         </div>
-                        <h5 class="card-title text-center">{{ $item->mataPelajaranKelas->mataPelajaran->nama }}</h5>
+                        <h5 class="card-title text-center">{{ $item->mataPelajaran->nama }}</h5>
                         <p class="text-muted text-center mb-2">
-                            Kelas: {{ $item->mataPelajaranKelas->kelas->nama }}
+                            Kelas: {{ $item->kelas->nama }}
                         </p>
                         <p class="text-muted text-center mb-4">
-                            Guru: {{ $item->guru->nama }}
+                            Guru: {{ $item->guru->nama_lengkap }}
                         </p>
                         <div class="text-center">
                             <a href="{{ route('elearning.course', $item->id) }}" class="btn btn-primary btn-sm btn-block">MASUK KELAS</a>

@@ -12,14 +12,15 @@ class MateriAjarController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'mata_pelajaran_guru_id' => 'required|exists:mata_pelajaran_guru,id',
+            'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
             'judul' => 'required|string|max:255',
             'tipe' => 'required|in:file,url,video',
             'file' => 'nullable|file|max:10240', // 10MB
             'url' => 'nullable|url',
         ]);
 
-        $data = $request->only(['mata_pelajaran_guru_id', 'judul', 'deskripsi', 'tipe', 'url']);
+        $data = $request->only(['mata_pelajaran_kelas_id', 'judul', 'deskripsi', 'tipe', 'url']);
+
         $data['is_published'] = $request->has('is_published');
         $data['tanggal_publish'] = now();
 

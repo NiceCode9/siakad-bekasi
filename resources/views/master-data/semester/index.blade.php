@@ -8,9 +8,7 @@
             <div class="col-12">
                 <h1>Data Semester</h1>
                 <div class="top-right-button-container">
-                    <button class="btn btn-primary btn-sm" id="btnTambah">
-                        <i class="simple-icon-plus"></i> Tambah Data
-                    </button>
+                    {{-- Tombol tambah dihilangkan, sekarang via Tahun Akademik --}}
                 </div>
                 <div class="separator mb-5"></div>
                 <div class="card">
@@ -52,12 +50,7 @@
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm" role="group">
-                                                    @if (!$item->is_active)
-                                                        <button type="button" class="btn btn-success btn-activate"
-                                                            data-id="{{ $item->id }}" title="Aktifkan">
-                                                            <i class="simple-icon-check"></i>
-                                                        </button>
-                                                    @endif
+                                                    {{-- Tombol aktivasi dihilangkan, sekarang via Tahun Akademik --}}
                                                     <button type="button" class="btn btn-info btn-show"
                                                         data-id="{{ $item->id }}" title="Detail">
                                                         <i class="simple-icon-eye"></i>

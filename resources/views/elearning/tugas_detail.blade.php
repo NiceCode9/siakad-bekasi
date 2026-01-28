@@ -10,7 +10,7 @@
             <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
                 <ol class="breadcrumb pt-0">
                     <li class="breadcrumb-item"><a href="{{ route('elearning.index') }}">E-Learning</a></li>
-                    <li class="breadcrumb-item"><a href="{{ route('elearning.course', $tugas->mata_pelajaran_guru_id) }}">Mata Pelajaran</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('elearning.course', $tugas->mata_pelajaran_kelas_id) }}">Mata Pelajaran</a></li>
                     <li class="breadcrumb-item active" aria-current="page">{{ $tugas->judul }}</li>
                 </ol>
             </nav>

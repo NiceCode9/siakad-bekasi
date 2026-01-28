@@ -15,11 +15,11 @@ class JurnalMengajarController extends Controller
     {
         $user = Auth::user();
         if ($user->hasRole('guru')) {
-            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranGuru', function ($q) use ($user) {
+            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas', function ($q) use ($user) {
                 $q->where('guru_id', $user->guru->id);
-            })->with('jadwalPelajaran.mataPelajaranGuru.mataPelajaranKelas.mataPelajaran')->latest()->get();
+            })->with('jadwalPelajaran.mataPelajaranKelas.mataPelajaran')->latest()->get();
         } else {
-            $journals = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranGuru.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranGuru.guru'])->latest()->get();
+            $journals = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru'])->latest()->get();
         }
 
         return view('jurnal-mengajar.index', compact('journals'));
@@ -31,9 +31,9 @@ class JurnalMengajarController extends Controller
         $schedules = [];
 
         if ($user->hasRole('guru')) {
-            $schedules = JadwalPelajaran::whereHas('mataPelajaranGuru', function ($q) use ($user) {
+            $schedules = JadwalPelajaran::whereHas('mataPelajaranKelas', function ($q) use ($user) {
                 $q->where('guru_id', $user->guru->id);
-            })->with('mataPelajaranGuru.mataPelajaranKelas.mataPelajaran', 'mataPelajaranGuru.mataPelajaranKelas.kelas')->get();
+            })->with('mataPelajaranKelas.mataPelajaran', 'mataPelajaranKelas.kelas')->get();
         }
 
         return view('jurnal-mengajar.create', compact('schedules'));
@@ -61,7 +61,7 @@ class JurnalMengajarController extends Controller
 
     public function show($id)
     {
-        $journal = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranGuru.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranGuru.guru', 'approvedBy'])->findOrFail($id);
+        $journal = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru', 'approvedBy'])->findOrFail($id);
         return view('jurnal-mengajar.show', compact('journal'));
     }
 
@@ -74,12 +74,12 @@ class JurnalMengajarController extends Controller
         ]);
 
         // Notify Teacher
-        $teacherUser = $journal->jadwalPelajaran->mataPelajaranGuru->guru->user;
+        $teacherUser = $journal->jadwalPelajaran->mataPelajaranKelas->guru->user;
         if ($teacherUser) {
             $this->notifyUser(
                 $teacherUser->id,
                 'Jurnal Disetujui',
-                'Jurnal mengajar Anda untuk ' . $journal->jadwalPelajaran->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama . ' telah disetujui.',
+                'Jurnal mengajar Anda untuk ' . $journal->jadwalPelajaran->mataPelajaranKelas->mataPelajaran->nama . ' telah disetujui.',
                 'success',
                 route('jurnal-mengajar.show', $journal->id)
             );

@@ -12,7 +12,7 @@ class MateriAjar extends Model
     protected $table = 'materi_ajar';
 
     protected $fillable = [
-        'mata_pelajaran_guru_id',
+        'mata_pelajaran_kelas_id',
         'judul',
         'deskripsi',
         'tipe',
@@ -30,10 +30,11 @@ class MateriAjar extends Model
     ];
 
     // Relationships
-    public function mataPelajaranGuru()
+    public function mataPelajaranKelas()
     {
-        return $this->belongsTo(MataPelajaranGuru::class);
+        return $this->belongsTo(MataPelajaranKelas::class);
     }
+
 
     // Scopes
     public function scopePublished($query)

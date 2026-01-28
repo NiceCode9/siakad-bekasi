@@ -85,12 +85,12 @@
                                                     menit</small>
                                             </td>
                                             <td>
-                                                <strong>{{ $jadwal->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</strong>
+                                                <strong>{{ $jadwal->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</strong>
                                                 <br>
                                                 <small
-                                                    class="text-muted">{{ $jadwal->mataPelajaranGuru->mataPelajaranKelas->mataPelajaran->kode ?? '-' }}</small>
+                                                    class="text-muted">{{ $jadwal->mataPelajaranKelas->mataPelajaran->kode ?? '-' }}</small>
                                             </td>
-                                            <td>{{ $jadwal->mataPelajaranGuru->guru->nama_lengkap ?? '-' }}</td>
+                                            <td>{{ $jadwal->mataPelajaranKelas->guru->nama_lengkap ?? '-' }}</td>
                                             <td>{{ $jadwal->ruang ?? '-' }}</td>
                                             <td class="no-print">
                                                 <div class="btn-group" role="group">

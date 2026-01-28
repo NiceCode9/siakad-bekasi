@@ -63,6 +63,15 @@
                             </select>
                         </div>
                         <div class="form-group">
+                            <label>Guru Pengajar <span class="text-danger">*</span></label>
+                            <select name="guru_id" class="form-control" style="width: 100%" required>
+                                <option value="">-- Pilih Guru --</option>
+                                @foreach (\App\Models\Guru::active()->orderBy('nama_lengkap')->get() as $g)
+                                    <option value="{{ $g->id }}">{{ $g->nama_lengkap }} ({{ $g->nip ?? '-' }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label>Jam Per Minggu <span class="text-danger">*</span></label>
                             <input type="number" name="jam_per_minggu" class="form-control" value="2" min="1" max="10" required>
                         </div>
@@ -130,17 +139,10 @@
                                 <!-- Async data -->
                             </select>
                         </div>
-
-                        <div id="currentGurus" class="mt-3">
-                            <label>Guru Saat Ini:</label>
-                            <ul class="list-group list-group-flush" id="guruList">
-                                <!-- Populated via JS -->
-                            </ul>
-                        </div>
                     </div>
                     <div class="modal-footer">
                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-primary">Tambah Guru</button>
+                        <button type="submit" class="btn btn-primary">Simpan</button>
                     </div>
                 </form>
             </div>
@@ -157,7 +159,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    
     <script>
         $(document).ready(function() {
             // Select2 Init
@@ -268,28 +270,15 @@
             $('#mapelKelasTable').on('click', '.btn-assign-guru', function() {
                 var id = $(this).data('id');
                 
-                // Fetch detail first to get current gurus
                 $.get("{{ url('mata-pelajaran-kelas') }}/" + id, function(res) {
                     $('#assign_mpk_id').val(id);
                     $('#assign_nama_mapel').val(res.mata_pelajaran.nama);
                     
-                    // Populate current gurus list
-                    var list = $('#guruList');
-                    list.empty();
-                    
-                    if (res.mata_pelajaran_guru && res.mata_pelajaran_guru.length > 0) {
-                        res.mata_pelajaran_guru.forEach(function(mpg) {
-                            list.append(`
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-2">
-                                    ${mpg.guru.nama_lengkap}
-                                    <button type="button" class="btn btn-danger btn-sm btn-xs btn-remove-guru" data-id="${id}" data-guruid="${mpg.guru.id}">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </li>
-                            `);
-                        });
+                    if (res.guru) {
+                        var newOption = new Option(res.guru.nama_lengkap, res.guru.id, true, true);
+                        $('#selectGuru').append(newOption).trigger('change');
                     } else {
-                        list.append('<li class="list-group-item text-muted text-center p-2">Belum ada guru pengajar</li>');
+                        $('#selectGuru').val('').trigger('change');
                     }
 
                     $('#modalAssignGuru').modal('show');
@@ -315,27 +304,6 @@
                     .fail(function(xhr) {
                          Swal.fire('Gagal', xhr.responseJSON.message, 'error');
                     });
-            });
-
-            // Remove Guru (Delegated event for dynamic list)
-            $(document).on('click', '.btn-remove-guru', function() {
-                var mpkId = $(this).data('id');
-                var guruId = $(this).data('guruid');
-                var li = $(this).closest('li');
-
-                $.ajax({
-                    url: "{{ url('mata-pelajaran-kelas') }}/" + mpkId + "/remove-guru/" + guruId,
-                    type: 'DELETE',
-                    data: { _token: "{{ csrf_token() }}" },
-                    success: function(res) {
-                         li.remove();
-                         table.draw();
-                         // Check if list empty
-                         if($('#guruList li').length === 0) {
-                             $('#guruList').append('<li class="list-group-item text-muted text-center p-2">Belum ada guru pengajar</li>');
-                         }
-                    }
-                });
             });
 
         });

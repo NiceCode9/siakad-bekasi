@@ -50,10 +50,11 @@ class Guru extends Model
         return $this->hasMany(Kelas::class, 'wali_kelas_id');
     }
 
-    public function mataPelajaranGuru()
+    public function mataPelajaranKelas()
     {
-        return $this->hasMany(MataPelajaranGuru::class);
+        return $this->hasMany(MataPelajaranKelas::class);
     }
+
 
     public function bankSoal()
     {

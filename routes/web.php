@@ -43,8 +43,9 @@ use App\Http\Controllers\ForumDiskusiController;
 use App\Http\Controllers\JurnalMengajarController;
 use App\Http\Controllers\Admin\LogAktivitasController;
 use App\Http\Controllers\Admin\PengaturanController;
+use App\Http\Controllers\ApiController;
 use App\Http\Controllers\DashboardController;
-
+use App\Http\Controllers\NotificationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -54,6 +55,12 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Api controller for resource data 
+    Route::controller(ApiController::class)->name('api.')->group(function(){
+        Route::get('get-gurus', 'getGurus')->name('get-gurus');
+    });
+
+
     // 1. Profile
     Route::controller(ProfileController::class)->group(function () {
         Route::get('/profile', 'edit')->name('profile.edit');
@@ -122,8 +129,9 @@ Route::middleware('auth')->group(function () {
     Route::post('kurikulum/{kurikulum}/set-active', [KurikulumController::class, 'setActive'])->name('kurikulum.set-active');
 
     Route::resource('tahun-akademik', TahunAkademikController::class);
-    Route::post('tahun-akademik/{tahunAkademik}/set-active', [TahunAkademikController::class, 'setActive'])->name('tahun-akademik.set-active');
+    Route::post('tahun-akademik/{tahunAkademik}/set-active/{semester?}', [TahunAkademikController::class, 'setActive'])->name('tahun-akademik.set-active');
     Route::get('get-kurikulum', [TahunAkademikController::class, 'getKurikulum'])->name('tahun-akademik.get-kurikulum');
+    Route::get('tahun-akademik/{tahunAkademik}/semesters', [TahunAkademikController::class, 'getSemesters'])->name('tahun-akademik.get-semesters');
 
     Route::resource('semester', SemesterController::class);
     Route::post('semester/{semester}/set-active', [SemesterController::class, 'setActive'])->name('semester.set-active');
@@ -155,7 +163,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [MataPelajaranKelasController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/assign-guru', [MataPelajaranKelasController::class, 'assignGuru'])->name('assign-guru');
         Route::delete('/{id}/remove-guru/{guruId}', [MataPelajaranKelasController::class, 'removeGuru'])->name('remove-guru');
-        Route::get('/search/gurus', [MataPelajaranKelasController::class, 'getGurus'])->name('get-gurus');
     });
 
     Route::resource('mata-pelajaran', MataPelajaranController::class);

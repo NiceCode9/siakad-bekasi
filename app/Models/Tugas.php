@@ -12,7 +12,7 @@ class Tugas extends Model
     protected $table = 'tugas';
 
     protected $fillable = [
-        'mata_pelajaran_guru_id',
+        'mata_pelajaran_kelas_id',
         'judul',
         'deskripsi',
         'file_lampiran',
@@ -30,10 +30,11 @@ class Tugas extends Model
     ];
 
     // Relationships
-    public function mataPelajaranGuru()
+    public function mataPelajaranKelas()
     {
-        return $this->belongsTo(MataPelajaranGuru::class);
+        return $this->belongsTo(MataPelajaranKelas::class);
     }
+
 
     public function pengumpulanTugas()
     {

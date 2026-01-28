@@ -46,14 +46,14 @@ class DashboardController extends Controller
     {
         $guru = $user->guru;
         return [
-            'todaySchedules' => JadwalPelajaran::whereHas('mataPelajaranGuru', function($q) use ($guru) {
+            'todaySchedules' => JadwalPelajaran::whereHas('mataPelajaranKelas', function($q) use ($guru) {
                 $q->where('guru_id', $guru->id);
             })->where('hari', $this->getTodayIndonesian())->get(),
             'pendingGrades' => PengumpulanTugas::where('status', 'dikirim')
-                ->whereHas('tugas.mataPelajaranGuru', function($q) use ($guru) {
+                ->whereHas('tugas.mataPelajaranKelas', function($q) use ($guru) {
                     $q->where('guru_id', $guru->id);
                 })->count(),
-            'recentTasks' => Tugas::whereHas('mataPelajaranGuru', function($q) use ($guru) {
+            'recentTasks' => Tugas::whereHas('mataPelajaranKelas', function($q) use ($guru) {
                 $q->where('guru_id', $guru->id);
             })->latest()->limit(5)->get(),
         ];
@@ -66,12 +66,10 @@ class DashboardController extends Controller
         $activeKelas = $siswa->kelas()->wherePivot('status', 'aktif')->first();
         
         return [
-            'todaySchedules' => $activeKelas ? JadwalPelajaran::whereHas('mataPelajaranGuru', function($q) use ($activeKelas) {
-                $q->where('mata_pelajaran_kelas_id', function($sub) use ($activeKelas) {
-                    $sub->select('id')->from('mata_pelajaran_kelas')->where('kelas_id', $activeKelas->id);
-                });
+            'todaySchedules' => $activeKelas ? JadwalPelajaran::whereHas('mataPelajaranKelas', function($q) use ($activeKelas) {
+                $q->where('kelas_id', $activeKelas->id);
             })->where('hari', $this->getTodayIndonesian())->get() : [],
-            'upcomingDeadlines' => Tugas::whereHas('mataPelajaranGuru.mataPelajaranKelas', function($q) use ($activeKelas) {
+            'upcomingDeadlines' => Tugas::whereHas('mataPelajaranKelas', function($q) use ($activeKelas) {
                 if ($activeKelas) $q->where('kelas_id', $activeKelas->id);
             })->where('tanggal_deadline', '>=', now())
               ->whereDoesntHave('pengumpulanTugas', function($q) use ($siswa) {

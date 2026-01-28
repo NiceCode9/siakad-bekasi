@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MataPelajaranGuru;
+use App\Models\MataPelajaranKelas;
 use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,20 +15,19 @@ class ELearningController extends Controller
         $subjects = [];
 
         if ($user->hasRole('guru')) {
-            $subjects = MataPelajaranGuru::with(['mataPelajaranKelas.kelas', 'mataPelajaranKelas.mataPelajaran'])
+            $subjects = MataPelajaranKelas::with(['kelas', 'mataPelajaran'])
                 ->where('guru_id', $user->guru->id)
                 ->get();
         } elseif ($user->hasRole('siswa')) {
             $siswa = $user->siswa;
             $kelas = $siswa->kelasAktif->first();
             if ($kelas) {
-                $subjects = MataPelajaranGuru::with(['mataPelajaranKelas.mataPelajaran', 'guru'])
-                    ->whereHas('mataPelajaranKelas', function($q) use ($kelas) {
-                        $q->where('kelas_id', $kelas->id);
-                    })->get();
+                $subjects = MataPelajaranKelas::with(['mataPelajaran', 'guru'])
+                    ->where('kelas_id', $kelas->id)
+                    ->get();
             }
         } elseif ($user->hasRole(['admin', 'super-admin'])) {
-            $subjects = MataPelajaranGuru::with(['mataPelajaranKelas.kelas', 'mataPelajaranKelas.mataPelajaran', 'guru'])->get();
+            $subjects = MataPelajaranKelas::with(['kelas', 'mataPelajaran', 'guru'])->get();
         }
 
         return view('elearning.index', compact('subjects'));
@@ -36,9 +35,9 @@ class ELearningController extends Controller
 
     public function course($id)
     {
-        $subject = MataPelajaranGuru::with([
-            'mataPelajaranKelas.kelas', 
-            'mataPelajaranKelas.mataPelajaran', 
+        $subject = MataPelajaranKelas::with([
+            'kelas', 
+            'mataPelajaran', 
             'guru',
             'materiAjar' => fn($q) => $q->orderBy('urutan'),
             'tugas' => fn($q) => $q->latest(),

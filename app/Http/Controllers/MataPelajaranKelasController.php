@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Kelas;
 use App\Models\MataPelajaran;
 use App\Models\MataPelajaranKelas;
-use App\Models\MataPelajaranGuru;
 use App\Models\Guru;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +18,7 @@ class MataPelajaranKelasController extends Controller
     public function index(Request $request, Kelas $kelas)
     {
         if ($request->ajax()) {
-            $query = MataPelajaranKelas::with(['mataPelajaran', 'mataPelajaranGuru.guru'])
+            $query = MataPelajaranKelas::with(['mataPelajaran', 'guru'])
                 ->where('kelas_id', $kelas->id);
 
             return DataTables::of($query)
@@ -31,15 +30,11 @@ class MataPelajaranKelasController extends Controller
                     return $row->mataPelajaran->nama;
                 })
                 ->addColumn('guru_pengajar', function ($row) {
-                    if ($row->mataPelajaranGuru->isEmpty()) {
+                    if (!$row->guru) {
                         return '<span class="badge badge-warning">Belum ada guru</span>';
                     }
                     
-                    $gurus = $row->mataPelajaranGuru->map(function ($mpg) {
-                        return '<span class="badge badge-info">' . $mpg->guru->nama_lengkap . '</span>';
-                    })->implode(' ');
-                    
-                    return $gurus;
+                    return '<span class="badge badge-info">' . $row->guru->nama_lengkap . '</span>';
                 })
                 ->addColumn('jam_per_minggu', function ($row) {
                     return $row->jam_per_minggu . ' JP';
@@ -67,6 +62,7 @@ class MataPelajaranKelasController extends Controller
     {
         $validated = $request->validate([
             'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
+            'guru_id' => 'required|exists:guru,id',
             'jam_per_minggu' => 'required|integer|min:1|max:10',
         ]);
 
@@ -82,6 +78,7 @@ class MataPelajaranKelasController extends Controller
         MataPelajaranKelas::create([
             'kelas_id' => $kelas->id,
             'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
+            'guru_id' => $validated['guru_id'],
             'jam_per_minggu' => $validated['jam_per_minggu'],
         ]);
 
@@ -93,7 +90,7 @@ class MataPelajaranKelasController extends Controller
      */
     public function show($id) 
     {
-        $mpk = MataPelajaranKelas::with('mataPelajaran', 'mataPelajaranGuru.guru')->findOrFail($id);
+        $mpk = MataPelajaranKelas::with('mataPelajaran', 'guru')->findOrFail($id);
         return response()->json($mpk);
     }
 
@@ -105,6 +102,7 @@ class MataPelajaranKelasController extends Controller
         $mpk = MataPelajaranKelas::findOrFail($id);
         
         $validated = $request->validate([
+            'guru_id' => 'required|exists:guru,id',
             'jam_per_minggu' => 'required|integer|min:1|max:10',
         ]);
 
@@ -137,20 +135,7 @@ class MataPelajaranKelasController extends Controller
         ]);
 
         $mpk = MataPelajaranKelas::findOrFail($id);
-
-        // Check if guru already assigned
-        $exists = MataPelajaranGuru::where('mata_pelajaran_kelas_id', $id)
-            ->where('guru_id', $validated['guru_id'])
-            ->exists();
-
-        if ($exists) {
-            return response()->json(['message' => 'Guru sudah ditugaskan untuk mata pelajaran ini'], 422);
-        }
-
-        MataPelajaranGuru::create([
-            'mata_pelajaran_kelas_id' => $id,
-            'guru_id' => $validated['guru_id'],
-        ]);
+        $mpk->update(['guru_id' => $validated['guru_id']]);
 
         return response()->json(['message' => 'Guru berhasil ditugaskan']);
     }
@@ -158,35 +143,11 @@ class MataPelajaranKelasController extends Controller
     /**
      * Remove teacher from subject in class
      */
-    public function removeGuru($id, $guruId)
+    public function removeGuru($id)
     {
-        $mpg = MataPelajaranGuru::where('mata_pelajaran_kelas_id', $id)
-            ->where('guru_id', $guruId)
-            ->firstOrFail();
-
-        $mpg->delete();
+        $mpk = MataPelajaranKelas::findOrFail($id);
+        $mpk->update(['guru_id' => null]);
 
         return response()->json(['message' => 'Guru berhasil dihapus dari pengajar']);
-    }
-
-    /**
-     * Get available gurus (helper for select2)
-     */
-    public function getGurus(Request $request)
-    {
-        $term = $request->get('term');
-        $gurus = Guru::active()
-            ->where('nama_lengkap', 'like', "%{$term}%")
-            ->orderBy('nama_lengkap')
-            ->limit(20)
-            ->get()
-            ->map(function($guru) {
-                return [
-                    'id' => $guru->id,
-                    'text' => $guru->nama_lengkap . ' (' . ($guru->nip ?? '-') . ')'
-                ];
-            });
-
-        return response()->json($gurus);
     }
 }
