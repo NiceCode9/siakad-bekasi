@@ -52,7 +52,7 @@ class RaportController extends Controller
     {
         $siswa = Siswa::findOrFail($siswa_id);
         $semester = Semester::findOrFail($semester_id);
-        $kelas = $siswa->kelas()->where('is_active', true)->first(); // Assuming logic to get current class
+        $kelas = $siswa->kelas()->wherePivot('status', 'aktif')->first();
 
         if (!$kelas) {
              $kelas = $siswa->kelas()->latest()->first();
