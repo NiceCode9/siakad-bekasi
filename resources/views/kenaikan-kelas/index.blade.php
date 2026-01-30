@@ -32,7 +32,7 @@
                             <select name="tahun_akademik_id" class="form-control select2-single" required>
                                 <option value="">Pilih Tahun...</option>
                                 @foreach($tahunAkademiks as $ta)
-                                    <option value="{{ $ta->id }}">{{ $ta->tahun }}</option>
+                                    <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -64,7 +64,7 @@
                                 @foreach($history as $item)
                                 <tr>
                                     <td>{{ $item->tanggal_proses->format('d/m/Y') }}</td>
-                                    <td>{{ $item->tahunAkademik->tahun }}</td>
+                                    <td>{{ $item->tahunAkademik->nama }}</td>
                                     <td>{{ $item->total_siswa }}</td>
                                     <td><span class="badge badge-success">{{ $item->total_naik }}</span></td>
                                     <td><span class="badge badge-danger">{{ $item->total_tidak_naik }}</span></td>

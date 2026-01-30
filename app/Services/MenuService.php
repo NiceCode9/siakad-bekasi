@@ -45,10 +45,8 @@ class MenuService
         }
 
         // Cek role-based access
-        $hasRoleAccess = $user->roles()
-            ->whereHas('menus', function ($query) use ($menu) {
-                $query->where('menus.id', $menu->id);
-            })
+        $hasRoleAccess = $menu->roles()
+            ->whereIn('roles.id', $user->roles->pluck('id'))
             ->exists();
 
         if ($hasRoleAccess) {

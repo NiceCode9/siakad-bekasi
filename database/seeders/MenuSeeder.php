@@ -331,6 +331,19 @@ class MenuSeeder extends Seeder
         );
         $jurnalMengajarMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jurnal-mengajar'])->id]);
 
+        // Presensi Siswa
+        $presensiMenu = Menu::firstOrCreate(
+            ['slug' => 'presensi'],
+            [
+                'name' => 'Presensi Siswa',
+                'icon' => 'simple-icon-check',
+                'url' => '/presensi',
+                'parent_id' => $cbtMenu->id,
+                'order' => 5,
+            ]
+        );
+        $presensiMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-presensi'])->id]);
+
         // Ujian Saya
         $ujianSiswaMenu = Menu::firstOrCreate(
             ['slug' => 'ujian-siswa'],
@@ -440,6 +453,7 @@ class MenuSeeder extends Seeder
         $masterData->roles()->syncWithoutDetaching($adminRoles);
         $cbtMenu->roles()->syncWithoutDetaching($academicRoles);
         $elearningMenu->roles()->syncWithoutDetaching($academicRoles);
+        $presensiMenu->roles()->syncWithoutDetaching($academicRoles);
         $reports->roles()->syncWithoutDetaching($academicRoles);
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);
         $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());

@@ -39,7 +39,7 @@
                                 <tr>
                                     <td>{{ $idx + 1 }}</td>
                                     <td>{{ $siswa->nisn }}</td>
-                                    <td>{{ $siswa->nama }}</td>
+                                    <td>{{ $siswa->nama_lengkap }}</td>
                                     <td>
                                         @if($siswa->raports->first())
                                             <span class="badge badge-{{ $siswa->raports->first()->status == 'published' ? 'success' : ($siswa->raports->first()->status == 'approved' ? 'info' : 'secondary') }}">

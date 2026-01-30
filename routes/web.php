@@ -225,6 +225,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('presensi/rekap', [PresensiController::class, 'rekap'])->name('presensi.rekap');
+    Route::get('presensi/rekap-mapel', [PresensiController::class, 'rekapMapel'])->name('presensi.rekap-mapel');
     Route::resource('presensi', PresensiController::class)->only(['index', 'create', 'store']);
 
     Route::resource('komponen-nilai', KomponenNilaiController::class);

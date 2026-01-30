@@ -20,16 +20,37 @@ class PresensiController extends Controller
     {
         $tanggal = $request->input('tanggal', date('Y-m-d'));
         $semesterAktif = Semester::active()->first();
+        $user = Auth::user();
         
-        $kelas = $semesterAktif 
-            ? Kelas::where('semester_id', $semesterAktif->id)->orderBy('nama')->get() 
-            : collect();
+        // Filter kelas: Admin melihat semua, Guru hanya kelas wali-nya
+        $kelasQuery = Kelas::query();
+        if ($semesterAktif) {
+            $kelasQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $kelasQuery->where('wali_kelas_id', $user->guru->id ?? 0);
+        }
+
+        $kelas = $kelasQuery->orderBy('nama')->get();
 
         // If filter applied
         $rekap = null;
         if ($request->filled('kelas_id') && $request->filled('tanggal')) {
             $kelasId = $request->kelas_id;
             $tanggal = $request->tanggal;
+
+            // Security check for non-admin
+            if (!$user->hasRole(['admin', 'super-admin'])) {
+                $isWali = Kelas::where('id', $kelasId)
+                    ->where('wali_kelas_id', $user->guru->id ?? 0)
+                    ->exists();
+                
+                if (!$isWali) {
+                    return redirect()->route('presensi.index')
+                        ->with('error', 'Anda tidak memiliki akses presensi untuk kelas ini.');
+                }
+            }
 
             // Get students in class
             $siswaList = SiswaKelas::with('siswa')
@@ -67,8 +88,23 @@ class PresensiController extends Controller
                 ->with('error', 'Silakan pilih Kelas dan Tanggal terlebih dahulu.');
         }
 
-        $kelas = Kelas::with(['semester', 'jurusan'])->findOrFail($request->kelas_id);
+        $user = Auth::user();
+        $kelasId = $request->kelas_id;
         $tanggal = $request->tanggal;
+
+        // Security check for non-admin
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = Kelas::where('id', $kelasId)
+                ->where('wali_kelas_id', $user->guru->id ?? 0)
+                ->exists();
+            
+            if (!$isWali) {
+                return redirect()->route('presensi.index')
+                    ->with('error', 'Anda tidak memiliki akses presensi untuk kelas ini.');
+            }
+        }
+
+        $kelas = Kelas::with(['semester', 'jurusan'])->findOrFail($kelasId);
         
         // Check if date is future
         if (strtotime($tanggal) > time()) {
@@ -79,7 +115,6 @@ class PresensiController extends Controller
         $siswa = SiswaKelas::with('siswa')
             ->where('kelas_id', $kelas->id)
             ->where('status', 'aktif')
-            ->orderBy('siswa.nama_lengkap') // Actually order by rel is harder, assume relation loaded
             ->get()
             ->sortBy(function($sk) {
                 return $sk->siswa->nama_lengkap;
@@ -109,7 +144,20 @@ class PresensiController extends Controller
 
         $kelasId = $validated['kelas_id'];
         $tanggal = $validated['tanggal'];
-        $userId = Auth::id();
+        $user = Auth::user();
+        $userId = $user->id;
+
+        // Security check for non-admin
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = Kelas::where('id', $kelasId)
+                ->where('wali_kelas_id', $user->guru->id ?? 0)
+                ->exists();
+            
+            if (!$isWali) {
+                return redirect()->route('presensi.index')
+                    ->with('error', 'Anda tidak memiliki akses presensi untuk kelas ini.');
+            }
+        }
 
         DB::beginTransaction();
         try {
@@ -145,7 +193,19 @@ class PresensiController extends Controller
     public function rekap(Request $request)
     {
         $semesterAktif = Semester::active()->first();
-        $kelas = $semesterAktif ? Kelas::where('semester_id', $semesterAktif->id)->get() : collect();
+        $user = Auth::user();
+
+        // Filter kelas: Admin melihat semua, Guru hanya kelas wali-nya
+        $kelasQuery = Kelas::query();
+        if ($semesterAktif) {
+            $kelasQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $kelasQuery->where('wali_kelas_id', $user->guru->id ?? 0);
+        }
+
+        $kelas = $kelasQuery->orderBy('nama')->get();
         
         $kelasId = $request->input('kelas_id');
         $bulan = $request->input('bulan', date('m'));
@@ -155,6 +215,17 @@ class PresensiController extends Controller
         $selectedKelas = null;
 
         if ($kelasId) {
+            // Security check for non-admin
+            if (!$user->hasRole(['admin', 'super-admin'])) {
+                $isWali = Kelas::where('id', $kelasId)
+                    ->where('wali_kelas_id', $user->guru->id ?? 0)
+                    ->exists();
+                
+                if (!$isWali) {
+                    return redirect()->route('presensi.index')
+                        ->with('error', 'Anda tidak memiliki akses rekap presensi untuk kelas ini.');
+                }
+            }
             $selectedKelas = Kelas::find($kelasId);
             $daysInMonth = Carbon::create($tahun, $bulan)->daysInMonth;
             
@@ -180,5 +251,80 @@ class PresensiController extends Controller
         }
 
         return view('pembelajaran.presensi.rekap', compact('kelas', 'kelasId', 'bulan', 'tahun', 'dataRekap', 'selectedKelas'));
+    }
+
+    /**
+     * Subject-based Rekap View.
+     */
+    public function rekapMapel(Request $request)
+    {
+        $semesterAktif = Semester::active()->first();
+        $user = Auth::user();
+
+        // Filter kelas based on role
+        $kelasQuery = Kelas::query();
+        if ($semesterAktif) $kelasQuery->where('semester_id', $semesterAktif->id);
+        
+        if ($user->hasRole('guru')) {
+            // Guru dapat melihat rekap kelas yang ia ajar atau di mana ia jadi Wali
+            $assignedKelasIds = \App\Models\MataPelajaranKelas::where('guru_id', $user->guru->id)->pluck('kelas_id')
+                ->merge(Kelas::where('wali_kelas_id', $user->guru->id)->pluck('id'))
+                ->unique();
+            $kelasQuery->whereIn('id', $assignedKelasIds);
+        }
+        $kelas = $kelasQuery->orderBy('nama')->get();
+
+        $kelasId = $request->input('kelas_id');
+        $mapelId = $request->input('mata_pelajaran_id');
+        $bulan = $request->input('bulan', date('m'));
+        $tahun = $request->input('tahun', date('Y'));
+
+        $dataRekap = null;
+        $selectedKelas = null;
+        $mataPelajaran = collect();
+
+        if ($kelasId) {
+            $selectedKelas = Kelas::find($kelasId);
+            $mataPelajaran = \App\Models\MataPelajaranKelas::with('mataPelajaran')
+                ->where('kelas_id', $kelasId)
+                ->when($user->hasRole('guru'), function($q) use ($user) {
+                    $q->where('guru_id', $user->guru->id);
+                })
+                ->get()
+                ->pluck('mataPelajaran');
+
+            if ($mapelId) {
+                // Get Jurnal Mengajar for this Mapel & Month
+                $journals = \App\Models\JurnalMengajar::whereYear('tanggal', $tahun)
+                    ->whereMonth('tanggal', $bulan)
+                    ->whereHas('jadwalPelajaran', function($q) use ($kelasId, $mapelId) {
+                        $q->whereHas('mataPelajaranKelas', function($mq) use ($kelasId, $mapelId) {
+                            $mq->where('kelas_id', $kelasId)->where('mata_pelajaran_id', $mapelId);
+                        });
+                    })
+                    ->orderBy('tanggal')
+                    ->get();
+
+                // Get Students
+                $siswa = SiswaKelas::with('siswa')
+                    ->where('kelas_id', $kelasId)
+                    ->where('status', 'aktif')
+                    ->get()
+                    ->sortBy(fn($sk) => $sk->siswa->nama_lengkap);
+
+                // Get Presensi Mapel linked to these journals
+                $presensi = \App\Models\PresensiMapel::whereIn('jurnal_mengajar_id', $journals->pluck('id'))
+                    ->get()
+                    ->groupBy('siswa_id');
+
+                $dataRekap = [
+                    'siswa' => $siswa,
+                    'journals' => $journals,
+                    'presensi' => $presensi
+                ];
+            }
+        }
+
+        return view('pembelajaran.presensi.rekap_mapel', compact('kelas', 'kelasId', 'mataPelajaran', 'mapelId', 'bulan', 'tahun', 'dataRekap', 'selectedKelas'));
     }
 }

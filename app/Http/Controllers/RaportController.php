@@ -33,7 +33,7 @@ class RaportController extends Controller
         $kelas = null;
 
         if ($user->hasRole('guru')) {
-            $kelas = $user->guru->kelasWali;
+            $kelas = $user->guru->kelasWali()->first();
         }
 
         $siswas = [];
@@ -71,12 +71,12 @@ class RaportController extends Controller
 
             // 1. Aggregate Attendance
             $attendance = PresensiSiswa::where('siswa_id', $siswa_id)
-                ->whereHas('jadwal', function($q) use ($semester_id) {
+                ->whereHas('kelas', function($q) use ($semester_id) {
                     $q->where('semester_id', $semester_id);
                 })
-                ->selectRaw("SUM(CASE WHEN status='sakit' THEN 1 ELSE 0 END) as sakit")
-                ->selectRaw("SUM(CASE WHEN status='izin' THEN 1 ELSE 0 END) as izin")
-                ->selectRaw("SUM(CASE WHEN status='alpha' THEN 1 ELSE 0 END) as alpha")
+                ->selectRaw("SUM(CASE WHEN status='S' THEN 1 ELSE 0 END) as sakit")
+                ->selectRaw("SUM(CASE WHEN status='I' THEN 1 ELSE 0 END) as izin")
+                ->selectRaw("SUM(CASE WHEN status='A' THEN 1 ELSE 0 END) as alpha")
                 ->first();
 
             $raport->update([
@@ -103,6 +103,21 @@ class RaportController extends Controller
 
                     $nilaiAkhir = ($nilaiPengetahuan + $nilaiKeterampilan) / 2;
 
+                    // Calculate subject-specific attendance from presensi_mapel
+                    $journalIds = \App\Models\JurnalMengajar::whereHas('jadwalPelajaran', function($q) use ($mk) {
+                            $q->where('mata_pelajaran_kelas_id', $mk->id);
+                        })
+                        ->where('semester_id', $semester_id)
+                        ->pluck('id');
+
+                    $totalPertemuan = $journalIds->count();
+                    $jumlahHadir = \App\Models\PresensiMapel::whereIn('jurnal_mengajar_id', $journalIds)
+                        ->where('siswa_id', $siswa_id)
+                        ->where('status', 'H')
+                        ->count();
+
+                    $persentaseKehadiran = $totalPertemuan > 0 ? ($jumlahHadir / $totalPertemuan) * 100 : 0;
+
                     RaportDetail::updateOrCreate(
                         ['raport_id' => $raport->id, 'mata_pelajaran_id' => $mk->mata_pelajaran_id],
                         [
@@ -110,7 +125,10 @@ class RaportController extends Controller
                             'nilai_keterampilan' => $nilaiKeterampilan,
                             'nilai_akhir' => $nilaiAkhir,
                             'predikat' => $this->calculatePredikat($nilaiAkhir),
-                            'deskripsi' => "Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama
+                            'deskripsi' => "Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama,
+                            'jumlah_pertemuan' => $totalPertemuan,
+                            'jumlah_hadir' => $jumlahHadir,
+                            'persentase_kehadiran' => round($persentaseKehadiran, 2)
                         ]
                     );
                 }

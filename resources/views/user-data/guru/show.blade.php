@@ -310,7 +310,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Role</strong></td>
-                                        <td>: <span class="badge badge-primary">{{ ucfirst($guru->user->role) }}</span>
+                                        <td>: <span class="badge badge-primary">{{ ucfirst($guru->user->roles->first()->name ?? 'User') }}</span>
                                         </td>
                                     </tr>
                                     <tr>

@@ -46,6 +46,10 @@ class DatabaseSeeder extends Seeder
             KelasSeeder::class,
             SiswaSeeder::class,
             // OrangTuaSeeder::class,
+            
+            // Academic Assignments & Schedules
+            MataPelajaranKelasSeeder::class,
+            JadwalPelajaranSeeder::class,
         ]);
     }
 }

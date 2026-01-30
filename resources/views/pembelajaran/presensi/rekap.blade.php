@@ -6,9 +6,14 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="mb-0">Rekap Presensi Bulanan</h4>
-        <a href="{{ route('presensi.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+        <div>
+            <a href="{{ route('presensi.rekap-mapel') }}" class="btn btn-info btn-sm mr-2">
+                <i class="fas fa-book"></i> Rekap per Mapel
+            </a>
+            <a href="{{ route('presensi.index') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
     </div>
 
     <div class="card mb-4">

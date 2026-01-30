@@ -129,7 +129,7 @@ class Siswa extends Model
         return $this->hasMany(UjianSiswa::class);
     }
 
-    public function raport()
+    public function raports()
     {
         return $this->hasMany(Raport::class);
     }

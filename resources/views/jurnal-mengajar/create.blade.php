@@ -20,16 +20,17 @@
                         
                         <div class="form-group">
                             <label>Pilih Jadwal Mengajar</label>
-                            <select name="jadwal_pelajaran_id" class="form-control select2-single" required>
+                            <select name="jadwal_pelajaran_id" id="jadwal_pelajaran_id" class="form-control select2-single" required onchange="window.location.href='{{ route('jurnal-mengajar.create') }}?jadwal_pelajaran_id=' + this.value">
                                 <option value="">Pilih Jadwal...</option>
                                 @foreach($schedules as $schedule)
-                                    <option value="{{ $schedule->id }}">
+                                    <option value="{{ $schedule->id }}" {{ request('jadwal_pelajaran_id') == $schedule->id ? 'selected' : '' }}>
                                         {{ $schedule->hari }} | {{ $schedule->mataPelajaranKelas->mataPelajaran->nama }} ({{ $schedule->mataPelajaranKelas->kelas->nama }})
                                     </option>
                                 @endforeach
                             </select>
                         </div>
 
+                        @if($selectedSchedule)
                         <div class="row">
                             <div class="col-md-4">
                                 <div class="form-group">
@@ -40,13 +41,13 @@
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Jam Mulai</label>
-                                    <input type="time" name="jam_mulai" class="form-control" required>
+                                    <input type="time" name="jam_mulai" class="form-control" value="{{ $selectedSchedule->jam_mulai->format('H:i') }}" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-group">
                                     <label>Jam Selesai</label>
-                                    <input type="time" name="jam_selesai" class="form-control" required>
+                                    <input type="time" name="jam_selesai" class="form-control" value="{{ $selectedSchedule->jam_selesai->format('H:i') }}" required>
                                 </div>
                             </div>
                         </div>
@@ -76,17 +77,54 @@
                             </div>
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Jumlah Siswa Hadir</label>
-                                    <input type="number" name="jumlah_hadir" class="form-control" required>
+                        <!-- attendance section -->
+                        <div class="card bg-light mb-4 mt-4">
+                            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                                <h6 class="mb-0 py-1">Presensi Siswa ({{ $selectedSchedule->mataPelajaranKelas->kelas->nama }})</h6>
+                                <div class="text-right">
+                                    <small>Set Semua: </small>
+                                    <button type="button" class="btn btn-xs btn-outline-light" onclick="setAll('H')">Hadir</button>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Jumlah Siswa Tidak Hadir</label>
-                                    <input type="number" name="jumlah_tidak_hadir" class="form-control" value="0">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-striped mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th width="5%">No</th>
+                                                <th>Nama Siswa</th>
+                                                <th class="text-center" width="25%">Status</th>
+                                                <th width="30%">Keterangan</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($students as $sk)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $sk->siswa->nama_lengkap }}</td>
+                                                <td class="text-center">
+                                                    <div class="btn-group btn-group-sm btn-group-toggle" data-toggle="buttons">
+                                                        <label class="btn btn-outline-success active" title="Hadir">
+                                                            <input type="radio" name="presensi[{{ $sk->siswa->id }}]" value="H" checked> H
+                                                        </label>
+                                                        <label class="btn btn-outline-info" title="Izin">
+                                                            <input type="radio" name="presensi[{{ $sk->siswa->id }}]" value="I"> I
+                                                        </label>
+                                                        <label class="btn btn-outline-warning" title="Sakit">
+                                                            <input type="radio" name="presensi[{{ $sk->siswa->id }}]" value="S"> S
+                                                        </label>
+                                                        <label class="btn btn-outline-danger" title="Alpha">
+                                                            <input type="radio" name="presensi[{{ $sk->siswa->id }}]" value="A"> A
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" name="keterangan[{{ $sk->siswa->id }}]" class="form-control form-control-sm" placeholder="...">
+                                                </td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -97,9 +135,31 @@
                         </div>
 
                         <div class="text-right">
-                            <a href="{{ route('jurnal-mengajar.index') }}" class="btn btn-outline-secondary">BATAL</a>
-                            <button type="submit" class="btn btn-primary">SIMPAN JURNAL</button>
+                            <a href="{{ route('jurnal-mengajar.index') }}" class="btn btn-outline-secondary px-4">BATAL</a>
+                            <button type="submit" class="btn btn-primary px-4 shadow">SIMPAN JURNAL & ABSENSI</button>
                         </div>
+                        @else
+                        <div class="text-center py-5">
+                            <i class="simple-icon-calendar fa-4x text-muted mb-3 d-block"></i>
+                            <p class="text-muted">Silakan pilih jadwal mengajar terlebih dahulu untuk memunculkan daftar absen siswa.</p>
+                        </div>
+                        @endif
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@push('scripts')
+<script>
+    function setAll(val) {
+        document.querySelectorAll('input[type="radio"][value="' + val + '"]').forEach(el => {
+            el.click();
+        });
+    }
+</script>
+@endpush
                     </form>
                 </div>
             </div>

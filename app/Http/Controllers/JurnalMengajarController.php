@@ -6,6 +6,7 @@ use App\Models\JurnalMengajar;
 use App\Models\JadwalPelajaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class JurnalMengajarController extends Controller
 {
@@ -29,10 +30,12 @@ class JurnalMengajarController extends Controller
         return view('jurnal-mengajar.index', compact('journals'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $user = Auth::user();
         $schedules = [];
+        $students = [];
+        $selectedSchedule = null;
 
         $semesterAktif = \App\Models\Semester::active()->first();
         if ($user->hasRole('guru')) {
@@ -40,9 +43,19 @@ class JurnalMengajarController extends Controller
                 $q->where('guru_id', $user->guru->id);
                 if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
             })->with('mataPelajaranKelas.mataPelajaran', 'mataPelajaranKelas.kelas')->get();
+
+            if ($request->filled('jadwal_pelajaran_id')) {
+                $selectedSchedule = JadwalPelajaran::with('mataPelajaranKelas.kelas')->findOrFail($request->jadwal_pelajaran_id);
+                
+                $students = \App\Models\SiswaKelas::with('siswa')
+                    ->where('kelas_id', $selectedSchedule->mataPelajaranKelas->kelas_id)
+                    ->where('status', 'aktif')
+                    ->get()
+                    ->sortBy(fn($sk) => $sk->siswa->nama_lengkap);
+            }
         }
 
-        return view('jurnal-mengajar.create', compact('schedules'));
+        return view('jurnal-mengajar.create', compact('schedules', 'students', 'selectedSchedule'));
     }
 
     public function store(Request $request)
@@ -53,21 +66,52 @@ class JurnalMengajarController extends Controller
             'jam_mulai' => 'required',
             'jam_selesai' => 'required',
             'materi' => 'required|string',
-            'jumlah_hadir' => 'nullable|integer',
-            'jumlah_tidak_hadir' => 'nullable|integer',
+            'presensi' => 'required|array',
+            'presensi.*' => 'required|in:H,I,S,A',
         ]);
 
-        $data = $request->all();
+        $data = $request->only([
+            'jadwal_pelajaran_id', 'tanggal', 'jam_mulai', 'jam_selesai', 
+            'materi', 'metode_pembelajaran', 'hambatan', 'solusi', 'catatan'
+        ]);
+        
+        // Auto count attendance
+        $presensiData = $request->input('presensi');
+        $data['jumlah_hadir'] = collect($presensiData)->where('status', 'H')->count(); // Wait, it's just value
+        $data['jumlah_hadir'] = count(array_filter($presensiData, fn($s) => $s == 'H'));
+        $data['jumlah_tidak_hadir'] = count(array_filter($presensiData, fn($s) => $s != 'H'));
         $data['is_approved'] = false;
 
-        JurnalMengajar::create($data);
+        DB::beginTransaction();
+        try {
+            $journal = JurnalMengajar::create($data);
 
-        return redirect()->route('jurnal-mengajar.index')->with('success', 'Jurnal mengajar berhasil disimpan.');
+            foreach ($presensiData as $siswaId => $status) {
+                \App\Models\PresensiMapel::create([
+                    'jurnal_mengajar_id' => $journal->id,
+                    'siswa_id' => $siswaId,
+                    'status' => $status,
+                    'keterangan' => $request->input("keterangan.$siswaId")
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('jurnal-mengajar.index')->with('success', 'Jurnal mengajar dan presensi berhasil disimpan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Gagal menyimpan data: ' . $e->getMessage())->withInput();
+        }
     }
 
     public function show($id)
     {
-        $journal = JurnalMengajar::with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru', 'approvedBy'])->findOrFail($id);
+        $journal = JurnalMengajar::with([
+            'jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 
+            'jadwalPelajaran.mataPelajaranKelas.guru', 
+            'approvedBy',
+            'presensiMapel.siswa'
+        ])->findOrFail($id);
+        
         return view('jurnal-mengajar.show', compact('journal'));
     }
 

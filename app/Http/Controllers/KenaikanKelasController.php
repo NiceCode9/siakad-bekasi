@@ -18,7 +18,7 @@ class KenaikanKelasController extends Controller
     public function index()
     {
         $classes = Kelas::with('jurusan')->get();
-        $tahunAkademiks = TahunAkademik::orderBy('tahun', 'desc')->get();
+        $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
         $history = KenaikanKelas::with(['tahunAkademik', 'processedBy'])->latest()->get();
 
         return view('kenaikan-kelas.index', compact('classes', 'tahunAkademiks', 'history'));

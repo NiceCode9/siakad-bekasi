@@ -75,6 +75,40 @@
                         </div>
                     @endif
 
+                    <div class="mb-4">
+                        <h5>Detail Presensi Siswa</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th>Nama Siswa</th>
+                                        <th width="15%" class="text-center">Status</th>
+                                        <th>Keterangan</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($journal->presensiMapel as $p)
+                                    <tr>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td>{{ $p->siswa->nama_lengkap }}</td>
+                                        <td class="text-center">
+                                            @if($p->status == 'H') <span class="badge badge-success">Hadir</span>
+                                            @elseif($p->status == 'I') <span class="badge badge-info">Izin</span>
+                                            @elseif($p->status == 'S') <span class="badge badge-warning">Sakit</span>
+                                            @elseif($p->status == 'A') <span class="badge badge-danger">Alpha</span>
+                                            @endif
+                                        </td>
+                                        <td>{{ $p->keterangan ?? '-' }}</td>
+                                    </tr>
+                                    @empty
+                                    <tr><td colspan="4" class="text-center">Data presensi tidak ditemukan</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <div class="text-center mt-5">
                         <a href="{{ route('jurnal-mengajar.index') }}" class="btn btn-outline-secondary">KEMBALI KE LIST</a>
                         @if(!$journal->is_approved && auth()->user()->hasRole(['admin', 'super-admin']))
