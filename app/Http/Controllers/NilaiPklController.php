@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\NilaiPkl;
 use App\Models\Pkl;
+use App\Models\Kelas;
+use App\Models\Siswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Yajra\DataTables\Facades\DataTables;
@@ -18,8 +20,21 @@ class NilaiPklController extends Controller
         $user = Auth::user();
         if ($request->ajax()) {
             $query = Pkl::with(['siswa.kelas', 'perusahaanPkl', 'nilaiPkl'])
-                ->where('pembimbing_sekolah_id', $user->guru->id ?? 0)
                 ->whereIn('status', ['aktif', 'selesai']);
+
+            if (!$user->hasRole(['admin', 'super-admin'])) {
+                // Ensure user is Guru
+                if (!$user->guru) {
+                    return response()->json(['data' => []]);
+                }
+                
+                // Filter students: Wali Kelas of the student OR Pembimbing Sekolah of the PKL
+                $query->where(function($q) use ($user) {
+                    $q->whereHas('siswa.kelas', function($sq) use ($user) {
+                        $sq->where('wali_kelas_id', $user->guru->id ?? 0);
+                    })->orWhere('pembimbing_sekolah_id', $user->guru->id ?? 0);
+                });
+            }
 
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -41,7 +56,22 @@ class NilaiPklController extends Controller
 
     public function edit($pklId)
     {
-        $pkl = Pkl::with(['siswa', 'perusahaanPkl', 'nilaiPkl'])->findOrFail($pklId);
+        $user = Auth::user();
+        $pkl = Pkl::with(['siswa.kelas', 'perusahaanPkl', 'nilaiPkl'])->findOrFail($pklId);
+        
+        // Authorization check
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = Kelas::where('id', $pkl->siswa->kelas->id ?? 0)
+                ->where('wali_kelas_id', $user->guru->id ?? 0)
+                ->exists();
+            
+            $isPembimbing = ($pkl->pembimbing_sekolah_id == ($user->guru->id ?? 0));
+            
+            if (!$isWali && !$isPembimbing) {
+                return redirect()->route('pkl-nilai.index')->with('error', 'Anda tidak memiliki akses untuk menilai siswa ini.');
+            }
+        }
+
         $nilai = $pkl->nilaiPkl ?? new NilaiPkl();
         
         return view('pkl.nilai.edit', compact('pkl', 'nilai'));
@@ -49,6 +79,22 @@ class NilaiPklController extends Controller
 
     public function update(Request $request, $pklId)
     {
+        $user = Auth::user();
+        $pkl = Pkl::with('siswa.kelas')->findOrFail($pklId);
+
+        // Authorization check
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = Kelas::where('id', $pkl->siswa->kelas->id ?? 0)
+                ->where('wali_kelas_id', $user->guru->id ?? 0)
+                ->exists();
+                
+            $isPembimbing = ($pkl->pembimbing_sekolah_id == ($user->guru->id ?? 0));
+            
+            if (!$isWali && !$isPembimbing) {
+                return redirect()->route('pkl-nilai.index')->with('error', 'Gagal menyimpan: Anda tidak memiliki akses untuk menilai siswa ini.');
+            }
+        }
+
         $request->validate([
             'nilai_sikap_kerja' => 'required|numeric|min:0|max:100',
             'nilai_keterampilan' => 'required|numeric|min:0|max:100',

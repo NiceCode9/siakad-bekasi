@@ -17,11 +17,24 @@ class NilaiSikapController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $semesterAktif = Semester::active()->first();
         
-        $kelas = $semesterAktif 
-            ? Kelas::where('semester_id', $semesterAktif->id)->orderBy('nama')->get()
-            : collect();
+        // Filter kelas: Wali Kelas hanya bisa menginput untuk kelas binaannya
+        $kelasQuery = Kelas::query();
+        if ($semesterAktif) {
+            $kelasQuery->where('semester_id', $semesterAktif->id);
+        }
+
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            // Check if user is Guru and has Wali Kelas assignment
+            if (!$user->guru || !$user->guru->kelasWali()->exists()) {
+                return redirect()->route('dashboard')->with('error', 'Akses ditolak. Menu ini hanya untuk Wali Kelas.');
+            }
+            $kelasQuery->where('wali_kelas_id', $user->guru->id);
+        }
+
+        $kelas = $kelasQuery->orderBy('nama')->get();
 
         return view('pembelajaran.nilai-sikap.index', compact('kelas'));
     }

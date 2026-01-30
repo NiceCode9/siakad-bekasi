@@ -35,7 +35,7 @@ class NilaiController extends Controller
         }
 
         // If subject selected, load components
-        $components = KomponenNilai::where('kurikulum_id', $semesterAktif->kurikulum_id ?? 0)->get();
+        $components = KomponenNilai::where('kurikulum_id', $semesterAktif->tahunAkademik->kurikulum_id ?? 0)->get();
 
         return view('pembelajaran.nilai.index', compact('kelas', 'subjects', 'components'));
     }
@@ -141,7 +141,87 @@ class NilaiController extends Controller
      */
     public function rekap(Request $request)
     {
-        // Similar to create but read-only matrix
-        // .. impl later if requested, focusing on input first
+        $request->validate([
+            'kelas_id' => 'required|exists:kelas,id',
+            'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
+        ]);
+
+        $user = Auth::user();
+        $kelasId = $request->kelas_id;
+        $mpkId = $request->mata_pelajaran_kelas_id;
+
+        $semesterAktif = Semester::active()->first();
+        $kelas = Kelas::findOrFail($kelasId);
+        $mpk = MataPelajaranKelas::with('mataPelajaran', 'guru')->findOrFail($mpkId);
+
+        // Authorization check: Admin, Wali Kelas of this class, or the Subject Teacher
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = ($kelas->wali_kelas_id == ($user->guru->id ?? 0));
+            $isTeacher = ($mpk->guru_id == ($user->guru->id ?? 0));
+            
+            if (!$isWali && !$isTeacher) {
+                return redirect()->route('nilai.index')->with('error', 'Anda tidak memiliki akses rekap nilai untuk kelas/mapel ini.');
+            }
+        }
+
+        $components = KomponenNilai::where('kurikulum_id', $semesterAktif->kurikulum_id ?? 0)->get();
+        
+        $siswa = SiswaKelas::with('siswa')
+            ->where('kelas_id', $kelasId)
+            ->where('status', 'aktif')
+            ->get()
+            ->sortBy(fn($sk) => $sk->siswa->nama_lengkap);
+
+        $existingGrades = Nilai::where('mata_pelajaran_kelas_id', $mpkId)
+            ->where('semester_id', $semesterAktif->id)
+            ->get()
+            ->groupBy('siswa_id');
+
+        // Get raport details for overrides
+        $raportDetails = \App\Models\RaportDetail::where('mata_pelajaran_id', $mpk->mata_pelajaran_id)
+            ->whereHas('raport', function($q) use ($kelasId, $semesterAktif) {
+                $q->where('kelas_id', $kelasId)->where('semester_id', $semesterAktif->id);
+            })
+            ->get()
+            ->keyBy(function($item) {
+                return $item->raport->siswa_id;
+            });
+
+        $isWali = $user->hasRole(['admin', 'super-admin']) || ($kelas->wali_kelas_id == ($user->guru->id ?? 0));
+
+        return view('pembelajaran.nilai.rekap', compact('kelas', 'mpk', 'components', 'siswa', 'existingGrades', 'raportDetails', 'semesterAktif', 'isWali'));
+    }
+
+    /**
+     * Override Nilai Akhir.
+     */
+    public function overrideNilaiAkhir(Request $request)
+    {
+        $request->validate([
+            'raport_detail_id' => 'required|exists:raport_detail,id',
+            'nilai_akhir_manual' => 'required|numeric|min:0|max:100',
+            'override_reason' => 'required|string',
+        ]);
+
+        $user = Auth::user();
+        $detail = \App\Models\RaportDetail::with('raport.kelas', 'mataPelajaran')->findOrFail($request->raport_detail_id);
+
+        // Security check: Only Admin OR Wali Kelas of this class can override
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $isWali = ($detail->raport->kelas->wali_kelas_id == ($user->guru->id ?? 0));
+
+            if (!$isWali) {
+                return response()->json(['success' => false, 'message' => 'Hanya Wali Kelas yang dapat melakukan override nilai akhir.'], 403);
+            }
+        }
+
+        $detail->update([
+            'nilai_akhir_manual' => $request->nilai_akhir_manual,
+            'is_manual_override' => true,
+            'override_reason' => $request->override_reason,
+            'nilai_akhir' => $request->nilai_akhir_manual, // Also update final for display
+        ]);
+
+        return response()->json(['success' => true, 'message' => 'Nilai akhir berhasil di-override.']);
     }
 }

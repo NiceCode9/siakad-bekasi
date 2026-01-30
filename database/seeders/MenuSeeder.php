@@ -344,6 +344,58 @@ class MenuSeeder extends Seeder
         );
         $presensiMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-presensi'])->id]);
 
+        // Nilai Akademik
+        $nilaiAkademikMenu = Menu::firstOrCreate(
+            ['slug' => 'nilai'],
+            [
+                'name' => 'Nilai Akademik',
+                'icon' => 'simple-icon-calculator',
+                'url' => '/nilai',
+                'parent_id' => $cbtMenu->id,
+                'order' => 6,
+            ]
+        );
+        $nilaiAkademikMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-nilai'])->id]);
+
+        // Nilai Sikap
+        $nilaiSikapMenu = Menu::firstOrCreate(
+            ['slug' => 'nilai-sikap'],
+            [
+                'name' => 'Nilai Sikap',
+                'icon' => 'simple-icon-heart',
+                'url' => '/nilai-sikap',
+                'parent_id' => $cbtMenu->id,
+                'order' => 7,
+            ]
+        );
+        $nilaiSikapMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-nilai-sikap'])->id]);
+
+        // Nilai Ekstrakurikuler
+        $nilaiEkskulMenu = Menu::firstOrCreate(
+            ['slug' => 'nilai-ekstrakurikuler'],
+            [
+                'name' => 'Nilai Ekstrakurikuler',
+                'icon' => 'simple-icon-star',
+                'url' => '/nilai-ekstrakurikuler',
+                'parent_id' => $cbtMenu->id,
+                'order' => 8,
+            ]
+        );
+        $nilaiEkskulMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-nilai-ekstrakurikuler'])->id]);
+
+        // Dashboard Nilai
+        $dashboardNilaiMenu = Menu::firstOrCreate(
+            ['slug' => 'dashboard-nilai'],
+            [
+                'name' => 'Dashboard Nilai Siswa',
+                'icon' => 'simple-icon-grid',
+                'url' => '/dashboard-nilai',
+                'parent_id' => $cbtMenu->id,
+                'order' => 9,
+            ]
+        );
+        $dashboardNilaiMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-dashboard-nilai'])->id]);
+
         // Ujian Saya
         $ujianSiswaMenu = Menu::firstOrCreate(
             ['slug' => 'ujian-siswa'],
@@ -454,6 +506,11 @@ class MenuSeeder extends Seeder
         $cbtMenu->roles()->syncWithoutDetaching($academicRoles);
         $elearningMenu->roles()->syncWithoutDetaching($academicRoles);
         $presensiMenu->roles()->syncWithoutDetaching($academicRoles);
+        $nilaiAkademikMenu->roles()->syncWithoutDetaching($academicRoles);
+        $nilaiSikapMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+        $nilaiEkskulMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+        $dashboardNilaiMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+        
         $reports->roles()->syncWithoutDetaching($academicRoles);
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);
         $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());

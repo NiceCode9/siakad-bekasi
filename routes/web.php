@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BukuIndukController;
 use App\Http\Controllers\EkstrakurikulerController;
+use App\Http\Controllers\DashboardNilaiController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JadwalPelajaranController;
 use App\Http\Controllers\JadwalUjianController;
@@ -230,9 +231,15 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('komponen-nilai', KomponenNilaiController::class);
     Route::resource('ekstrakurikuler', EkstrakurikulerController::class);
-    Route::resource('nilai', NilaiController::class)->only(['index', 'create', 'store']);
+    Route::get('nilai/rekap', [NilaiController::class, 'rekap'])->name('nilai.rekap');
+    Route::post('nilai/override', [NilaiController::class, 'overrideNilaiAkhir'])->name('nilai.override');
+    Route::resource('nilai', NilaiController::class);
     Route::resource('nilai-sikap', NilaiSikapController::class)->only(['index', 'create', 'store']);
     Route::resource('nilai-ekstrakurikuler', NilaiEkstrakurikulerController::class)->only(['index', 'create', 'store']);
+
+    // Dashboard Nilai
+    Route::get('dashboard-nilai', [DashboardNilaiController::class, 'index'])->name('dashboard-nilai.index');
+    Route::get('dashboard-nilai/{siswa}', [DashboardNilaiController::class, 'show'])->name('dashboard-nilai.show');
 
     // CBT & Ujian
     Route::prefix('bank-soal')->name('bank-soal.')->group(function () {

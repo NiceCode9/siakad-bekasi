@@ -19,12 +19,20 @@ class RaportDetail extends Model
         'nilai_akhir',
         'predikat',
         'deskripsi',
+        'jumlah_pertemuan',
+        'jumlah_hadir',
+        'persentase_kehadiran',
+        'nilai_akhir_manual',
+        'is_manual_override',
+        'override_reason',
     ];
 
     protected $casts = [
         'nilai_pengetahuan' => 'decimal:2',
         'nilai_keterampilan' => 'decimal:2',
         'nilai_akhir' => 'decimal:2',
+        'nilai_akhir_manual' => 'decimal:2',
+        'is_manual_override' => 'boolean',
     ];
 
     // Relationships

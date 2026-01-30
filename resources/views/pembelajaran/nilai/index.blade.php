@@ -70,6 +70,12 @@
                                                             {{ $comp->nama }}
                                                         </a>
                                                     @endforeach
+                                                    <a href="{{ route('nilai.rekap', [
+                                                        'kelas_id' => request('kelas_id'),
+                                                        'mata_pelajaran_kelas_id' => $mpk->id
+                                                    ]) }}" class="btn btn-info btn-sm mb-1">
+                                                        <i class="fas fa-list-check"></i> Rekap & Pasca Penilaian
+                                                    </a>
                                                 </td>
                                             </tr>
                                         @endforeach
