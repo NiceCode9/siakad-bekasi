@@ -19,19 +19,47 @@ class NilaiController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
         $semesterAktif = Semester::active()->first();
         
-        // Load classes for filter
-        $kelas = $semesterAktif 
-            ? Kelas::where('semester_id', $semesterAktif->id)->orderBy('nama')->get()
-            : collect();
+        // Load classes for filter - Restricted for Guru
+        $queryKelas = Kelas::query();
+        if ($semesterAktif) {
+            $queryKelas->where('semester_id', $semesterAktif->id);
+        }
 
-        // If class selected, load subjects
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $guruId = $user->guru->id ?? 0;
+            
+            $queryKelas->where(function($q) use ($guruId) {
+                $q->where('wali_kelas_id', $guruId)
+                  ->orWhereHas('mataPelajaranKelas', function($q2) use ($guruId) {
+                      $q2->where('guru_id', $guruId);
+                  });
+            });
+        }
+        
+        $kelas = $queryKelas->orderBy('nama')->get();
+
+        // If class selected, load subjects filtered by teacher assignment
         $subjects = collect();
         if ($request->filled('kelas_id')) {
-            $subjects = MataPelajaranKelas::with('mataPelajaran')
-                ->where('kelas_id', $request->kelas_id)
-                ->get();
+            $selectedKelas = Kelas::find($request->kelas_id);
+            if ($selectedKelas) {
+                $querySubjects = MataPelajaranKelas::with('mataPelajaran')
+                    ->where('kelas_id', $selectedKelas->id);
+
+                if (!$user->hasRole(['admin', 'super-admin'])) {
+                    $guruId = $user->guru->id ?? 0;
+                    $isWali = ($selectedKelas->wali_kelas_id == $guruId);
+                    
+                    // If not Wali Kelas, only show subjects taught by this teacher
+                    if (!$isWali) {
+                        $querySubjects->where('guru_id', $guruId);
+                    }
+                }
+                $subjects = $querySubjects->get();
+            }
         }
 
         // If subject selected, load components
@@ -51,10 +79,22 @@ class NilaiController extends Controller
             'komponen_nilai_id' => 'required|exists:komponen_nilai,id',
         ]);
 
+        $user = Auth::user();
         $kelas = Kelas::findOrFail($request->kelas_id);
         $mpk = MataPelajaranKelas::with('mataPelajaran')->findOrFail($request->mata_pelajaran_kelas_id);
         $komponen = KomponenNilai::findOrFail($request->komponen_nilai_id);
         $semester = Semester::active()->first();
+
+        // Authorization check
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $guruId = $user->guru->id ?? 0;
+            $isWali = ($kelas->wali_kelas_id == $guruId);
+            $isTeacher = ($mpk->guru_id == $guruId);
+
+            if (!$isWali && !$isTeacher) {
+                return redirect()->route('nilai.index')->with('error', 'Anda tidak memiliki akses untuk menginput nilai pada kelas/mata pelajaran ini.');
+            }
+        }
 
         // Get students
         $siswa = SiswaKelas::with('siswa')
@@ -87,14 +127,29 @@ class NilaiController extends Controller
             'nilai.*.keterangan' => 'nullable|string|max:255',
         ]);
 
-        $userId = Auth::id();
+        $user = Auth::user();
         $mpkId = $validated['mata_pelajaran_kelas_id'];
         $komponenId = $validated['komponen_nilai_id'];
         $semesterId = $validated['semester_id'];
+        $kelasId = $validated['kelas_id'];
+
+        // Authorization check
+        if (!$user->hasRole(['admin', 'super-admin'])) {
+            $kelas = Kelas::find($kelasId);
+            $mpk = MataPelajaranKelas::find($mpkId);
+            $guruId = $user->guru->id ?? 0;
+            
+            $isWali = ($kelas->wali_kelas_id == $guruId);
+            $isTeacher = ($mpk->guru_id == $guruId);
+
+            if (!$isWali && !$isTeacher) {
+                return redirect()->route('nilai.index')->with('error', 'Akses ditolak. Anda tidak memiliki wewenang menyimpan nilai untuk kelas/mapel ini.');
+            }
+        }
+        
+        $userId = $user->id;
         
         // Determine jenis_nilai based on Component mapping or default to component name slug
-        // For simplicity, we assume component name maps to jenis_nilai if needed, or we just store component_id primarily.
-        // The `jenis_nilai` column in table might be redundant if we have `komponen_nilai_id`, but let's fill it for legacy support if needed.
         $komponen = KomponenNilai::find($komponenId);
         $jenisNilai = \Illuminate\Support\Str::slug($komponen->nama, '_');
 
