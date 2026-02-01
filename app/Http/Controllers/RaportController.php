@@ -23,17 +23,28 @@ class RaportController extends Controller
     public function index(Request $request)
     {
         $user = Auth::user();
+        $semester = Semester::where('is_active', true)->first();
+
+        // If user is a student
+        if ($user->hasRole('siswa')) {
+            $siswa = $user->siswa;
+            $raports = Raport::where('siswa_id', $siswa->id)
+                ->with(['semester', 'kelas'])
+                ->orderByDesc('created_at')
+                ->get();
+            
+            return view('raport.student', compact('siswa', 'raports', 'semester'));
+        }
+
         $isWaliKelas = $user->hasRole('guru') && $user->guru && $user->guru->kelasWali;
 
         if (!$isWaliKelas && !$user->hasRole('admin') && !$user->hasRole('super-admin')) {
-            abort(403, 'Anda bukan wali kelas.');
+            abort(403, 'Anda bukan wali kelas atau admin.');
         }
 
-        $semester = Semester::where('is_active', true)->first();
         $kelas = null;
-
         if ($user->hasRole('guru')) {
-            $kelas = $user->guru->kelasWali()->first();
+            $kelas = $user->guru->kelasWali()->where('semester_id', $semester->id)->first();
         }
 
         $siswas = [];
@@ -107,7 +118,6 @@ class RaportController extends Controller
                     $journalIds = \App\Models\JurnalMengajar::whereHas('jadwalPelajaran', function($q) use ($mk) {
                             $q->where('mata_pelajaran_kelas_id', $mk->id);
                         })
-                        ->where('semester_id', $semester_id)
                         ->pluck('id');
 
                     $totalPertemuan = $journalIds->count();
@@ -138,6 +148,7 @@ class RaportController extends Controller
             return redirect()->route('raport.show', $raport->id)->with('success', 'Raport berhasil di-generate.');
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return back()->with('error', 'Gagal generate raport: ' . $e->getMessage());
         }
     }
@@ -153,6 +164,12 @@ class RaportController extends Controller
     public function show($id)
     {
         $raport = Raport::with(['siswa', 'semester', 'kelas', 'raportDetail.mataPelajaran'])->findOrFail($id);
+        
+        $user = Auth::user();
+        if ($user->hasRole('siswa') && $raport->siswa_id !== $user->siswa->id) {
+            abort(403, 'Anda tidak memiliki hak akses melihat raport ini.');
+        }
+
         $nilaiSikap = NilaiSikap::where('siswa_id', $raport->siswa_id)->where('semester_id', $raport->semester_id)->first();
         $nilaiEkskul = NilaiEkstrakurikuler::with('ekstrakurikuler')->where('siswa_id', $raport->siswa_id)->where('semester_id', $raport->semester_id)->get();
         $nilaiPkl = NilaiPkl::whereHas('pkl', function($q) use ($raport) {
@@ -201,7 +218,13 @@ class RaportController extends Controller
 
     public function print($id)
     {
-        $raport = Raport::with(['siswa.biodata', 'semester.tahunAkademik', 'kelas', 'raportDetail.mataPelajaran'])->findOrFail($id);
+        $raport = Raport::with(['siswa', 'semester.tahunAkademik', 'kelas', 'raportDetail.mataPelajaran'])->findOrFail($id);
+        
+        $user = Auth::user();
+        if ($user->hasRole('siswa') && $raport->siswa_id !== $user->siswa->id) {
+            abort(403, 'Anda tidak memiliki hak akses mencetak raport ini.');
+        }
+
         $nilaiSikap = NilaiSikap::where('siswa_id', $raport->siswa_id)->where('semester_id', $raport->semester_id)->first();
         $nilaiEkskul = NilaiEkstrakurikuler::with('ekstrakurikuler')->where('siswa_id', $raport->siswa_id)->where('semester_id', $raport->semester_id)->get();
         $nilaiPkl = NilaiPkl::with('pkl.perusahaanPkl')->whereHas('pkl', function($q) use ($raport) {
@@ -209,6 +232,6 @@ class RaportController extends Controller
         })->first();
 
         $pdf = Pdf::loadView('raport.pdf', compact('raport', 'nilaiSikap', 'nilaiEkskul', 'nilaiPkl'));
-        return $pdf->download('Raport_'.$raport->siswa->nama.'_'.$raport->semester->nama.'.pdf');
+        return $pdf->download('Raport_'.$raport->siswa->nama_lengkap.'_'.$raport->semester->nama.'.pdf');
     }
 }

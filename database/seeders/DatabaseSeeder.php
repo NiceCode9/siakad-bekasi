@@ -15,12 +15,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
         $this->call([
             // Role & Permission Setup
             RolePermissionSeeder::class,
@@ -45,11 +39,20 @@ class DatabaseSeeder extends Seeder
             GuruSeeder::class,
             KelasSeeder::class,
             SiswaSeeder::class,
-            // OrangTuaSeeder::class,
             
             // Academic Assignments & Schedules
             MataPelajaranKelasSeeder::class,
             JadwalPelajaranSeeder::class,
+
+            // Module Specific Data
+            CbtSeeder::class,
+            PklSeeder::class,
+            ELearningSeeder::class,
+            OperasionalSeeder::class,
+            NilaiSeeder::class,
+            
+            // System Setup
+            PengaturanSeeder::class,
         ]);
     }
 }

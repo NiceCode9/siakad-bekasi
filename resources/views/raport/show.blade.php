@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Raport - ' . $raport->siswa->nama)
+@section('title', 'Detail Raport - ' . $raport->siswa->nama_lengkap)
 
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
-            <h1>Detail Raport: {{ $raport->siswa->nama }}</h1>
+            <h1>Detail Raport: {{ $raport->siswa->nama_lengkap }}</h1>
             <div class="top-right-button-container d-flex">
                 @can('approve-raport')
                     @if($raport->status == 'draft')

@@ -64,12 +64,22 @@ class BukuIndukController extends Controller
             ->make(true);
     }
 
+    public function showMyBukuInduk()
+    {
+        $user = auth()->user();
+        if (!$user->siswa) {
+            abort(403, 'Anda bukan siswa.');
+        }
+
+        return $this->show($user->siswa->id);
+    }
+
     public function show($id)
     {
         $siswa = Siswa::with(['bukuInduk', 'kelasAktif'])->findOrFail($id);
         
         // Riwayat Kelas
-        $riwayatKelas = \App\Models\SiswaKelas::with(['kelas.semester', 'kelas.tahunAkademik', 'kelas.jurusan'])
+        $riwayatKelas = \App\Models\SiswaKelas::with(['kelas.semester.tahunAkademik', 'kelas.jurusan'])
             ->where('siswa_id', $id)
             ->orderByDesc('tanggal_masuk')
             ->get();
@@ -79,13 +89,10 @@ class BukuIndukController extends Controller
             ->orderByDesc('tanggal')
             ->get();
 
-        // Riwayat Nilai (Group by Semester)
-        $riwayatNilai = \App\Models\Nilai::with(['mataPelajaranKelas.mataPelajaran', 'semester'])
+        // Riwayat Nilai (Flat for DataTable)
+        $riwayatNilai = \App\Models\Nilai::with(['mataPelajaranKelas.mataPelajaran', 'mataPelajaranKelas.kelas', 'semester'])
             ->where('siswa_id', $id)
-            ->get()
-            ->groupBy(function($item) {
-                return $item->semester->nama ?? 'Semester Tidak Diketahui';
-            });
+            ->get();
 
         return view('user-data.buku-induk.show', compact('siswa', 'riwayatKelas', 'riwayatMutasi', 'riwayatNilai'));
     }

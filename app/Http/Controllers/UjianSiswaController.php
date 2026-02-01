@@ -10,6 +10,8 @@ use App\Models\SiswaKelas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use App\Models\Nilai;
+use App\Models\KomponenNilai;
 use Illuminate\Support\Facades\DB;
 
 class UjianSiswaController extends Controller
@@ -258,6 +260,57 @@ class UjianSiswaController extends Controller
                 'waktu_submit' => now(),
                 'nilai' => $finalScore
             ]);
+
+            // --- SYNC TO NILAI MODULE ---
+            $semester = $jadwal->semester;
+            
+            // Map jenis_ujian to Nilai category (enum in 'nilai' table)
+            $mapJenis = [
+                'ulangan_harian' => 'ulangan_harian',
+                'uts' => 'uts',
+                'uas' => 'uas',
+                'ujian_praktik' => 'praktik',
+                'ujian_sekolah' => 'uas', 
+            ];
+            $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
+
+            // Find matching KomponenNilai in student's curriculum
+            $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id)
+                ->where(function($q) use ($jadwal) {
+                    $q->where('nama', 'like', '%' . $jadwal->jenis_ujian . '%')
+                      ->orWhere('kode', 'like', '%' . $jadwal->jenis_ujian . '%');
+                    
+                    // Fallback search strings
+                    if ($jadwal->jenis_ujian == 'uts') $q->orWhere('nama', 'like', '%tengah%');
+                    if ($jadwal->jenis_ujian == 'uas') $q->orWhere('nama', 'like', '%akhir%');
+                })->first();
+
+            if (!$komponen) {
+                // Secondary fallback: search by mapped jenisNilai
+                $searchLabel = str_replace('_', ' ', $jenisNilai);
+                $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id)
+                    ->where('nama', 'like', '%' . $searchLabel . '%')
+                    ->first();
+            }
+
+            if ($komponen) {
+                Nilai::updateOrCreate(
+                    [
+                        'siswa_id' => $ujianSiswa->siswa_id,
+                        'mata_pelajaran_kelas_id' => $jadwal->mata_pelajaran_kelas_id,
+                        'komponen_nilai_id' => $komponen->id,
+                        'semester_id' => $jadwal->semester_id,
+                    ],
+                    [
+                        'jenis_nilai' => $jenisNilai,
+                        'nilai' => $finalScore,
+                        'ujian_siswa_id' => $ujianSiswa->id,
+                        'penginput_id' => $jadwal->mataPelajaranKelas->guru_id ?? Auth::user()->id, // Fallback if no teacher assigned?
+                        'tanggal_input' => now(),
+                        'keterangan' => 'Nilai otomatis dari CBT: ' . $jadwal->nama_ujian
+                    ]
+                );
+            }
             
             DB::commit();
         } catch (\Exception $e) {
@@ -266,6 +319,21 @@ class UjianSiswaController extends Controller
         }
 
         return redirect()->route('ujian-siswa.show', $id);
+    }
+
+    public function review($id)
+    {
+        // $id here is ujian_siswa ID
+        $ujianSiswa = UjianSiswa::with(['siswa', 'jadwalUjian.bankSoal', 'jawabanSiswa.soalUjian.soal'])->findOrFail($id);
+        
+        $jadwal = $ujianSiswa->jadwalUjian;
+        $jawabans = $ujianSiswa->jawabanSiswa->keyBy('soal_ujian_id');
+        $soalList = SoalUjian::where('jadwal_ujian_id', $jadwal->id)
+            ->with('soal')
+            ->orderBy('urutan')
+            ->get();
+
+        return view('pembelajaran.cbt.ujian.review', compact('ujianSiswa', 'jadwal', 'soalList', 'jawabans'));
     }
 }
 

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>RAPORT - {{ $raport->siswa->nama }}</title>
+    <title>RAPORT - {{ $raport->siswa->nama_lengkap }}</title>
     <style>
         body { font-family: sans-serif; font-size: 11pt; color: #333; line-height: 1.4; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
@@ -27,7 +27,7 @@
         <tr>
             <td width="15%">Nama Siswa</td>
             <td width="2%">:</td>
-            <td width="35%"><strong>{{ $raport->siswa->nama }}</strong></td>
+            <td width="35%"><strong>{{ $raport->siswa->nama_lengkap }}</strong></td>
             <td width="15%">Kelas</td>
             <td width="2%">:</td>
             <td width="31%">{{ $raport->kelas->nama }}</td>

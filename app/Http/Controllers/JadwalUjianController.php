@@ -43,6 +43,9 @@ class JadwalUjianController extends Controller
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="btn-group" role="group">';
                     $btn .= '<a href="' . route('jadwal-ujian.show', $row->id) . '" class="btn btn-info btn-sm" title="Detail"><i class="fas fa-eye"></i></a>';
+                    if($row->status == 'aktif') {
+                        $btn .= '<a href="' . route('jadwal-ujian.monitor', $row->id) . '" class="btn btn-dark btn-sm" title="Monitor"><i class="fas fa-desktop"></i></a>';
+                    }
                     if($row->status == 'draft') {
                         $btn .= '<a href="' . route('jadwal-ujian.manage-soal', $row->id) . '" class="btn btn-primary btn-sm" title="Kelola Soal"><i class="fas fa-tasks"></i></a>';
                         $btn .= '<a href="' . route('jadwal-ujian.edit', $row->id) . '" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>';
@@ -109,8 +112,8 @@ class JadwalUjianController extends Controller
         DB::beginTransaction();
         try {
             $bank = BankSoal::withCount('soal')->findOrFail($validated['bank_soal_id']);
-            if ($bank->soal_count < $validated['jumlah_soal']) {
-                return back()->withInput()->with('error', "Bank soal hanya memiliki {$bank->soal_count} soal.");
+            if ($bank->soal_count < (int) $validated['jumlah_soal']) {
+                return back()->with('error', "Bank soal hanya memiliki {$bank->soal_count} soal.")->withInput();
             }
 
             // Loop through each selected class
@@ -141,6 +144,7 @@ class JadwalUjianController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return back()->withInput()->with('error', $e->getMessage());
         }
     }
@@ -256,6 +260,50 @@ class JadwalUjianController extends Controller
         return response()->json(['message' => 'Jadwal dihapus']);
     }
 
+
+    public function monitor($id)
+    {
+        $jadwalUjian = JadwalUjian::with([
+            'mataPelajaranKelas.kelas.siswa',
+            'ujianSiswa' => function ($q) {
+                $q->with('siswa');
+            }
+        ])->findOrFail($id);
+
+        // Match students with their exam status
+        $students = $jadwalUjian->mataPelajaranKelas->kelas->siswa;
+        $exams = $jadwalUjian->ujianSiswa->keyBy('siswa_id');
+
+        $data = $students->map(function ($s) use ($exams) {
+            $exam = $exams->get($s->id);
+            return [
+                'id' => $s->id,
+                'ujian_siswa_id' => $exam ? $exam->id : null,
+                'nama' => $s->nama_lengkap,
+                'nis' => $s->nis,
+                'status' => $exam ? $exam->status : 'belum_mulai',
+                'waktu_mulai' => $exam && $exam->waktu_mulai ? $exam->waktu_mulai->format('H:i:s') : '-',
+                'waktu_submit' => $exam && $exam->waktu_submit ? $exam->waktu_submit->format('H:i:s') : '-',
+                'nilai' => $exam ? $exam->nilai : '-',
+                'pelanggaran' => $exam ? $exam->violation_count : 0,
+                'last_seen' => $exam ? $exam->updated_at->diffForHumans() : '-',
+            ];
+        });
+
+        if (request()->ajax()) {
+            return response()->json([
+                'data' => $data,
+                'stats' => [
+                    'total' => $students->count(),
+                    'mengerjakan' => $exams->where('status', 'sedang_mengerjakan')->count(),
+                    'selesai' => $exams->where('status', 'selesai')->count(),
+                    'belum' => $students->count() - $exams->count(),
+                ]
+            ]);
+        }
+
+        return view('pembelajaran.cbt.jadwal-ujian.monitor', compact('jadwalUjian', 'data'));
+    }
 
     // --- Advanced Question Management ---
 

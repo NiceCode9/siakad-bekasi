@@ -48,7 +48,7 @@ class DashboardNilaiController extends Controller
 
         $allKelas = $user->hasRole(['admin', 'super-admin']) ? Kelas::where('semester_id', $semesterAktif->id)->get() : collect([$kelas]);
 
-        $siswas = SiswaKelas::with(['siswa', 'raports' => function($q) use ($semesterAktif) {
+        $siswas = SiswaKelas::with(['siswa.raports' => function($q) use ($semesterAktif) {
                 $q->where('semester_id', $semesterAktif->id);
             }])
             ->where('kelas_id', $kelas->id)
@@ -59,7 +59,7 @@ class DashboardNilaiController extends Controller
         $subjectCount = MataPelajaranKelas::where('kelas_id', $kelas->id)->count();
 
         foreach ($siswas as $sk) {
-            $raport = $sk->raports->first();
+            $raport = $sk->siswa->raports->first();
             
             // Completion stats
             $sk->stats = [

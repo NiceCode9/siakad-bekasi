@@ -252,6 +252,7 @@ Route::middleware('auth')->group(function () {
     
     Route::prefix('jadwal-ujian')->name('jadwal-ujian.')->group(function () {
         Route::get('/{jadwal_ujian}/manage-soal', [JadwalUjianController::class, 'manageSoal'])->name('manage-soal');
+        Route::get('/{jadwal_ujian}/monitor', [JadwalUjianController::class, 'monitor'])->name('monitor');
         Route::post('/{jadwal_ujian}/add-soal', [JadwalUjianController::class, 'addSoal'])->name('add-soal');
         Route::delete('/remove-soal/{id}', [JadwalUjianController::class, 'removeSoal'])->name('remove-soal');
         Route::post('/reorder-soal', [JadwalUjianController::class, 'reorderSoal'])->name('reorder-soal');
@@ -265,6 +266,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/intro/{id}', [UjianSiswaController::class, 'show'])->name('show');
         Route::post('/start/{id}', [UjianSiswaController::class, 'start'])->name('start');
         Route::get('/take/{id}', [UjianSiswaController::class, 'take'])->name('take');
+        Route::get('/review/{id}', [UjianSiswaController::class, 'review'])->name('review');
         Route::post('/save-answer', [UjianSiswaController::class, 'saveAnswer'])->name('save-answer');
         Route::post('/log-violation', [UjianSiswaController::class, 'logViolation'])->name('log-violation');
         Route::post('/finish/{id}', [UjianSiswaController::class, 'finish'])->name('finish');
@@ -358,6 +360,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Other Modules
+    Route::get('buku-induk/me', [BukuIndukController::class, 'showMyBukuInduk'])->name('buku-induk.me');
     Route::resource('buku-induk', BukuIndukController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('prestasi-siswa', PrestasiSiswaController::class);
     Route::resource('pelanggaran-siswa', PelanggaranSiswaController::class);

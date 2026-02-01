@@ -9,9 +9,11 @@
             <h4 class="mb-0">Detail Buku Induk Siswa</h4>
         </div>
         <div class="col-md-6 text-right">
+            @if(!auth()->user()->hasRole('siswa'))
             <a href="{{ route('buku-induk.index') }}" class="btn btn-secondary btn-sm">
                 <i class="fas fa-arrow-left"></i> Kembali
             </a>
+            @endif
         </div>
     </div>
 
@@ -130,10 +132,12 @@
                         <div class="tab-pane fade" id="academic" role="tabpanel">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h6 class="mb-0 border-bottom pb-2">Detail Data Induk</h6>
+                                @if(!auth()->user()->hasRole('siswa'))
                                 <button class="btn btn-warning btn-sm btn-edit-induk" 
                                         onclick="location.href='{{ route('buku-induk.edit', $siswa->id) }}'">
                                     <i class="fas fa-pencil-alt"></i> Edit Data
                                 </button>
+                                @endif
                             </div>
                             
                              @if($siswa->bukuInduk)
@@ -182,7 +186,7 @@
                         <div class="tab-pane fade" id="history" role="tabpanel">
                             <h6 class="border-bottom pb-2">Riwayat Kelas</h6>
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
+                                <table class="table table-bordered table-hover" id="tableRiwayatKelas">
                                     <thead>
                                         <tr>
                                             <th>Tahun Ajar</th>
@@ -196,7 +200,7 @@
                                     <tbody>
                                         @forelse($riwayatKelas as $rk)
                                             <tr>
-                                                <td>{{ $rk->kelas->tahunAkademik->nama ?? '-' }}</td>
+                                                <td>{{ $rk->kelas->semester->tahunAkademik->nama ?? '-' }}</td>
                                                 <td>{{ $rk->kelas->semester->nama ?? '-' }}</td>
                                                 <td>{{ $rk->kelas->nama }}</td>
                                                 <td>{{ $rk->tanggal_masuk ? $rk->tanggal_masuk->format('d/m/Y') : '-' }}</td>
@@ -221,45 +225,51 @@
                         
                          <!-- Tab Riwayat Nilai -->
                         <div class="tab-pane fade" id="grades" role="tabpanel">
-                             <h6 class="border-bottom pb-2">Riwayat Nilai</h6>
-                             @forelse($riwayatNilai as $semester => $nilaiList)
-                                <div class="card mb-3 border">
-                                    <div class="card-header bg-light py-2">
-                                        <strong>Semester: {{ $semester }}</strong>
-                                    </div>
-                                    <div class="card-body p-0">
-                                        <table class="table table-sm table-striped mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>Mata Pelajaran</th>
-                                                    <th>Jenis Nilai</th>
-                                                    <th>Nilai</th>
-                                                    <th>Keterangan</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach($nilaiList as $nilai)
-                                                    <tr>
-                                                        <td>{{ $nilai->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</td>
-                                                        <td>{{ ucfirst(str_replace('_', ' ', $nilai->jenis_nilai)) }}</td>
-                                                        <td class="font-weight-bold">{{ $nilai->nilai }}</td>
-                                                        <td>{{ $nilai->keterangan }}</td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
+                             <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="mb-0 border-bottom pb-2 flex-grow-1">Riwayat Nilai</h6>
+                                <div style="width: 200px;">
+                                    <select class="form-control form-control-sm" id="filterKelasNilai">
+                                        <option value="">Semua Kelas</option>
+                                        @foreach($riwayatNilai->pluck('mataPelajaranKelas.kelas.nama')->unique()->filter()->values() as $kelasNama)
+                                            <option value="{{ $kelasNama }}">{{ $kelasNama }}</option>
+                                        @endforeach
+                                    </select>
                                 </div>
-                             @empty
-                                <div class="alert alert-info">Belum ada data nilai.</div>
-                             @endforelse
+                             </div>
+                             
+                             <div class="table-responsive">
+                                <table class="table table-bordered table-striped" id="tableRiwayatNilai">
+                                    <thead>
+                                        <tr>
+                                            <th>Kelas</th>
+                                            <th>Semester</th>
+                                            <th>Mata Pelajaran</th>
+                                            <th>Jenis Nilai</th>
+                                            <th>Nilai</th>
+                                            <th>Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($riwayatNilai as $nilai)
+                                            <tr>
+                                                <td>{{ $nilai->mataPelajaranKelas->kelas->nama ?? '-' }}</td>
+                                                <td>{{ $nilai->semester->nama ?? '-' }}</td>
+                                                <td>{{ $nilai->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</td>
+                                                <td>{{ ucfirst(str_replace('_', ' ', $nilai->jenis_nilai)) }}</td>
+                                                <td class="font-weight-bold text-center">{{ $nilai->nilai }}</td>
+                                                <td>{{ $nilai->keterangan }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                             </div>
                         </div>
 
                         <!-- Tab Mutasi -->
                         <div class="tab-pane fade" id="mutation" role="tabpanel">
                             <h6 class="border-bottom pb-2">Riwayat Mutasi</h6>
                              <div class="table-responsive">
-                                <table class="table table-bordered table-hover">
+                                <table class="table table-bordered table-hover" id="tableRiwayatMutasi">
                                     <thead>
                                         <tr>
                                             <th>Tanggal</th>
@@ -301,3 +311,39 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    $(document).ready(function() {
+        // DataTable common settings
+        var dtSettings = {
+            pageLength: 25,
+            lengthMenu: [10, 25, 50, 100],
+            language: {
+                paginate: {
+                    previous: "<i class='simple-icon-arrow-left'></i>",
+                    next: "<i class='simple-icon-arrow-right'></i>"
+                }
+            },
+            drawCallback: function () {
+                $($(".dataTables_wrapper .pagination li:first-of-type"))
+                    .find("a")
+                    .addClass("prev");
+                $($(".dataTables_wrapper .pagination li:last-of-type"))
+                    .find("a")
+                    .addClass("next");
+
+                $(".dataTables_wrapper .pagination").addClass("pagination-sm");
+            }
+        };
+
+        var tableNilai = $('#tableRiwayatNilai').DataTable(dtSettings);
+        var tableKelas = $('#tableRiwayatKelas').DataTable(dtSettings);
+        var tableMutasi = $('#tableRiwayatMutasi').DataTable(dtSettings);
+
+        $('#filterKelasNilai').on('change', function() {
+            tableNilai.column(0).search(this.value).draw();
+        });
+    });
+</script>
+@endpush

@@ -11,9 +11,16 @@
                 {{ strtoupper($jadwalUjian->status) }}
             </span>
         </div>
-        <a href="{{ route('jadwal-ujian.index') }}" class="btn btn-secondary btn-sm">
-            <i class="fas fa-arrow-left"></i> Kembali
-        </a>
+        <div>
+            @if($jadwalUjian->status == 'aktif')
+                <a href="{{ route('jadwal-ujian.monitor', $jadwalUjian->id) }}" class="btn btn-dark btn-sm mr-2">
+                    <i class="fas fa-desktop"></i> Monitoring
+                </a>
+            @endif
+            <a href="{{ route('jadwal-ujian.index') }}" class="btn btn-secondary btn-sm">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </a>
+        </div>
     </div>
 
     <div class="row">

@@ -22,7 +22,7 @@ class BankSoalController extends Controller
             $query = BankSoal::with(['mataPelajaran', 'pembuat', 'soal']);
 
             if (Auth::user()->hasRole('guru')) {
-                $query->where('pembuat_id', Auth::user()->guru_id);
+                $query->where('pembuat_id', Auth::user()->guru->id);
             }
             
             // Filter

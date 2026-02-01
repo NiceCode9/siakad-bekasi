@@ -495,6 +495,58 @@ class MenuSeeder extends Seeder
         );
         $raportMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-raport'])->id]);
 
+                // 1. Create permissions if not exist
+        $permView = Permission::firstOrCreate(['name' => 'view-buku-induk']);
+        $permEdit = Permission::firstOrCreate(['name' => 'manage-buku-induk']);
+
+        // 2. Assign to roles
+        $adminRoles = Role::whereIn('name', ['admin', 'super-admin', 'tu'])->get();
+        foreach ($adminRoles as $role) {
+            $role->givePermissionTo([$permView, $permEdit]);
+        }
+        
+        $studentRole = Role::where('name', 'siswa')->first();
+        if ($studentRole) {
+            $studentRole->givePermissionTo($permView);
+        }
+
+        // 3. Add to Master Data (for Admin/TU)
+        $masterData = Menu::where('slug', 'master-data')->first();
+        if ($masterData) {
+            $bukuIndukAdmin = Menu::firstOrCreate(
+                ['slug' => 'buku-induk-admin'],
+                [
+                    'name' => 'Buku Induk',
+                    'icon' => 'iconsminds-address-book',
+                    'url' => '/buku-induk',
+                    'parent_id' => $masterData->id,
+                    'order' => 10,
+                    'is_active' => true
+                ]
+            );
+            $bukuIndukAdmin->permissions()->syncWithoutDetaching([$permView->id]);
+            $bukuIndukAdmin->roles()->syncWithoutDetaching($adminRoles->pluck('id'));
+        }
+
+        // 4. Add "Buku Induk Saya" for Students
+        $bukuIndukSaya = Menu::firstOrCreate(
+            ['slug' => 'buku-induk-saya'],
+            [
+                'name' => 'Buku Induk Saya',
+                'icon' => 'iconsminds-profile',
+                'url' => '/buku-induk/me',
+                'order' => 45, // After Ujian Saya
+                'is_active' => true
+            ]
+        );
+        $bukuIndukSaya->permissions()->syncWithoutDetaching([$permView->id]);
+        if ($studentRole) {
+            $bukuIndukSaya->roles()->syncWithoutDetaching([$studentRole->id]);
+        }
+        
+        // Also ensure Admin can see it for testing
+        $bukuIndukSaya->roles()->syncWithoutDetaching($adminRoles->pluck('id'));
+
         // Assign Roles
         $adminRoles = Role::whereIn('name', ['admin', 'super-admin'])->get();
         $academicRoles = Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah', 'siswa'])->get();
