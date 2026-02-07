@@ -37,7 +37,7 @@ class KenaikanKelasController extends Controller
         // Get students in this class for the current active semester/year
         $students = Siswa::whereHas('siswaKelas', function ($q) use ($request) {
             $q->where('kelas_id', $request->kelas_asal_id)->where('status', 'aktif');
-        })->with(['raport' => function ($q) {
+        })->with(['raports' => function ($q) {
             $q->latest(); // Get latest raport for average/attendance check
         }])->get();
 
