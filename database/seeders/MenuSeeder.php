@@ -40,7 +40,7 @@ class MenuSeeder extends Seeder
             [
                 'name' => 'Users',
                 'icon' => 'iconsminds-male-female',
-                'url' => '/admin/users',
+                'url' => '/admin/user',
                 'parent_id' => $settings->id,
                 'order' => 1,
             ]
@@ -53,7 +53,7 @@ class MenuSeeder extends Seeder
             [
                 'name' => 'Roles',
                 'icon' => 'iconsminds-shield',
-                'url' => '/admin/roles',
+                'url' => '/admin/role',
                 'parent_id' => $settings->id,
                 'order' => 2,
             ]
@@ -66,7 +66,7 @@ class MenuSeeder extends Seeder
             [
                 'name' => 'Permissions',
                 'icon' => 'simple-icon-key',
-                'url' => '/admin/permissions',
+                'url' => '/admin/permission',
                 'parent_id' => $settings->id,
                 'order' => 3,
             ]
@@ -523,7 +523,7 @@ class MenuSeeder extends Seeder
         }
 
         // 3. Add to Master Data (for Admin/TU)
-        $masterData = Menu::where('slug', 'master-data')->first();
+        // $masterData = Menu::where('slug', 'master-data')->first();
         if ($masterData) {
             $bukuIndukAdmin = Menu::firstOrCreate(
                 ['slug' => 'buku-induk-admin'],
