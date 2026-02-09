@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\LeggerExport;
 use App\Models\Kelas;
-use App\Models\Semester;
 use App\Models\Legger;
 use App\Models\Raport;
-use App\Models\MataPelajaran;
-use App\Exports\LeggerExport;
+use App\Models\Semester;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class LeggerController extends Controller
 {
@@ -48,7 +47,7 @@ class LeggerController extends Controller
             ],
             [
                 'tanggal_generate' => now(),
-                'generated_by' => Auth::user()->guru->id ?? null,
+                'generated_by' => Auth::user()->guru->id ?? Auth::user()->id,
             ]
         );
 
@@ -58,33 +57,34 @@ class LeggerController extends Controller
     public function show($id)
     {
         $data = $this->getLeggerData($id);
+
         return view('legger.show', $data);
     }
 
     public function exportExcel($id)
     {
         $legger = Legger::findOrFail($id);
-        $fileName = 'Legger_' . str_replace(' ', '_', $legger->kelas->nama) . '_' . str_replace('/', '-', $legger->semester->nama) . '.xlsx';
-        
+        $fileName = 'Legger_'.str_replace(' ', '_', $legger->kelas->nama).'_'.str_replace('/', '-', $legger->semester->nama).'.xlsx';
+
         return Excel::download(new LeggerExport($legger->kelas_id, $legger->semester_id), $fileName);
     }
 
     public function exportPdf($id)
     {
         $data = $this->getLeggerData($id);
-        
+
         $pdf = Pdf::loadView('legger.pdf', $data)
             ->setPaper('a4', 'landscape');
 
-        $fileName = 'Legger_' . str_replace(' ', '_', $data['legger']->kelas->nama) . '_' . str_replace('/', '-', $data['legger']->semester->nama) . '.pdf';
-        
+        $fileName = 'Legger_'.str_replace(' ', '_', $data['legger']->kelas->nama).'_'.str_replace('/', '-', $data['legger']->semester->nama).'.pdf';
+
         return $pdf->download($fileName);
     }
 
     private function getLeggerData($id)
     {
         $legger = Legger::with(['kelas.mataPelajaranKelas.mataPelajaran', 'semester.tahunAkademik'])->findOrFail($id);
-        
+
         $raports = Raport::with(['siswa', 'raportDetail.mataPelajaran'])
             ->where('kelas_id', $legger->kelas_id)
             ->where('semester_id', $legger->semester_id)
@@ -108,15 +108,15 @@ class LeggerController extends Controller
 
         // Assign rankings based on average_score
         $sortedRaports = $raports->sortByDesc('average_score')->values();
-        
+
         foreach ($raports as $raport) {
-            $raport->ranking = $sortedRaports->search(fn($item) => $item->id === $raport->id) + 1;
+            $raport->ranking = $sortedRaports->search(fn ($item) => $item->id === $raport->id) + 1;
         }
 
         return [
             'legger' => $legger,
             'raports' => $raports,
-            'subjects' => $subjects
+            'subjects' => $subjects,
         ];
     }
 }

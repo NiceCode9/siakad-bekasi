@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kelas;
-use App\Models\TahunAkademik;
 use App\Models\KenaikanKelas;
 use App\Models\KenaikanKelasDetail;
+use App\Models\Raport;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
-use App\Models\Raport;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -27,30 +27,30 @@ class KenaikanKelasController extends Controller
     public function getClassesByYear(Request $request)
     {
         $request->validate([
-            'tahun_akademik_id' => 'required|exists:tahun_akademik,id'
+            'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
         ]);
 
         $classes = Kelas::with('jurusan')
-            ->whereHas('semester', function($q) use ($request) {
+            ->whereHas('semester', function ($q) use ($request) {
                 $q->where('tahun_akademik_id', $request->tahun_akademik_id);
             })
             ->get();
 
         // Check which classes have already been processed in the history
-        $processedClassIds = KenaikanKelasDetail::whereHas('kenaikanKelas', function($q) use ($request) {
-                // Technically a class is processed if its students from THAT specific source class/year were moved
-                $q->where('status', 'selesai');
-            })
+        $processedClassIds = KenaikanKelasDetail::whereHas('kenaikanKelas', function ($q) {
+            // Technically a class is processed if its students from THAT specific source class/year were moved
+            $q->where('status', 'selesai');
+        })
             ->pluck('kelas_asal_id')
             ->unique()
             ->toArray();
 
-        $data = $classes->map(function($class) use ($processedClassIds) {
+        $data = $classes->map(function ($class) use ($processedClassIds) {
             return [
                 'id' => $class->id,
                 'nama' => $class->nama,
                 'jurusan' => $class->jurusan->singkatan,
-                'is_processed' => in_array($class->id, $processedClassIds)
+                'is_processed' => in_array($class->id, $processedClassIds),
             ];
         });
 
@@ -86,26 +86,26 @@ class KenaikanKelasController extends Controller
         // Logic to filter target classes: only same level (for repeaters) and next level
         $romanToLevel = ['X' => 10, 'XI' => 11, 'XII' => 12];
         $levelToRoman = [10 => 'X', 11 => 'XI', 12 => 'XII'];
-        
+
         $currentTingkat = $kelasAsal->tingkat;
         $currentLevelInt = $romanToLevel[$currentTingkat] ?? 0;
         $nextLevelInt = $currentLevelInt + 1;
-        
+
         $allowedTingkat = [$currentTingkat];
         if (isset($levelToRoman[$nextLevelInt])) {
             $allowedTingkat[] = $levelToRoman[$nextLevelInt];
         }
 
         // Filter target classes: must be in the target academic year, same jurusan, and allowed levels
-        $targetClasses = Kelas::with('semester')->whereHas('semester', function($q) use ($tahunAkademikTarget) {
-                $q->where('tahun_akademik_id', $tahunAkademikTarget->id);
-            })
+        $targetClasses = Kelas::with('semester')->whereHas('semester', function ($q) use ($tahunAkademikTarget) {
+            $q->where('tahun_akademik_id', $tahunAkademikTarget->id);
+        })
             ->where('jurusan_id', $kelasAsal->jurusan_id)
             ->whereIn('tingkat', $allowedTingkat)
             ->get();
 
         if ($targetClasses->isEmpty()) {
-            return back()->with('error', 'Gagal: Tidak ditemukan kelas tujuan di Tahun Akademik Target (' . $tahunAkademikTarget->nama . ') untuk jurusan yang sama.');
+            return back()->with('error', 'Gagal: Tidak ditemukan kelas tujuan di Tahun Akademik Target ('.$tahunAkademikTarget->nama.') untuk jurusan yang sama.');
         }
 
         return view('kenaikan-kelas.simulasi', compact('kelasAsal', 'tahunAkademikTarget', 'students', 'targetClasses'));
@@ -139,10 +139,10 @@ class KenaikanKelasController extends Controller
 
             foreach ($request->students as $sData) {
                 $siswa = Siswa::findOrFail($sData['id']);
-                
+
                 // Get latest academic data for detail
                 $raport = Raport::where('siswa_id', $siswa->id)->latest()->first();
-                
+
                 KenaikanKelasDetail::create([
                     'kenaikan_kelas_id' => $kenaikan->id,
                     'siswa_id' => $siswa->id,
@@ -159,7 +159,7 @@ class KenaikanKelasController extends Controller
                     ->where('status', 'aktif')
                     ->update([
                         'status' => $sData['status'] == 'lulus' ? 'keluar' : 'pindah',
-                        'tanggal_keluar' => now()
+                        'tanggal_keluar' => now(),
                     ]);
 
                 // If promoted or repeating, add to new/same class
@@ -168,7 +168,7 @@ class KenaikanKelasController extends Controller
                         'siswa_id' => $siswa->id,
                         'kelas_id' => $sData['kelas_tujuan_id'],
                         'tanggal_masuk' => now(),
-                        'status' => 'aktif'
+                        'status' => 'aktif',
                     ]);
                 }
 
@@ -179,16 +179,19 @@ class KenaikanKelasController extends Controller
             }
 
             DB::commit();
+
             return redirect()->route('kenaikan-kelas.index')->with('success', 'Proses kenaikan kelas berhasil diselesaikan.');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Gagal memproses kenaikan kelas: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal memproses kenaikan kelas: '.$e->getMessage());
         }
     }
 
     public function show($id)
     {
         $kenaikan = KenaikanKelas::with(['tahunAkademik', 'processedBy', 'kenaikanKelasDetail.siswa', 'kenaikanKelasDetail.kelasAsal', 'kenaikanKelasDetail.kelasTujuan'])->findOrFail($id);
+
         return view('kenaikan-kelas.show', compact('kenaikan'));
     }
 }

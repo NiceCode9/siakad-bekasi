@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\BukuInduk;
 use App\Models\Siswa;
 use App\Traits\HybridResponse;
 use Illuminate\Http\Request;
@@ -31,31 +30,32 @@ class BukuIndukController extends Controller
         return DataTables::of($siswa)
             ->addIndexColumn()
             ->addColumn('nis_nisn', function ($row) {
-                return $row->nis . ' / ' . $row->nisn;
+                return $row->nis.' / '.$row->nisn;
             })
             ->addColumn('kelas', function ($row) {
                 $kelas = $row->kelasAktif->first();
+
                 return $kelas ? $kelas->nama : '-';
             })
             ->addColumn('status_data', function ($row) {
-                return $row->bukuInduk 
-                    ? '<span class="badge bg-success">Lengkap</span>' 
-                    : '<span class="badge bg-warning">Belum Ada</span>';
+                return $row->bukuInduk
+                    ? '<span class="badge badge-success">Lengkap</span>'
+                    : '<span class="badge badge-warning">Belum Ada</span>';
             })
             ->addColumn('action', function ($row) {
                 $btnClass = $row->bukuInduk ? 'btn-warning' : 'btn-primary';
-                $icon = $row->bukuInduk ? 'bi-pencil' : 'bi-plus-lg';
+                $icon = $row->bukuInduk ? 'simple-icon-pencil' : 'simple-icon-plus';
                 $title = $row->bukuInduk ? 'Edit Data Induk' : 'Input Data Induk';
-                
+
                 return '
                     <div class="btn-group" role="group">
-                        <a href="' . route('buku-induk.show', $row->id) . '"
+                        <a href="'.route('buku-induk.show', $row->id).'"
                            class="btn btn-sm btn-info" title="Detail">
-                            <i class="bi bi-eye"></i>
+                            <i class="simple-icon-eye"></i>
                         </a>
-                        <a href="' . route('buku-induk.edit', $row->id) . '"
-                           class="btn btn-sm ' . $btnClass . '" title="' . $title . '">
-                            <i class="bi ' . $icon . '"></i>
+                        <a href="'.route('buku-induk.edit', $row->id).'"
+                           class="btn btn-sm '.$btnClass.'" title="'.$title.'">
+                            <i class="'.$icon.'"></i>
                         </a>
                     </div>
                 ';
@@ -67,7 +67,7 @@ class BukuIndukController extends Controller
     public function showMyBukuInduk()
     {
         $user = auth()->user();
-        if (!$user->siswa) {
+        if (! $user->siswa) {
             abort(403, 'Anda bukan siswa.');
         }
 
@@ -77,7 +77,7 @@ class BukuIndukController extends Controller
     public function show($id)
     {
         $siswa = Siswa::with(['bukuInduk', 'kelasAktif'])->findOrFail($id);
-        
+
         // Riwayat Kelas
         $riwayatKelas = \App\Models\SiswaKelas::with(['kelas.semester.tahunAkademik', 'kelas.jurusan'])
             ->where('siswa_id', $id)
@@ -103,7 +103,7 @@ class BukuIndukController extends Controller
         $bukuInduk = $siswa->bukuInduk; // Can be null
 
         if (request()->ajax()) {
-             return view('user-data.buku-induk.form', [
+            return view('user-data.buku-induk.form', [
                 'siswa' => $siswa,
                 'bukuInduk' => $bukuInduk,
                 'action' => route('buku-induk.update', $siswa->id),
@@ -145,7 +145,8 @@ class BukuIndukController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Gagal menyimpan data: ' . $e->getMessage(), 500);
+
+            return $this->errorResponse('Gagal menyimpan data: '.$e->getMessage(), 500);
         }
     }
 }

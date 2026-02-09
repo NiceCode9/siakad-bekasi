@@ -9,7 +9,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0">Buku Induk Siswa</h4>
             <div>
-                 <!-- Optional: Export button or other global actions -->
+                <!-- Optional: Export button or other global actions -->
             </div>
         </div>
 
@@ -54,19 +54,17 @@
 
 @endsection
 
-@push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-@endpush
-
 @push('scripts')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-
     <script>
         $(document).ready(function() {
             var table = $('#bukuIndukTable').DataTable({
                 processing: true,
                 serverSide: true,
+                responsive: {
+                    details: {
+                        display: $.fn.dataTable.Responsive.display.childRow
+                    }
+                },
                 ajax: "{{ route('buku-induk.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
@@ -105,7 +103,7 @@
             $('#bukuIndukTable').on('click', '.btn-primary, .btn-warning', function(e) {
                 e.preventDefault();
                 var url = $(this).attr('href');
-                
+
                 $('#formModalLabel').text('Edit Data Induk');
                 $('#formModalBody').html(
                     '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
@@ -121,7 +119,7 @@
                 e.preventDefault();
                 var formData = new FormData(this);
                 var url = $(this).attr('action');
-                
+
                 // Add _method PUT
                 formData.append('_method', 'PUT');
 
@@ -145,10 +143,10 @@
                     error: function(xhr) {
                         var errors = xhr.responseJSON.errors;
                         var errorMessage = xhr.responseJSON.message;
-                        
-                        if(errors){
-                             errorMessage = '';
-                             $.each(errors, function(key, value) {
+
+                        if (errors) {
+                            errorMessage = '';
+                            $.each(errors, function(key, value) {
                                 errorMessage += value[0] + '<br>';
                             });
                         }

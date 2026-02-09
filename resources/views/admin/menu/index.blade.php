@@ -242,8 +242,12 @@
                 sDom: '<"row view-filter"<"col-sm-12"<"float-right"l><"float-left"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
                 processing: true,
                 serverSide: true,
+                responsive: {
+                    details: {
+                        display: $.fn.dataTable.Responsive.display.childRow
+                    }
+                },
                 ajax: "{{ route('admin.menu.index') }}",
-                responsive: true,
                 columns: [{
                         data: 'DT_RowIndex',
                         name: 'DT_RowIndex',

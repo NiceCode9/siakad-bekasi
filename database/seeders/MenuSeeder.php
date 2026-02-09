@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\Menu;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -136,7 +135,7 @@ class MenuSeeder extends Seeder
                 'order' => 20,
             ]
         );
-        
+
         // kurikulum
         $kurikulumMenu = Menu::firstOrCreate(
             ['slug' => 'kurikulum'],
@@ -176,6 +175,19 @@ class MenuSeeder extends Seeder
         );
         $semesterMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-semester'])->id]);
 
+        // Ekstrakurikuler
+        $ekstrakurikulerMenu = Menu::firstOrCreate(
+            ['slug' => 'ekstrakurikuler'],
+            [
+                'name' => 'Ekstrakurikuler',
+                'icon' => 'iconsminds-sports-basket',
+                'url' => '/ekstrakurikuler',
+                'parent_id' => $masterData->id,
+                'order' => 4,
+            ]
+        );
+        $ekstrakurikulerMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-ekstrakurikuler'])->id]);
+
         // Jurusan
         $jurusanMenu = Menu::firstOrCreate(
             ['slug' => 'jurusan'],
@@ -184,7 +196,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'simple-icon-graduation',
                 'url' => '/jurusan',
                 'parent_id' => $masterData->id,
-                'order' => 4,
+                'order' => 5,
             ]
         );
         $jurusanMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jurusan'])->id]);
@@ -197,7 +209,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-office',
                 'url' => '/kelas',
                 'parent_id' => $masterData->id,
-                'order' => 5,
+                'order' => 6,
             ]
         );
         $kelasMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-kelas'])->id]);
@@ -210,7 +222,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-open-book',
                 'url' => '/mata-pelajaran',
                 'parent_id' => $masterData->id,
-                'order' => 6,
+                'order' => 7,
             ]
         );
         $mataPelajaranMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-mata-pelajaran'])->id]);
@@ -223,7 +235,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-calendar-4',
                 'url' => '/jadwal-pelajaran',
                 'parent_id' => $masterData->id,
-                'order' => 7,
+                'order' => 8,
             ]
         );
         $jadwalPelajaranMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-jadwal-pelajaran'])->id]);
@@ -236,7 +248,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-business-man-woman',
                 'url' => '/guru',
                 'parent_id' => $masterData->id,
-                'order' => 8,
+                'order' => 9,
             ]
         );
         $guruMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-guru'])->id]);
@@ -249,7 +261,7 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-student-male-female',
                 'url' => '/siswa',
                 'parent_id' => $masterData->id,
-                'order' => 9,
+                'order' => 10,
             ]
         );
         $siswaMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-siswa'])->id]);
@@ -272,7 +284,7 @@ class MenuSeeder extends Seeder
             ['slug' => 'pembelajaran'],
             [
                 'name' => 'Pembelajaran',
-                'icon' => 'iconsminds-monitor---',
+                'icon' => 'iconsminds-monitor---laptop',
                 'url' => '#',
                 'order' => 30,
             ]
@@ -422,11 +434,11 @@ class MenuSeeder extends Seeder
 
         // Tempat PKL
         $tempatPklMenu = Menu::firstOrCreate(
-            ['slug' => 'tempat-pkl'],
+            ['slug' => 'perusahaan-pkl'],
             [
                 'name' => 'Data Industri',
                 'icon' => 'simple-icon-organization',
-                'url' => '/tempat-pkl',
+                'url' => '/perusahaan-pkl',
                 'parent_id' => $pklMenu->id,
                 'order' => 1,
             ]
@@ -435,11 +447,11 @@ class MenuSeeder extends Seeder
 
         // Penempatan
         $pklSiswaMenu = Menu::firstOrCreate(
-            ['slug' => 'pkl-siswa'],
+            ['slug' => 'pkl'],
             [
                 'name' => 'Penempatan Siswa',
                 'icon' => 'simple-icon-people',
-                'url' => '/pkl-siswa',
+                'url' => '/pkl',
                 'parent_id' => $pklMenu->id,
                 'order' => 2,
             ]
@@ -495,7 +507,7 @@ class MenuSeeder extends Seeder
         );
         $raportMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-raport'])->id]);
 
-                // 1. Create permissions if not exist
+        // 1. Create permissions if not exist
         $permView = Permission::firstOrCreate(['name' => 'view-buku-induk']);
         $permEdit = Permission::firstOrCreate(['name' => 'manage-buku-induk']);
 
@@ -504,7 +516,7 @@ class MenuSeeder extends Seeder
         foreach ($adminRoles as $role) {
             $role->givePermissionTo([$permView, $permEdit]);
         }
-        
+
         $studentRole = Role::where('name', 'siswa')->first();
         if ($studentRole) {
             $studentRole->givePermissionTo($permView);
@@ -517,11 +529,11 @@ class MenuSeeder extends Seeder
                 ['slug' => 'buku-induk-admin'],
                 [
                     'name' => 'Buku Induk',
-                    'icon' => 'iconsminds-address-book',
+                    'icon' => 'iconsminds-address-book-2',
                     'url' => '/buku-induk',
                     'parent_id' => $masterData->id,
                     'order' => 10,
-                    'is_active' => true
+                    'is_active' => true,
                 ]
             );
             $bukuIndukAdmin->permissions()->syncWithoutDetaching([$permView->id]);
@@ -536,14 +548,14 @@ class MenuSeeder extends Seeder
                 'icon' => 'iconsminds-profile',
                 'url' => '/buku-induk/me',
                 'order' => 45, // After Ujian Saya
-                'is_active' => true
+                'is_active' => true,
             ]
         );
         $bukuIndukSaya->permissions()->syncWithoutDetaching([$permView->id]);
         if ($studentRole) {
             $bukuIndukSaya->roles()->syncWithoutDetaching([$studentRole->id]);
         }
-        
+
         // Also ensure Admin can see it for testing
         $bukuIndukSaya->roles()->syncWithoutDetaching($adminRoles->pluck('id'));
 
@@ -562,7 +574,7 @@ class MenuSeeder extends Seeder
         $nilaiSikapMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $nilaiEkskulMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $dashboardNilaiMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
-        
+
         $reports->roles()->syncWithoutDetaching($academicRoles);
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);
         $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());

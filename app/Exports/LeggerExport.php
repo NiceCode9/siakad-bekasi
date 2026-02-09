@@ -3,18 +3,18 @@
 namespace App\Exports;
 
 use App\Models\Kelas;
-use App\Models\Semester;
 use App\Models\Raport;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class LeggerExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
+class LeggerExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStyles
 {
     protected $kelasId;
+
     protected $semesterId;
 
     public function __construct($kelasId, $semesterId)
@@ -51,7 +51,7 @@ class LeggerExport implements FromCollection, WithHeadings, WithMapping, ShouldA
 
         $sorted = $raports->sortByDesc('average_score')->values();
         foreach ($raports as $raport) {
-            $raport->ranking = $sorted->search(fn($item) => $item->id === $raport->id) + 1;
+            $raport->ranking = $sorted->search(fn ($item) => $item->id === $raport->id) + 1;
         }
 
         return $raports;
@@ -60,7 +60,7 @@ class LeggerExport implements FromCollection, WithHeadings, WithMapping, ShouldA
     public function headings(): array
     {
         $kelas = Kelas::with('mataPelajaranKelas.mataPelajaran')->find($this->kelasId);
-        $subjects = $kelas->mataPelajaranKelas->pluck('mataPelajaran.nama')->toArray();
+        $subjects = $kelas->mataPelajaranKelas->pluck('mataPelajaran.kode')->toArray();
 
         return array_merge(['No', 'NIS', 'Nama Siswa'], $subjects, ['Rata-rata', 'Ranking', 'Sakit', 'Izin', 'Alpha']);
     }
@@ -82,13 +82,13 @@ class LeggerExport implements FromCollection, WithHeadings, WithMapping, ShouldA
         return array_merge([
             $no++,
             $raport->siswa->nis,
-            $raport->siswa->nama,
+            $raport->siswa->nama_lengkap,
         ], $scores, [
             round($raport->average_score, 2),
             $raport->ranking,
             $raport->jumlah_sakit,
             $raport->jumlah_izin,
-            $raport->jumlah_alpha
+            $raport->jumlah_alpha,
         ]);
     }
 

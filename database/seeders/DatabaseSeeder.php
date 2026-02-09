@@ -19,27 +19,27 @@ class DatabaseSeeder extends Seeder
             // Role & Permission Setup
             RolePermissionSeeder::class,
             MenuSeeder::class,
-            
+
             // Master Data - Academic Structure
             KurikulumSeeder::class,
             TahunAkademikSeeder::class,
             SemesterSeeder::class,
             JurusanSeeder::class,
-            
+
             // Master Data - Subject & Assessment
             KelompokMapelSeeder::class,
             KomponenNilaiSeeder::class,
             MataPelajaranSeeder::class,
             EkstrakurikulerSeeder::class,
-            
+
             // User Accounts
             UserSeeder::class,
-            
+
             // Sample Operational Data
             GuruSeeder::class,
             KelasSeeder::class,
             SiswaSeeder::class,
-            
+
             // Academic Assignments & Schedules
             MataPelajaranKelasSeeder::class,
             JadwalPelajaranSeeder::class,
@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
             OperasionalSeeder::class,
             NilaiSeeder::class,
             RaportSeeder::class,
-            
+
             // System Setup
             PengaturanSeeder::class,
         ]);

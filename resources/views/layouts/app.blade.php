@@ -16,9 +16,11 @@
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/bootstrap.rtl.only.min.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/component-custom-switch.min.css" />
     <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/select2.min.css" />
+    <link rel="stylesheet" href="{{ asset('assets') }}/css/vendor/select2-bootstrap.min.css" />
 
     <link rel="stylesheet" href="{{ asset('assets') }}/css/main.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
 
     @stack('styles')
 </head>
@@ -47,12 +49,12 @@
                 </svg>
             </a>
 
-            @if(isset($activeTahun) && isset($activeSemester))
+            @if (isset($activeTahun) && isset($activeSemester))
                 <div class="d-none d-lg-inline-block align-middle ml-3">
                     <span class="badge badge-pill badge-outline-primary py-2 px-3">
                         <i class="simple-icon-calendar mr-2"></i>
-                        <span class="font-weight-bold">{{ $activeTahun->nama }}</span> 
-                        <span class="mx-1 text-muted">|</span> 
+                        <span class="font-weight-bold">{{ $activeTahun->nama }}</span>
+                        <span class="mx-1 text-muted">|</span>
                         <span>{{ $activeSemester->nama }}</span>
                     </span>
                 </div>
@@ -74,12 +76,12 @@
                         <label class="custom-switch-btn" for="switchDark"></label>
                     </div>
                 </div>
-                
+
                 <div class="position-relative d-inline-block">
                     <button class="header-icon btn btn-empty" type="button" id="notificationButton"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <i class="simple-icon-bell"></i>
-                        @if($unreadCount > 0)
+                        @if ($unreadCount > 0)
                             <span class="count">{{ $unreadCount }}</span>
                         @endif
                     </button>
@@ -90,7 +92,8 @@
                                     <div class="pl-3">
                                         <a href="{{ $notif->link ? route('notifications.read', $notif->id) : '#' }}">
                                             <p class="font-weight-medium mb-1">{{ $notif->judul }}</p>
-                                            <p class="text-muted mb-0 text-small">{{ $notif->created_at->diffForHumans() }}</p>
+                                            <p class="text-muted mb-0 text-small">
+                                                {{ $notif->created_at->diffForHumans() }}</p>
                                         </a>
                                     </div>
                                 </div>
@@ -175,6 +178,7 @@
     <script src="{{ asset('assets') }}/js/scripts.js"></script>
 
     <script src="{{ asset('assets') }}/js/vendor/datatables.min.js"></script>
+    <script src="{{ asset('assets') }}/js/vendor/select2.full.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"></script>
 

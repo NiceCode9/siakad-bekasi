@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Siswa;
-use App\Models\User;
-use App\Models\OrangTua;
 use App\Models\Kelas;
+use App\Models\OrangTua;
+use App\Models\Siswa;
 use App\Models\SiswaKelas;
+use App\Models\User;
 use App\Traits\HybridResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +57,7 @@ class SiswaController extends Controller
             ->addIndexColumn()
             ->addColumn('kelas_aktif', function ($row) {
                 $kelas = $row->kelasAktif->first();
+
                 return $kelas ? $kelas->nama : '-';
             })
             ->addColumn('status_badge', function ($row) {
@@ -68,7 +69,8 @@ class SiswaController extends Controller
                     'DO' => 'danger',
                 ];
                 $color = $colors[$row->status] ?? 'secondary';
-                return '<span class="badge bg-' . $color . '">' . ucfirst($row->status) . '</span>';
+
+                return '<span class="badge badge-'.$color.'">'.ucfirst($row->status).'</span>';
             })
             ->addColumn('jk', function ($row) {
                 return $row->jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan';
@@ -76,26 +78,26 @@ class SiswaController extends Controller
             ->addColumn('action', function ($row) {
                 return '
                     <div class="btn-group" role="group">
-                        <a href="' . route('siswa.show', $row->id) . '"
+                        <a href="'.route('siswa.show', $row->id).'"
                            class="btn btn-sm btn-info" title="Detail">
-                            <i class="bi bi-eye"></i>
+                            <i class="simple-icon-eye"></i>
                         </a>
                         <button type="button"
                                 class="btn btn-sm btn-warning btn-edit"
-                                data-id="' . $row->id . '">
-                            <i class="bi bi-pencil"></i>
+                                data-id="'.$row->id.'" title="Edit">
+                            <i class="simple-icon-pencil"></i>
                         </button>
                         <button type="button"
                                 class="btn btn-sm btn-primary btn-assign-kelas"
-                                data-id="' . $row->id . '"
-                                data-name="' . $row->nama_lengkap . '">
-                            <i class="bi bi-door-open"></i>
+                                data-id="'.$row->id.'"
+                                data-name="'.$row->nama_lengkap.'" title="Assign Kelas">
+                            <i class="iconsminds-synchronize"></i>
                         </button>
                         <button type="button"
                                 class="btn btn-sm btn-danger btn-delete"
-                                data-id="' . $row->id . '"
-                                data-name="' . $row->nama_lengkap . '">
-                            <i class="bi bi-trash"></i>
+                                data-id="'.$row->id.'"
+                                data-name="'.$row->nama_lengkap.'" title="Delete">
+                            <i class="simple-icon-trash"></i>
                         </button>
                     </div>
                 ';
@@ -148,7 +150,7 @@ class SiswaController extends Controller
             'telepon' => 'nullable|string|max:20',
             'email_siswa' => 'nullable|email',
             'asal_sekolah' => 'nullable|string|max:100',
-            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:'.(date('Y') + 1),
             'tinggi_badan' => 'nullable|numeric|min:0|max:300',
             'berat_badan' => 'nullable|numeric|min:0|max:200',
             'golongan_darah' => 'nullable|in:A,B,AB,O',
@@ -221,7 +223,7 @@ class SiswaController extends Controller
                 Storage::disk('public')->delete($fotoPath);
             }
 
-            return $this->errorResponse('Gagal menambahkan siswa: ' . $e->getMessage(), 500);
+            return $this->errorResponse('Gagal menambahkan siswa: '.$e->getMessage(), 500);
         }
     }
 
@@ -233,8 +235,8 @@ class SiswaController extends Controller
             'kelasAktif',
             'siswaKelas.kelas.semester',
             'bukuInduk',
-            'prestasi' => fn($q) => $q->latest()->limit(5),
-            'pelanggaran' => fn($q) => $q->latest()->limit(5),
+            'prestasi' => fn ($q) => $q->latest()->limit(5),
+            'pelanggaran' => fn ($q) => $q->latest()->limit(5),
         ]);
 
         // Statistik
@@ -267,13 +269,13 @@ class SiswaController extends Controller
     public function update(Request $request, Siswa $siswa)
     {
         $validated = $request->validate([
-            'username' => 'required|string|max:50|unique:users,username,' . $siswa->user_id,
-            'email' => 'required|email|unique:users,email,' . $siswa->user_id,
+            'username' => 'required|string|max:50|unique:users,username,'.$siswa->user_id,
+            'email' => 'required|email|unique:users,email,'.$siswa->user_id,
             'password' => 'nullable|string|min:6',
             'orang_tua_id' => 'nullable|exists:orang_tua,id',
-            'nisn' => 'required|string|size:10|unique:siswa,nisn,' . $siswa->id,
-            'nis' => 'required|string|max:20|unique:siswa,nis,' . $siswa->id,
-            'nik' => 'nullable|string|size:16|unique:siswa,nik,' . $siswa->id,
+            'nisn' => 'required|string|size:10|unique:siswa,nisn,'.$siswa->id,
+            'nis' => 'required|string|max:20|unique:siswa,nis,'.$siswa->id,
+            'nik' => 'nullable|string|size:16|unique:siswa,nik,'.$siswa->id,
             'nama_lengkap' => 'required|string|max:100',
             'jenis_kelamin' => 'required|in:L,P',
             'tempat_lahir' => 'nullable|string|max:50',
@@ -292,7 +294,7 @@ class SiswaController extends Controller
             'telepon' => 'nullable|string|max:20',
             'email_siswa' => 'nullable|email',
             'asal_sekolah' => 'nullable|string|max:100',
-            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:' . (date('Y') + 1),
+            'tahun_lulus_smp' => 'nullable|integer|min:2000|max:'.(date('Y') + 1),
             'tinggi_badan' => 'nullable|numeric|min:0|max:300',
             'berat_badan' => 'nullable|numeric|min:0|max:200',
             'golongan_darah' => 'nullable|in:A,B,AB,O',
@@ -364,7 +366,8 @@ class SiswaController extends Controller
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Gagal memperbarui siswa: ' . $e->getMessage(), 500);
+
+            return $this->errorResponse('Gagal memperbarui siswa: '.$e->getMessage(), 500);
         }
     }
 
@@ -388,7 +391,8 @@ class SiswaController extends Controller
             return $this->successResponse('Siswa berhasil dihapus', 'siswa.index');
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Gagal menghapus siswa: ' . $e->getMessage(), 500);
+
+            return $this->errorResponse('Gagal menghapus siswa: '.$e->getMessage(), 500);
         }
     }
 
@@ -407,13 +411,13 @@ class SiswaController extends Controller
         $jumlahSiswa = $kelas->siswaKelas()->where('status', 'aktif')->count();
 
         if ($jumlahSiswa >= $kelas->kuota) {
-            return $this->errorResponse('Kelas sudah penuh (kuota: ' . $kelas->kuota . ')', 400);
+            return $this->errorResponse('Kelas sudah penuh (kuota: '.$kelas->kuota.')', 400);
         }
 
         // Check jika sudah ada di kelas lain yang aktif
         $kelasAktif = $siswa->kelasAktif()->first();
         if ($kelasAktif && $kelasAktif->id != $validated['kelas_id']) {
-            return $this->errorResponse('Siswa masih terdaftar di kelas ' . $kelasAktif->nama, 400);
+            return $this->errorResponse('Siswa masih terdaftar di kelas '.$kelasAktif->nama, 400);
         }
 
         DB::beginTransaction();
@@ -440,11 +444,12 @@ class SiswaController extends Controller
 
             return $this->jsonSuccess(
                 ['kelas' => $kelas->load('semester', 'jurusan')],
-                'Siswa berhasil ditugaskan ke kelas ' . $kelas->nama
+                'Siswa berhasil ditugaskan ke kelas '.$kelas->nama
             );
         } catch (\Exception $e) {
             DB::rollBack();
-            return $this->errorResponse('Gagal assign kelas: ' . $e->getMessage(), 500);
+
+            return $this->errorResponse('Gagal assign kelas: '.$e->getMessage(), 500);
         }
     }
 
@@ -458,7 +463,7 @@ class SiswaController extends Controller
             ->where('status', 'aktif')
             ->first();
 
-        if (!$siswaKelas) {
+        if (! $siswaKelas) {
             return $this->errorResponse('Siswa tidak terdaftar di kelas ini', 404);
         }
 
@@ -479,11 +484,11 @@ class SiswaController extends Controller
         $excludeId = $request->get('exclude_id');
 
         $exists = Siswa::where('nisn', $nisn)
-            ->when($excludeId, fn($q) => $q->where('id', '!=', $excludeId))
+            ->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))
             ->exists();
 
         return response()->json([
-            'available' => !$exists,
+            'available' => ! $exists,
             'message' => $exists ? 'NISN sudah digunakan' : 'NISN tersedia',
         ]);
     }
@@ -503,7 +508,7 @@ class SiswaController extends Controller
             ->map(function ($s) {
                 return [
                     'id' => $s->id,
-                    'text' => $s->nama_lengkap . " ({$s->nisn})",
+                    'text' => $s->nama_lengkap." ({$s->nisn})",
                     'nisn' => $s->nisn,
                     'nis' => $s->nis,
                     'nama' => $s->nama_lengkap,

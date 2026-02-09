@@ -28,7 +28,7 @@
                     <div class="col-md-3">
                         <div class="form-group mb-0">
                             <label>Kelas</label>
-                            <select id="filter_kelas" class="form-control form-control-sm">
+                            <select id="filter_kelas" class="form-control">
                                 <option value="">Semua Kelas</option>
                                 @foreach ($kelas as $k)
                                     <option value="{{ $k->id }}">{{ $k->nama }} - {{ $k->semester->nama ?? '' }}
@@ -40,7 +40,7 @@
                     <div class="col-md-3">
                         <div class="form-group mb-0">
                             <label>Status</label>
-                            <select id="filter_status" class="form-control form-control-sm">
+                            <select id="filter_status" class="form-control">
                                 <option value="">Semua Status</option>
                                 @foreach ($status as $s)
                                     <option value="{{ $s }}">{{ ucfirst($s) }}</option>
@@ -51,7 +51,7 @@
                     <div class="col-md-3">
                         <div class="form-group mb-0">
                             <label>Jenis Kelamin</label>
-                            <select id="filter_jk" class="form-control form-control-sm">
+                            <select id="filter_jk" class="form-control">
                                 <option value="">Semua</option>
                                 <option value="L">Laki-laki</option>
                                 <option value="P">Perempuan</option>
@@ -77,7 +77,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="siswaTable" class="table table-bordered table-striped table-hover">
+                    <table id="siswaTable" class="text-nowrap">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
@@ -88,6 +88,7 @@
                                 <th>Kelas</th>
                                 <th>Orang Tua</th>
                                 <th>Telepon</th>
+                                <th>Email</th>
                                 <th>Status</th>
                                 <th width="13%">Aksi</th>
                             </tr>
@@ -131,11 +132,11 @@
                         <input type="hidden" id="siswa_id">
                         <div class="form-group">
                             <label>Nama Siswa</label>
-                            <input type="text" id="siswa_nama" class="form-control form-control-sm" readonly>
+                            <input type="text" id="siswa_nama" class="form-control" readonly>
                         </div>
                         <div class="form-group">
                             <label>Pilih Kelas <span class="text-danger">*</span></label>
-                            <select name="kelas_id" id="kelas_id" class="form-control form-control-sm" required>
+                            <select name="kelas_id" id="kelas_id" class="form-control" required>
                                 <option value="">-- Pilih Kelas --</option>
                                 @foreach ($kelas as $k)
                                     <option value="{{ $k->id }}">{{ $k->nama }} - {{ $k->semester->nama ?? '' }}
@@ -145,8 +146,7 @@
                         </div>
                         <div class="form-group">
                             <label>Tanggal Masuk</label>
-                            <input type="date" name="tanggal_masuk" class="form-control form-control-sm"
-                                value="{{ date('Y-m-d') }}">
+                            <input type="date" name="tanggal_masuk" class="form-control" value="{{ date('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -206,6 +206,7 @@
             var table = $('#siswaTable').DataTable({
                 processing: true,
                 serverSide: true,
+                scrollX: true,
                 ajax: {
                     url: "{{ route('siswa.index') }}",
                     data: function(d) {
@@ -249,6 +250,10 @@
                     {
                         data: 'telepon',
                         name: 'telepon'
+                    },
+                    {
+                        data: 'email',
+                        name: 'email'
                     },
                     {
                         data: 'status_badge',
@@ -392,7 +397,8 @@
                 };
 
                 $.ajax({
-                    url: "{{ url('user-data/siswa') }}/" + siswaId + "/assign-kelas",
+                    // url: "{{ url('user-data/siswa') }}/" + siswaId + "/assign-kelas",
+                    url: "{{ route('siswa.assign-kelas', ':id') }}".replace(':id', siswaId),
                     type: 'POST',
                     data: formData,
                     success: function(response) {

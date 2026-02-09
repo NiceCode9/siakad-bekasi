@@ -22,9 +22,11 @@ class EkstrakurikulerController extends Controller
                 ->addColumn('waktu', function ($row) {
                     if ($row->hari) {
                         $jam = $row->jam_mulai ? $row->jam_mulai->format('H:i') : '';
-                        $jam .= $row->jam_selesai ? ' - ' . $row->jam_selesai->format('H:i') : '';
-                        return $row->hari . ' ' . $jam;
+                        $jam .= $row->jam_selesai ? ' - '.$row->jam_selesai->format('H:i') : '';
+
+                        return $row->hari.' '.$jam;
                     }
+
                     return '-';
                 })
                 ->addColumn('status', function ($row) {
@@ -32,16 +34,18 @@ class EkstrakurikulerController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="btn-group" role="group">';
-                    $btn .= '<button type="button" class="btn btn-warning btn-sm btn-edit" data-id="' . $row->id . '" title="Edit"><i class="fas fa-edit"></i></button>';
-                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" title="Hapus"><i class="fas fa-trash"></i></button>';
+                    $btn .= '<button type="button" class="btn btn-warning btn-sm btn-edit" data-id="'.$row->id.'" title="Edit"><i class="fas fa-edit"></i></button>';
+                    $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="'.$row->id.'" title="Hapus"><i class="fas fa-trash"></i></button>';
                     $btn .= '</div>';
+
                     return $btn;
                 })
                 ->rawColumns(['status', 'action'])
                 ->make(true);
         }
-        
+
         $gurus = Guru::active()->orderBy('nama_lengkap')->get();
+
         return view('master-data.ekstrakurikuler.index', compact('gurus'));
     }
 
@@ -55,7 +59,7 @@ class EkstrakurikulerController extends Controller
             'jam_selesai' => 'nullable|date_format:H:i|after:jam_mulai',
             'is_active' => 'boolean',
         ]);
-        
+
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
 
         Ekstrakurikuler::create($validated);
@@ -66,10 +70,14 @@ class EkstrakurikulerController extends Controller
     public function edit($id)
     {
         $ekskul = Ekstrakurikuler::findOrFail($id);
-        
+
         // Format time for form
-        if($ekskul->jam_mulai) $ekskul->jam_mulai = $ekskul->jam_mulai->format('H:i');
-        if($ekskul->jam_selesai) $ekskul->jam_selesai = $ekskul->jam_selesai->format('H:i');
+        if ($ekskul->jam_mulai) {
+            $ekskul->jam_mulai = $ekskul->jam_mulai->format('H:i');
+        }
+        if ($ekskul->jam_selesai) {
+            $ekskul->jam_selesai = $ekskul->jam_selesai->format('H:i');
+        }
 
         return response()->json($ekskul);
     }

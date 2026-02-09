@@ -1,28 +1,38 @@
 <?php
 
+use App\Http\Controllers\Admin\LogAktivitasController;
 use App\Http\Controllers\Admin\MenuController as AdminMenuController;
+use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ApiController;
+use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\BukuIndukController;
-use App\Http\Controllers\EkstrakurikulerController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardNilaiController;
+use App\Http\Controllers\EkstrakurikulerController;
+use App\Http\Controllers\ELearningController;
+use App\Http\Controllers\ForumDiskusiController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\JadwalPelajaranController;
 use App\Http\Controllers\JadwalUjianController;
+use App\Http\Controllers\JurnalMengajarController;
 use App\Http\Controllers\JurnalPklController;
 use App\Http\Controllers\JurusanController;
-use App\Http\Controllers\KenaikanKelasController;
 use App\Http\Controllers\KelasController;
+use App\Http\Controllers\KenaikanKelasController;
 use App\Http\Controllers\KomponenNilaiController;
 use App\Http\Controllers\KurikulumController;
 use App\Http\Controllers\LeggerController;
 use App\Http\Controllers\MataPelajaranController;
 use App\Http\Controllers\MataPelajaranKelasController;
+use App\Http\Controllers\MateriAjarController;
 use App\Http\Controllers\NilaiController;
 use App\Http\Controllers\NilaiEkstrakurikulerController;
 use App\Http\Controllers\NilaiPklController;
 use App\Http\Controllers\NilaiSikapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrangTuaController;
 use App\Http\Controllers\PelanggaranSiswaController;
 use App\Http\Controllers\PerusahaanPklController;
@@ -33,20 +43,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RaportController;
 use App\Http\Controllers\SemesterController;
 use App\Http\Controllers\SiswaController;
-use App\Http\Controllers\TahunAkademikController;
-use App\Http\Controllers\UjianSiswaController;
-use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\SoalController;
-use App\Http\Controllers\ELearningController;
-use App\Http\Controllers\MateriAjarController;
+use App\Http\Controllers\TahunAkademikController;
 use App\Http\Controllers\TugasController;
-use App\Http\Controllers\ForumDiskusiController;
-use App\Http\Controllers\JurnalMengajarController;
-use App\Http\Controllers\Admin\LogAktivitasController;
-use App\Http\Controllers\Admin\PengaturanController;
-use App\Http\Controllers\ApiController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\UjianSiswaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -56,12 +56,11 @@ Route::get('/', function () {
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
-    // Api controller for resource data 
-    Route::controller(ApiController::class)->name('api.')->group(function(){
+    // Api controller for resource data
+    Route::controller(ApiController::class)->name('api.')->group(function () {
         Route::get('get-gurus', 'getGurus')->name('get-gurus');
         Route::get('/get-mapel-by-kelas', 'getMataPelajaranByKelas')->name('get-mapel-by-kelas');
     });
-
 
     // 1. Profile
     Route::controller(ProfileController::class)->group(function () {
@@ -72,7 +71,7 @@ Route::middleware('auth')->group(function () {
 
     // 2. Admin Management
     Route::middleware('role:super-admin')->prefix('admin')->name('admin.')->group(function () {
-        
+
         // Menu Management
         Route::prefix('menu')->name('menu.')->group(function () {
             Route::get('/', [AdminMenuController::class, 'index'])->name('index');
@@ -249,7 +248,7 @@ Route::middleware('auth')->group(function () {
     });
     Route::resource('bank-soal', BankSoalController::class);
     Route::resource('soal', SoalController::class)->except(['index', 'show']);
-    
+
     Route::prefix('jadwal-ujian')->name('jadwal-ujian.')->group(function () {
         Route::get('/{jadwal_ujian}/manage-soal', [JadwalUjianController::class, 'manageSoal'])->name('manage-soal');
         Route::get('/{jadwal_ujian}/monitor', [JadwalUjianController::class, 'monitor'])->name('monitor');
@@ -275,7 +274,7 @@ Route::middleware('auth')->group(function () {
     // 5. PKL / Magang
     Route::resource('perusahaan-pkl', PerusahaanPklController::class);
     Route::resource('pkl', PklController::class);
-    
+
     Route::prefix('jurnal-pkl')->name('jurnal-pkl.')->group(function () {
         Route::get('/pembimbing', [JurnalPklController::class, 'pembimbingIndex'])->name('pembimbing');
         Route::post('/{id}/status', [JurnalPklController::class, 'setStatus'])->name('set-status');
@@ -327,8 +326,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/submission/{id}/grade', [TugasController::class, 'grade'])->name('grade');
     });
 
-
-
     Route::prefix('forum')->name('forum.')->group(function () {
         Route::get('/{id}', [ForumDiskusiController::class, 'show'])->name('show');
         Route::post('/', [ForumDiskusiController::class, 'store'])->name('store');
@@ -368,4 +365,4 @@ Route::middleware('auth')->group(function () {
     Route::resource('pelanggaran-siswa', PelanggaranSiswaController::class);
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
