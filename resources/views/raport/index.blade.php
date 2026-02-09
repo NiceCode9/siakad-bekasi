@@ -19,6 +19,63 @@
 
     <div class="row">
         <div class="col-12">
+            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin'))
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="mb-4">Filter Data</h5>
+                    <form action="{{ route('raport.index') }}" method="GET" id="filterForm">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Tahun Akademik</label>
+                                    <select name="tahun_akademik_id" id="tahun_akademik_id" class="form-control select2-single">
+                                        <option value="">Semua Tahun Akademik</option>
+                                        @foreach($tahunAkademiks as $tahun)
+                                            <option value="{{ $tahun->id }}" {{ $filterTahun == $tahun->id ? 'selected' : '' }}>{{ $tahun->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label>Semester</label>
+                                    <select name="semester_id" id="semester_id" class="form-control select2-single">
+                                        <option value="">Pilih Semester</option>
+                                        @if($filterTahun)
+                                            {{-- Will be populated via JS or initial load --}}
+                                            @foreach(\App\Models\Semester::where('tahun_akademik_id', $filterTahun)->get() as $sem)
+                                                <option value="{{ $sem->id }}" {{ $filterSemester == $sem->id ? 'selected' : '' }}>{{ $sem->nama }}</option>
+                                            @endforeach
+                                        @endif
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label>Siswa</label>
+                                    <select name="siswa_id" id="siswa_id" class="form-control select2-single">
+                                        <option value="">Cari Siswa...</option>
+                                        @foreach($allSiswa as $s)
+                                            <option value="{{ $s->id }}" {{ $filterSiswa == $s->id ? 'selected' : '' }}>{{ $s->nisn }} - {{ $s->nama_lengkap }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <div class="d-flex">
+                                        <button type="submit" class="btn btn-primary btn-block">Filter</button>
+                                        <a href="{{ route('raport.index') }}" class="btn btn-outline-secondary ml-2">Reset</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            @endif
+
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="mb-4">Daftar Siswa Kelas: {{ $kelas ? $kelas->nama : 'Semua Kelas' }} (Semester {{$semester ? $semester->nama :'' }})</h5>
@@ -89,6 +146,15 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        if (typeof $.fn.select2 !== 'undefined') {
+            $('.select2-single').select2({
+                theme: "bootstrap",
+                placeholder: "",
+                maximumSelectionSize: 6,
+                containerCssClass: ":all:"
+            });
+        }
+
         $('.datatable').DataTable({
             language: {
                 paginate: {
@@ -105,6 +171,29 @@
                     .addClass("next");
 
                 $(".dataTables_wrapper .pagination").addClass("pagination-sm");
+            }
+        });
+
+        // Dependent Dropdown for Semester
+        $('#tahun_akademik_id').on('change', function() {
+            let tahunId = $(this).val();
+            let semesterSelect = $('#semester_id');
+            
+            semesterSelect.html('<option value="">Memuat...</option>');
+            
+            if (tahunId) {
+                $.ajax({
+                    url: "{{ route('raport.get-semesters', ':id') }}".replace(':id', tahunId),
+                    type: "GET",
+                    success: function(data) {
+                        semesterSelect.html('<option value="">Pilih Semester</option>');
+                        $.each(data, function(key, value) {
+                            semesterSelect.append('<option value="' + value.id + '">' + value.nama + '</option>');
+                        });
+                    }
+                });
+            } else {
+                semesterSelect.html('<option value="">Pilih Semester</option>');
             }
         });
     });

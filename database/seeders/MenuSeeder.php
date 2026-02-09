@@ -272,7 +272,7 @@ class MenuSeeder extends Seeder
             ['slug' => 'pembelajaran'],
             [
                 'name' => 'Pembelajaran',
-                'icon' => 'iconsminds-tablet-with-text',
+                'icon' => 'iconsminds-monitor---',
                 'url' => '#',
                 'order' => 30,
             ]
@@ -464,7 +464,7 @@ class MenuSeeder extends Seeder
             ['slug' => 'reports'],
             [
                 'name' => 'Reports',
-                'icon' => 'iconsminds-folder-with-document',
+                'icon' => 'iconsminds-folder-cloud',
                 'url' => '#',
                 'order' => 60,
             ]

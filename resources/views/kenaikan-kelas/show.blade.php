@@ -22,9 +22,9 @@
             <div class="card mb-4">
                 <div class="card-body">
                     <h5 class="mb-4">Informasi Proses</h5>
-                    <p><strong>Tahun Akademik:</strong> {{ $kenaikan->tahunAkademik->tahun }}</p>
+                    <p><strong>Tahun Akademik:</strong> {{ $kenaikan->tahunAkademik->nama }}</p>
                     <p><strong>Tanggal Proses:</strong> {{ $kenaikan->tanggal_proses->format('d/m/Y H:i') }}</p>
-                    <p><strong>Diproses Oleh:</strong> {{ $kenaikan->processedBy->name }}</p>
+                    <p><strong>Diproses Oleh:</strong> {{ $kenaikan->processedBy->username }}</p>
                     <p><strong>Total Siswa:</strong> {{ $kenaikan->total_siswa }}</p>
                     <p><strong>Naik/Lulus:</strong> <span class="text-success">{{ $kenaikan->total_naik }}</span></p>
                     <p><strong>Tidak Naik:</strong> <span class="text-danger">{{ $kenaikan->total_tidak_naik }}</span></p>
@@ -54,7 +54,7 @@
                                 @foreach($kenaikan->kenaikanKelasDetail as $idx => $detail)
                                 <tr>
                                     <td>{{ $idx + 1 }}</td>
-                                    <td>{{ $detail->siswa->nama }}</td>
+                                    <td>{{ $detail->siswa->nama_lengkap }}</td>
                                     <td>{{ $detail->kelasAsal->nama }}</td>
                                     <td>
                                         <span class="badge badge-{{ in_array($detail->status_kenaikan, ['naik', 'lulus']) ? 'success' : 'danger' }}">

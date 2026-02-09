@@ -46,8 +46,7 @@
                         <i class="simple-icon-info mr-3" style="font-size: 1.5rem;"></i>
                         <div>
                             Fitur ini menyalin konfigurasi dari semester lama ke semester baru. 
-                            <strong>Ini tidak akan menyalin data siswa atau nilai</strong>, hanya struktur akademik 
-                            untuk mempermudah persiapan semester baru.
+                            Gunakan opsi <strong>"Salin Anggota Kelas"</strong> jika Anda ingin menyalin data penempatan siswa (cocok untuk transisi Ganjil ke Genap).
                         </div>
                     </div>
 
@@ -102,6 +101,12 @@
                                     <input type="checkbox" class="custom-control-input" id="copy_jadwal" name="copy_jadwal" value="1" checked>
                                     <label class="custom-control-label font-weight-bold" for="copy_jadwal">Salin Jadwal Pelajaran (Slot Waktu)</label>
                                     <p class="text-muted text-small ml-0">Menyalin Hari, Jam Mulai, dan Jam Selesai untuk setiap mata pelajaran di setiap kelas.</p>
+                                </div>
+
+                                <div class="custom-control custom-checkbox mb-3">
+                                    <input type="checkbox" class="custom-control-input" id="copy_siswa" name="copy_siswa" value="1">
+                                    <label class="custom-control-label font-weight-bold" for="copy_siswa">Salin Anggota Kelas (Data Siswa)</label>
+                                    <p class="text-muted text-small ml-0 text-danger font-italic">Opsi ini akan mendaftarkan ulang siswa aktif dari semester asal ke kelas yang sama di semester tujuan.</p>
                                 </div>
                             </div>
                         </div>

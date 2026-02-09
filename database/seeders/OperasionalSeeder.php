@@ -76,9 +76,9 @@ class OperasionalSeeder extends Seeder
             $randomSiswa = $siswas->random();
             PrestasiSiswa::create([
                 'siswa_id' => $randomSiswa->id,
-                'jenis' => 'Akademik',
+                'jenis' => 'akademik',
                 'nama_prestasi' => 'Juara 1 Lomba LKS',
-                'tingkat' => 'Provinsi',
+                'tingkat' => 'provinsi',
                 'peringkat' => '1',
                 'penyelenggara' => 'Dinas Pendidikan',
                 'tanggal' => now()->subMonths(1),

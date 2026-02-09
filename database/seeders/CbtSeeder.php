@@ -32,7 +32,7 @@ class CbtSeeder extends Seeder
                 'kode' => 'BANK-' . $mapel->kode . '-' . rand(100,999),
                 'nama' => 'Bank Soal ' . $mapel->nama,
                 'deskripsi' => 'Kumpulan soal untuk mata pelajaran ' . $mapel->nama,
-                'tingkat_kesulitan' => ['Mudah', 'Sedang', 'Sulit'][rand(0, 2)],
+                'tingkat_kesulitan' => ['mudah', 'sedang', 'sulit'][rand(0, 2)],
                 'is_active' => true,
             ]);
 

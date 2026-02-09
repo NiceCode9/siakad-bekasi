@@ -29,6 +29,9 @@
                 <a href="{{ route('raport.print', $raport->id) }}" class="btn btn-primary btn-lg top-right-button">
                     <i class="simple-icon-printer"></i> CETAK PDF
                 </a>
+                <a href="{{ route('raport.index') }}" class="btn btn-secondary btn-lg mx-2 top-right-button">
+                    <i class="simple-icon-arrow-left"></i> Kembali
+                </a>
             </div>
             <nav class="breadcrumb-container d-none d-sm-block d-lg-inline-block" aria-label="breadcrumb">
                 <ol class="breadcrumb pt-0">

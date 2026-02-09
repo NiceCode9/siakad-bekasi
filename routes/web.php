@@ -291,6 +291,7 @@ Route::middleware('auth')->group(function () {
     // 6. Reports (Raport & Legger)
     Route::prefix('raport')->name('raport.')->group(function () {
         Route::get('/', [RaportController::class, 'index'])->name('index');
+        Route::get('/get-semesters/{tahun_id}', [RaportController::class, 'getSemestersByTahun'])->name('get-semesters');
         Route::post('/generate/{siswa_id}/{semester_id}', [RaportController::class, 'generate'])->name('generate');
         Route::get('/{id}', [RaportController::class, 'show'])->name('show');
         Route::post('/{id}', [RaportController::class, 'update'])->name('update');
@@ -354,6 +355,7 @@ Route::middleware('auth')->group(function () {
     // 10. Kenaikan Kelas
     Route::prefix('kenaikan-kelas')->name('kenaikan-kelas.')->group(function () {
         Route::get('/', [KenaikanKelasController::class, 'index'])->name('index');
+        Route::get('/get-classes', [KenaikanKelasController::class, 'getClassesByYear'])->name('get-classes');
         Route::get('/simulasi', [KenaikanKelasController::class, 'simulasi'])->name('simulasi');
         Route::post('/eksekusi', [KenaikanKelasController::class, 'eksekusi'])->name('eksekusi');
         Route::get('/{id}', [KenaikanKelasController::class, 'show'])->name('show');

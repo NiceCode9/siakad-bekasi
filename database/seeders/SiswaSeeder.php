@@ -34,7 +34,7 @@ class SiswaSeeder extends Seeder
         $siswaIndex = 1;
 
         foreach ($kelasList as $kelas) {
-            $jumlahSiswa = 20;
+            $jumlahSiswa = 5;
 
             for ($i = 0; $i < $jumlahSiswa; $i++) {
                 $jenisKelamin = rand(0, 1) ? 'L' : 'P';

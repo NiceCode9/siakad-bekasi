@@ -71,4 +71,10 @@ class Raport extends Model
     {
         return $query->where('status', 'published');
     }
+
+    // Accessors
+    public function getAverageScoreAttribute()
+    {
+        return $this->raportDetail()->avg('nilai_akhir') ?? 0;
+    }
 }

@@ -15,7 +15,7 @@
         <div class="col-md-4">
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="mb-4">Generate Legger Baru</h5>
+                    <h5 class="card-title mb-4">Generate Legger Baru</h5>
                     <form action="{{ route('legger.generate') }}" method="POST">
                         @csrf
                         <div class="form-group">
@@ -32,7 +32,7 @@
                             <select name="semester_id" class="form-control select2-single" required>
                                 <option value="">Pilih...</option>
                                 @foreach($semesters as $semester)
-                                    <option value="{{ $semester->id }}">{{ $semester->tahunAkademik->tahun }} - {{ $semester->nama }}</option>
+                                    <option value="{{ $semester->id }}">{{ $semester->tahunAkademik->nama }} - {{ $semester->nama }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -45,8 +45,8 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="mb-4">Daftar Legger Tersedia</h5>
-                    <table class="data-table data-table-feature">
+                    <h5 class="mb-4 card-title">Daftar Legger Tersedia</h5>
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Kelas</th>

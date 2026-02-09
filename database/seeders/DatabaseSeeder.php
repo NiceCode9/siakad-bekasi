@@ -50,6 +50,7 @@ class DatabaseSeeder extends Seeder
             ELearningSeeder::class,
             OperasionalSeeder::class,
             NilaiSeeder::class,
+            RaportSeeder::class,
             
             // System Setup
             PengaturanSeeder::class,

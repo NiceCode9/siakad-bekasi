@@ -62,19 +62,18 @@
 
                                                     @if ($item->kunci === 'logo_sekolah')
                                                         <div class="d-flex align-items-center">
-                                                            @if ($item->nilai)
-                                                                <img src="{{ asset('storage/' . $item->nilai) }}" 
-                                                                     class="img-thumbnail mr-3" 
-                                                                     style="height: 80px; width: 80px; object-fit: contain;" 
-                                                                     alt="Logo">
-                                                            @else
-                                                                <div class="bg-light d-flex align-items-center justify-center mr-3 rounded border" 
+                                                            <div id="logo-preview-container" class="mr-3">
+                                                                <div id="logo-placeholder" class="bg-light align-items-center justify-content-center rounded border {{ $item->nilai ? 'd-none' : 'd-flex' }}" 
                                                                      style="height: 80px; width: 80px;">
                                                                     <i class="simple-icon-picture text-muted" style="font-size: 2rem;"></i>
                                                                 </div>
-                                                            @endif
+                                                                <img id="logo-preview" src="{{ $item->nilai ? asset('storage/' . $item->nilai) : '#' }}" 
+                                                                     class="img-thumbnail {{ $item->nilai ? '' : 'd-none' }}" 
+                                                                     style="height: 80px; width: 80px; object-fit: contain;" 
+                                                                     alt="Logo">
+                                                            </div>
                                                             <div class="custom-file">
-                                                                <input type="file" class="custom-file-input" id="logo_sekolah" name="logo_sekolah">
+                                                                <input type="file" class="custom-file-input" id="logo_sekolah" name="logo_sekolah" accept="image/*">
                                                                 <label class="custom-file-label" for="logo_sekolah">Pilih file...</label>
                                                             </div>
                                                         </div>
@@ -115,10 +114,23 @@
 
 @push('scripts')
     <script>
-        // Update file input label
+        // Update file input label and image preview
         $('.custom-file-input').on('change', function() {
             let fileName = $(this).val().split('\\').pop();
             $(this).next('.custom-file-label').addClass("selected").html(fileName);
+
+            // Specific preview for logo
+            if (this.id === 'logo_sekolah') {
+                const file = this.files[0];
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#logo-placeholder').removeClass('d-flex').addClass('d-none');
+                        $('#logo-preview').attr('src', e.target.result).removeClass('d-none');
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
         });
     </script>
 @endpush

@@ -13,6 +13,7 @@ use App\Models\NilaiSikap;
 use App\Models\NilaiEkstrakurikuler;
 use App\Models\NilaiPkl;
 use App\Models\PresensiSiswa;
+use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -42,21 +43,72 @@ class RaportController extends Controller
             abort(403, 'Anda bukan wali kelas atau admin.');
         }
 
-        $kelas = null;
-        if ($user->hasRole('guru')) {
-            $kelas = $user->guru->kelasWali()->where('semester_id', $semester->id)->first();
+        // Get filter inputs
+        $filterTahun = $request->get('tahun_akademik_id');
+        $filterSemester = $request->get('semester_id');
+        $filterSiswa = $request->get('siswa_id');
+
+        // Determine active semester if not filtered
+        if (!$filterSemester) {
+            $currentSemester = Semester::where('is_active', true)->first();
+            $filterSemester = $currentSemester?->id;
+            $filterTahun = $currentSemester?->tahun_akademik_id;
+        } else {
+            $currentSemester = Semester::find($filterSemester);
+            $filterTahun = $currentSemester?->tahun_akademik_id;
         }
 
-        $siswas = [];
+        $kelas = null;
+        $siswasQuery = Siswa::query();
+
+        if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
+            // Admin filters
+            if ($filterSemester) {
+                $siswasQuery->whereHas('kelas', function($q) use ($filterSemester) {
+                    $q->where('semester_id', $filterSemester);
+                });
+            }
+
+            if ($filterSiswa) {
+                $siswasQuery->where('id', $filterSiswa);
+            }
+
+            $siswas = $siswasQuery->with(['raports' => function($q) use ($filterSemester) {
+                if ($filterSemester) {
+                    $q->where('semester_id', $filterSemester);
+                }
+            }])->get();
+
+            $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
+            $allSiswa = Siswa::orderBy('nama_lengkap')->get();
+            
+            // For Admin, we allow selecting any semester
+            $semester = $currentSemester;
+            return view('raport.index', compact('siswas', 'kelas', 'semester', 'tahunAkademiks', 'allSiswa', 'filterTahun', 'filterSemester', 'filterSiswa'));
+        } 
+        
+        // Wali Kelas logic
+        $kelas = $user->guru->kelasWali()->where('semester_id', $semester->id)->first();
         if ($kelas) {
             $siswas = Siswa::whereHas('kelas', function($q) use ($kelas) {
                 $q->where('kelas_id', $kelas->id);
             })->with(['raports' => function($q) use ($semester) {
                 $q->where('semester_id', $semester->id);
             }])->get();
+        } else {
+            $siswas = [];
         }
 
         return view('raport.index', compact('siswas', 'kelas', 'semester'));
+    }
+
+    public function getSemestersByTahun($tahun_id)
+    {
+        $semesters = Semester::where('tahun_akademik_id', $tahun_id)
+            ->orderBy('nama', 'asc')
+            ->get(['id', 'nama']);
+        
+        return response()->json($semesters);
     }
 
     public function generate($siswa_id, $semester_id)

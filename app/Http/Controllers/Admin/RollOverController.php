@@ -27,6 +27,7 @@ class RollOverController extends Controller
             'copy_kelas' => 'nullable|boolean',
             'copy_mapel' => 'nullable|boolean',
             'copy_jadwal' => 'nullable|boolean',
+            'copy_siswa' => 'nullable|boolean',
         ]);
 
         $fromIdx = $request->from_semester_id;
@@ -167,6 +168,34 @@ class RollOverController extends Controller
                     }
                 }
                 $report[] = "$countJadwal Jadwal Pelajaran berhasil disalin.";
+            }
+            
+            // 4. Copy Siswa (Enroll students to new semester classes)
+            if ($request->copy_siswa) {
+                $countSiswa = 0;
+                foreach ($kelasMap as $oldKelasId => $newKelasId) {
+                    $oldStudents = \App\Models\SiswaKelas::where('kelas_id', $oldKelasId)
+                        ->where('status', 'aktif')
+                        ->get();
+                    
+                    foreach ($oldStudents as $oldStudent) {
+                        // Check if student already enrolled in target class/semester
+                        $exists = \App\Models\SiswaKelas::where('kelas_id', $newKelasId)
+                            ->where('siswa_id', $oldStudent->siswa_id)
+                            ->exists();
+                        
+                        if (!$exists) {
+                            \App\Models\SiswaKelas::create([
+                                'siswa_id' => $oldStudent->siswa_id,
+                                'kelas_id' => $newKelasId,
+                                'tanggal_masuk' => now(),
+                                'status' => 'aktif'
+                            ]);
+                            $countSiswa++;
+                        }
+                    }
+                }
+                $report[] = "$countSiswa Siswa berhasil didaftarkan ke semester baru.";
             }
 
             DB::commit();

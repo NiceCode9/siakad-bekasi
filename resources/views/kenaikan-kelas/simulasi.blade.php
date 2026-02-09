@@ -20,7 +20,7 @@
     <form action="{{ route('kenaikan-kelas.eksekusi') }}" method="POST">
         @csrf
         <input type="hidden" name="kelas_asal_id" value="{{ $kelasAsal->id }}">
-        <input type="hidden" name="tahun_akademik_id" value="{{ $tahunAkademik->id }}">
+        <input type="hidden" name="tahun_akademik_id" value="{{ $tahunAkademikTarget->id }}">
 
         <div class="row">
             <div class="col-12">
@@ -43,20 +43,24 @@
                                 <tbody>
                                     @foreach($students as $idx => $siswa)
                                         @php
-                                            $raport = $siswa->raport->first();
-                                            $avg = $raport->average_score ?? 0;
-                                            $absensi = ($raport->jumlah_sakit ?? 0) + ($raport->jumlah_izin ?? 0) + ($raport->jumlah_alpha ?? 0);
+                                            $raport = $siswa->raports->first();
+                                            $avg = $raport ? $raport->average_score : 0;
+                                            $absensi = $raport ? (($raport->jumlah_sakit ?? 0) + ($raport->jumlah_izin ?? 0) + ($raport->jumlah_alpha ?? 0)) : 0;
+                                            
+                                            // Mapping tingkat Romawi ke angka
+                                            $romanToNum = ['X' => 10, 'XI' => 11, 'XII' => 12];
+                                            $tingkatSekarang = $romanToNum[$kelasAsal->tingkat] ?? 0;
                                             
                                             // Simple logic for recommendation
-                                            $isEligible = ($avg >= 70 && ($raport->jumlah_alpha ?? 0) <= 3);
+                                            $isEligible = ($raport && $avg >= 70 && ($raport->jumlah_alpha ?? 0) <= 3);
                                             $recom = $isEligible ? 'Naik' : 'Tinjau Ulang';
-                                            if ($kelasAsal->tingkat == 12) $recom = $isEligible ? 'Lulus' : 'Tinjau Ulang';
+                                            if ($kelasAsal->tingkat == 'XII') $recom = $isEligible ? 'Lulus' : 'Tinjau Ulang';
                                         @endphp
                                         <tr>
                                             <td>{{ $idx + 1 }}</td>
                                             <td class="text-left">
                                                 <strong>{{ $siswa->nis }}</strong><br>
-                                                {{ $siswa->nama }}
+                                                {{ $siswa->nama_lengkap }}
                                                 <input type="hidden" name="students[{{ $idx }}][id]" value="{{ $siswa->id }}">
                                             </td>
                                             <td>{{ round($avg, 2) }}</td>
@@ -68,7 +72,7 @@
                                             </td>
                                             <td>
                                                 <select name="students[{{ $idx }}][status]" class="form-control form-control-sm status-select">
-                                                    @if($kelasAsal->tingkat == 12)
+                                                    @if($kelasAsal->tingkat == 'XII')
                                                         <option value="lulus" {{ $isEligible ? 'selected' : '' }}>Lulus</option>
                                                         <option value="mengulang" {{ !$isEligible ? 'selected' : '' }}>Mengulang</option>
                                                     @else
@@ -81,9 +85,12 @@
                                                 <select name="students[{{ $idx }}][kelas_tujuan_id]" class="form-control form-control-sm target-class">
                                                     <option value="">-- Kenal/Lulus --</option>
                                                     @foreach($targetClasses as $tc)
+                                                        @php
+                                                            $tingkatTujuan = $romanToNum[$tc->tingkat] ?? 0;
+                                                        @endphp
                                                         <option value="{{ $tc->id }}" 
-                                                            {{ ($isEligible && $tc->tingkat == $kelasAsal->tingkat + 1) || (!$isEligible && $tc->id == $kelasAsal->id) ? 'selected' : '' }}>
-                                                            {{ $tc->nama }}
+                                                            {{ ($isEligible && $tingkatTujuan == $tingkatSekarang + 1) || (!$isEligible && $tc->id == $kelasAsal->id) ? 'selected' : '' }}>
+                                                            {{ $tc->nama }} ({{ $tc->semester->nama }})
                                                         </option>
                                                     @endforeach
                                                 </select>

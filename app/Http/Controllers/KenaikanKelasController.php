@@ -17,11 +17,44 @@ class KenaikanKelasController extends Controller
 {
     public function index()
     {
-        $classes = Kelas::with('jurusan')->get();
+        // For the new workflow, we only need all academic years initially
         $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
         $history = KenaikanKelas::with(['tahunAkademik', 'processedBy'])->latest()->get();
 
-        return view('kenaikan-kelas.index', compact('classes', 'tahunAkademiks', 'history'));
+        return view('kenaikan-kelas.index', compact('tahunAkademiks', 'history'));
+    }
+
+    public function getClassesByYear(Request $request)
+    {
+        $request->validate([
+            'tahun_akademik_id' => 'required|exists:tahun_akademik,id'
+        ]);
+
+        $classes = Kelas::with('jurusan')
+            ->whereHas('semester', function($q) use ($request) {
+                $q->where('tahun_akademik_id', $request->tahun_akademik_id);
+            })
+            ->get();
+
+        // Check which classes have already been processed in the history
+        $processedClassIds = KenaikanKelasDetail::whereHas('kenaikanKelas', function($q) use ($request) {
+                // Technically a class is processed if its students from THAT specific source class/year were moved
+                $q->where('status', 'selesai');
+            })
+            ->pluck('kelas_asal_id')
+            ->unique()
+            ->toArray();
+
+        $data = $classes->map(function($class) use ($processedClassIds) {
+            return [
+                'id' => $class->id,
+                'nama' => $class->nama,
+                'jurusan' => $class->jurusan->singkatan,
+                'is_processed' => in_array($class->id, $processedClassIds)
+            ];
+        });
+
+        return response()->json($data);
     }
 
     public function simulasi(Request $request)
@@ -31,22 +64,51 @@ class KenaikanKelasController extends Controller
             'tahun_akademik_id' => 'required|exists:tahun_akademik,id',
         ]);
 
-        $kelasAsal = Kelas::findOrFail($request->kelas_asal_id);
-        $tahunAkademik = TahunAkademik::findOrFail($request->tahun_akademik_id);
+        $kelasAsal = Kelas::with('semester.tahunAkademik')->findOrFail($request->kelas_asal_id);
+        $tahunAkademikTarget = TahunAkademik::findOrFail($request->tahun_akademik_id);
 
-        // Get students in this class for the current active semester/year
+        // Validation: Source class cannot be in the target year
+        if ($kelasAsal->semester->tahun_akademik_id == $tahunAkademikTarget->id) {
+            return back()->with('error', 'Gagal: Kelas asal tidak boleh berada di tahun akademik yang sama dengan target kenaikan kelas.');
+        }
+
+        // Get students in this class for the original semester/year
         $students = Siswa::whereHas('siswaKelas', function ($q) use ($request) {
             $q->where('kelas_id', $request->kelas_asal_id)->where('status', 'aktif');
-        })->with(['raports' => function ($q) {
-            $q->latest(); // Get latest raport for average/attendance check
+        })->with(['raports' => function ($q) use ($kelasAsal) {
+            $q->where('semester_id', $kelasAsal->semester_id)->latest();
         }])->get();
 
-        // Target classes (usually next level, same jurusan)
-        $targetClasses = Kelas::where('jurusan_id', $kelasAsal->jurusan_id)
-            ->where('id', '!=', $kelasAsal->id)
+        if ($students->isEmpty()) {
+            return back()->with('error', 'Tidak ada siswa aktif di kelas asal yang dipilih.');
+        }
+
+        // Logic to filter target classes: only same level (for repeaters) and next level
+        $romanToLevel = ['X' => 10, 'XI' => 11, 'XII' => 12];
+        $levelToRoman = [10 => 'X', 11 => 'XI', 12 => 'XII'];
+        
+        $currentTingkat = $kelasAsal->tingkat;
+        $currentLevelInt = $romanToLevel[$currentTingkat] ?? 0;
+        $nextLevelInt = $currentLevelInt + 1;
+        
+        $allowedTingkat = [$currentTingkat];
+        if (isset($levelToRoman[$nextLevelInt])) {
+            $allowedTingkat[] = $levelToRoman[$nextLevelInt];
+        }
+
+        // Filter target classes: must be in the target academic year, same jurusan, and allowed levels
+        $targetClasses = Kelas::with('semester')->whereHas('semester', function($q) use ($tahunAkademikTarget) {
+                $q->where('tahun_akademik_id', $tahunAkademikTarget->id);
+            })
+            ->where('jurusan_id', $kelasAsal->jurusan_id)
+            ->whereIn('tingkat', $allowedTingkat)
             ->get();
 
-        return view('kenaikan-kelas.simulasi', compact('kelasAsal', 'tahunAkademik', 'students', 'targetClasses'));
+        if ($targetClasses->isEmpty()) {
+            return back()->with('error', 'Gagal: Tidak ditemukan kelas tujuan di Tahun Akademik Target (' . $tahunAkademikTarget->nama . ') untuk jurusan yang sama.');
+        }
+
+        return view('kenaikan-kelas.simulasi', compact('kelasAsal', 'tahunAkademikTarget', 'students', 'targetClasses'));
     }
 
     public function eksekusi(Request $request)
@@ -59,6 +121,8 @@ class KenaikanKelasController extends Controller
             'students.*.status' => 'required|in:naik,tidak_naik,lulus,mengulang',
             'students.*.kelas_tujuan_id' => 'nullable|exists:kelas,id',
         ]);
+
+        $tahunAkademikTarget = TahunAkademik::findOrFail($request->tahun_akademik_id);
 
         DB::beginTransaction();
         try {
@@ -86,7 +150,7 @@ class KenaikanKelasController extends Controller
                     'kelas_tujuan_id' => $sData['kelas_tujuan_id'] ?? null,
                     'status_kenaikan' => $sData['status'],
                     'rata_rata_nilai' => $raport->average_score ?? 0,
-                    'total_absensi' => ($raport->jumlah_sakit ?? 0) + ($raport->jumlah_izin ?? 0) + ($raport->jumlah_alpha ?? 0),
+                    'total_absensi' => $raport ? (($raport->jumlah_sakit ?? 0) + ($raport->jumlah_izin ?? 0) + ($raport->jumlah_alpha ?? 0)) : 0,
                 ]);
 
                 // Update current class status to 'pindah' (or alumni)

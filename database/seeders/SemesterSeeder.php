@@ -28,7 +28,7 @@ class SemesterSeeder extends Seeder
                 'kode' => $ta->kode . '-1',
                 'tanggal_mulai' => $year1 . '-07-15',
                 'tanggal_selesai' => $year1 . '-12-23',
-                'is_active' => $ta->is_active ? true : false,
+                'is_active' => false,
             ]);
 
             // Semester Genap (Even - January to June)
@@ -38,7 +38,7 @@ class SemesterSeeder extends Seeder
                 'kode' => $ta->kode . '-2',
                 'tanggal_mulai' => $year2 . '-01-06',
                 'tanggal_selesai' => $year2 . '-06-30',
-                'is_active' => false,
+                'is_active' => $ta->is_active ? true : false,
             ]);
         }
     }

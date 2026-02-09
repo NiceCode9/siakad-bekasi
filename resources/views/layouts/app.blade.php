@@ -47,19 +47,20 @@
                 </svg>
             </a>
 
-            <div class="search" data-search-path="Pages.Search.html?q=">
-                <input placeholder="Search...">
-                <span class="search-icon">
-                    <i class="simple-icon-magnifier"></i>
-                </span>
-            </div>
-
-            <a class="btn btn-sm btn-outline-primary ml-3 d-none d-md-inline-block"
-                href="https://1.envato.market/5kAb">&nbsp;BUY&nbsp;</a>
+            @if(isset($activeTahun) && isset($activeSemester))
+                <div class="d-none d-lg-inline-block align-middle ml-3">
+                    <span class="badge badge-pill badge-outline-primary py-2 px-3">
+                        <i class="simple-icon-calendar mr-2"></i>
+                        <span class="font-weight-bold">{{ $activeTahun->nama }}</span> 
+                        <span class="mx-1 text-muted">|</span> 
+                        <span>{{ $activeSemester->nama }}</span>
+                    </span>
+                </div>
+            @endif
         </div>
 
 
-        <a class="navbar-logo" href="Dashboard.Default.html">
+        <a class="navbar-logo" href="{{ route('dashboard') }}">
             <span class="logo d-none d-xs-block"></span>
             <span class="logo-mobile d-block d-xs-none"></span>
         </a>
@@ -73,46 +74,7 @@
                         <label class="custom-switch-btn" for="switchDark"></label>
                     </div>
                 </div>
-
-                <div class="position-relative d-none d-sm-inline-block">
-                    <button class="header-icon btn btn-empty" type="button" id="iconMenuButton" data-toggle="dropdown"
-                        aria-haspopup="true" aria-expanded="false">
-                        <i class="simple-icon-grid"></i>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-right mt-3  position-absolute" id="iconMenuDropdown">
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-equalizer d-block"></i>
-                            <span>Settings</span>
-                        </a>
-
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-male-female d-block"></i>
-                            <span>Users</span>
-                        </a>
-
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-puzzle d-block"></i>
-                            <span>Components</span>
-                        </a>
-
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-bar-chart-4 d-block"></i>
-                            <span>Profits</span>
-                        </a>
-
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-file d-block"></i>
-                            <span>Surveys</span>
-                        </a>
-
-                        <a href="#" class="icon-menu-item">
-                            <i class="iconsminds-suitcase d-block"></i>
-                            <span>Tasks</span>
-                        </a>
-
-                    </div>
-                </div>
-
+                
                 <div class="position-relative d-inline-block">
                     <button class="header-icon btn btn-empty" type="button" id="notificationButton"
                         data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -141,12 +103,6 @@
                         </div>
                     </div>
                 </div>
-
-                <button class="header-icon btn btn-empty d-none d-sm-inline-block" type="button"
-                    id="fullScreenButton">
-                    <i class="simple-icon-size-fullscreen"></i>
-                    <i class="simple-icon-size-actual"></i>
-                </button>
 
             </div>
 

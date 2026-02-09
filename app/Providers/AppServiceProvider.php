@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Models\Semester;
+use App\Models\TahunAkademik;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,9 +30,13 @@ class AppServiceProvider extends ServiceProvider
 
         // Shared data for sidebar and header
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            if (auth()->check()) {
-                $unreadNotifications = auth()->user()->notifikasi()->unread()->latest()->limit(5)->get();
-                $unreadCount = auth()->user()->notifikasi()->unread()->count();
+            $activeTahun = TahunAkademik::active()->first();
+            $activeSemester = Semester::active()->first();
+            $view->with(compact('activeTahun', 'activeSemester'));
+
+            if (Auth::check()) {
+                $unreadNotifications = Auth::user()->notifikasi()->unread()->latest()->limit(5)->get();
+                $unreadCount = Auth::user()->notifikasi()->unread()->count();
                 $view->with(compact('unreadNotifications', 'unreadCount'));
             }
         });
