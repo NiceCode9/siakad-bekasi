@@ -44,8 +44,8 @@ class GuruController extends Controller
             })
             ->addColumn('status', function ($row) {
                 $badge = $row->is_active
-                    ? '<span class="badge bg-success">Aktif</span>'
-                    : '<span class="badge bg-secondary">Nonaktif</span>';
+                    ? '<span class="badge badge-success">Aktif</span>'
+                    : '<span class="badge badge-secondary">Nonaktif</span>';
                 return $badge;
             })
             ->addColumn('action', function ($row) {
@@ -53,20 +53,20 @@ class GuruController extends Controller
                     <div class="btn-group" role="group">
                         <a href="' . route('guru.show', $row->id) . '"
                            class="btn btn-sm btn-info" title="Detail">
-                            <i class="bi bi-eye"></i>
+                            <i class="simple-icon-eye"></i>
                         </a>
                         <button type="button"
                                 class="btn btn-sm btn-warning btn-edit"
                                 data-id="' . $row->id . '"
                                 title="Edit">
-                            <i class="bi bi-pencil"></i>
+                            <i class="simple-icon-pencil"></i>
                         </button>
                         <button type="button"
                                 class="btn btn-sm btn-danger btn-delete"
                                 data-id="' . $row->id . '"
                                 data-name="' . $row->nama_lengkap . '"
                                 title="Hapus">
-                            <i class="bi bi-trash"></i>
+                            <i class="simple-icon-trash"></i>
                         </button>
                     </div>
                 ';

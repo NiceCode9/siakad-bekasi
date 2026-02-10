@@ -25,7 +25,7 @@
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table id="guruTable" class="table table-bordered table-striped table-hover">
+                    <table id="guruTable" class="text-nowrap" style="width: 100%;">
                         <thead>
                             <tr>
                                 <th width="5%">No</th>
@@ -107,6 +107,7 @@
                 sDom: '<"row view-filter"<"col-sm-12"<"float-right"l><"float-left"f><"clearfix">>>t<"row view-pager"<"col-sm-12"<"text-center"ip>>>',
                 processing: true,
                 serverSide: true,
+                scrollX: true,
                 ajax: "{{ route('guru.index') }}",
                 columns: [{
                         data: 'DT_RowIndex',
@@ -265,7 +266,7 @@
                 var checkbox = $(this);
 
                 $.ajax({
-                    url: "{{ url('user-data/guru') }}/" + id + "/toggle-active",
+                    url: "{{ url('guru') }}/" + id + "/toggle-active",
                     type: 'POST',
                     data: {
                         _token: "{{ csrf_token() }}"
@@ -277,6 +278,8 @@
                             text: response.message,
                             timer: 2000,
                             showConfirmButton: false
+                        }).then(() => {
+                            table.draw();
                         });
                     },
                     error: function(xhr) {

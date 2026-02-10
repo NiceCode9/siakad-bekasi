@@ -21,6 +21,7 @@ use App\Http\Controllers\JurnalMengajarController;
 use App\Http\Controllers\JurnalPklController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\KelasController;
+use App\Http\Controllers\PresensiHarianController;
 use App\Http\Controllers\KenaikanKelasController;
 use App\Http\Controllers\KomponenNilaiController;
 use App\Http\Controllers\KurikulumController;
@@ -362,7 +363,9 @@ Route::middleware('auth')->group(function () {
     Route::get('buku-induk/me', [BukuIndukController::class, 'showMyBukuInduk'])->name('buku-induk.me');
     Route::resource('buku-induk', BukuIndukController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('prestasi-siswa', PrestasiSiswaController::class);
+    Route::get('pelanggaran-siswa/get-students', [PelanggaranSiswaController::class, 'getStudents'])->name('pelanggaran-siswa.get-students');
     Route::resource('pelanggaran-siswa', PelanggaranSiswaController::class);
+    Route::resource('presensi-harian', PresensiHarianController::class)->only(['index', 'store']);
 });
 
 require __DIR__.'/auth.php';

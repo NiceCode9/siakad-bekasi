@@ -105,6 +105,13 @@ class RolePermissionSeeder extends Seeder
             'create-legger',
             'edit-legger',
             'delete-legger',
+            // Guru Piket & BK & Kesiswaan
+            'manage-absensi-harian',
+            'laporkan-pelanggaran',
+            'proses-pelanggaran',
+            'view-pelanggaran',
+            'view-riwayat-konseling',
+            'view-profil-siswa',
         ];
 
         foreach ($permissions as $permission) {
@@ -121,6 +128,8 @@ class RolePermissionSeeder extends Seeder
             'view-dashboard',
             'view-reports',
             'approve-raport',
+            'view-pelanggaran',
+            'view-riwayat-konseling',
         ]);
 
         // Admin - most permissions
@@ -147,6 +156,9 @@ class RolePermissionSeeder extends Seeder
             'view-raport',
             'manage-raport',
             'approve-raport',
+            // Violations
+            'view-pelanggaran',
+            'process-pelanggaran',
         ]);
 
         // User - basic permissions
@@ -174,6 +186,28 @@ class RolePermissionSeeder extends Seeder
             'view-pkl-nilai', 'edit-pkl-nilai',
             'view-raport',
             'manage-raport',
+        ]);
+
+        // Staf Kesiswaan
+        $kesiswaan = Role::firstOrCreate(['name' => 'staf-kesiswaan']);
+        $kesiswaan->givePermissionTo([
+            'view-dashboard',
+            'view-users',
+            'view-reports',
+            'view-pelanggaran',
+            'process-pelanggaran',
+            'view-profil-siswa',
+        ]);
+
+        // Guru BK
+        $bk = Role::firstOrCreate(['name' => 'guru-bk']);
+        $bk->givePermissionTo([
+            'view-dashboard',
+            'view-users',
+            'view-reports',
+            'view-pelanggaran',
+            'view-riwayat-konseling',
+            'view-profil-siswa',
         ]);
     }
 }

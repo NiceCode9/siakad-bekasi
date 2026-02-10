@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             // Role & Permission Setup
             RolePermissionSeeder::class,
             MenuSeeder::class,
+            GuruPiketMenuSeeder::class,
 
             // Master Data - Academic Structure
             KurikulumSeeder::class,
