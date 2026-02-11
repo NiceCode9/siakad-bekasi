@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -78,6 +77,9 @@ class RolePermissionSeeder extends Seeder
             'edit-jadwal-pelajaran',
             'delete-jadwal-pelajaran',
 
+            // Kenaikan Kelas
+            'manage-kenaikan-kelas',
+
             // Reports (example)
             'view-reports',
             'export-reports',
@@ -87,6 +89,20 @@ class RolePermissionSeeder extends Seeder
             'view-bank-soal', 'create-bank-soal', 'edit-bank-soal', 'delete-bank-soal',
             'view-jadwal-ujian', 'create-jadwal-ujian', 'edit-jadwal-ujian', 'delete-jadwal-ujian',
             'view-ujian-siswa',
+
+            // Penilaian
+            'view-nilai',
+            'view-nilai-sikap',
+            'view-nilai-ekstrakurikuler',
+            'view-dashboard-nilai',
+
+            // Elearning
+            'view-elearning',
+            'view-materi', 'create-materi', 'edit-materi', 'delete-materi',
+            'view-tugas', 'create-tugas', 'edit-tugas', 'delete-tugas', 'submit-tugas', 'view-submission', 'grade-submission',
+            'view-forum', 'create-forum', 'edit-forum', 'delete-forum', 'post-forum', 'reply-forum',
+            'view-kelas-elearning', 'manage-kelas-elearning', 'view-anggota-kelas', 'manage-anggota-kelas',
+            'view-nilai-elearning', 'manage-nilai-elearning',
 
             // PKL
             'view-pkl',
@@ -100,6 +116,26 @@ class RolePermissionSeeder extends Seeder
             'manage-raport',
             'approve-raport',
 
+            // Presensi
+            'view-presensi',
+            'create-presensi',
+            'edit-presensi',
+            'delete-presensi',
+
+            // Buku Induk
+            'manage-buku-induk',
+            'view-buku-induk',
+            'create-buku-induk',
+            'edit-buku-induk',
+            'delete-buku-induk',
+
+            // Jurnal Mengajar
+            'view-jurnal-mengajar',
+            'create-jurnal-mengajar',
+            'edit-jurnal-mengajar',
+            'delete-jurnal-mengajar',
+            'approve-jurnal-mengajar',
+
             // Module 11: Legger
             'view-legger',
             'create-legger',
@@ -107,9 +143,10 @@ class RolePermissionSeeder extends Seeder
             'delete-legger',
             // Guru Piket & BK & Kesiswaan
             'manage-absensi-harian',
+            'view-pelanggaran',
             'laporkan-pelanggaran',
             'proses-pelanggaran',
-            'view-pelanggaran',
+            'view-resume-pelanggaran',
             'view-riwayat-konseling',
             'view-profil-siswa',
         ];
@@ -158,7 +195,7 @@ class RolePermissionSeeder extends Seeder
             'approve-raport',
             // Violations
             'view-pelanggaran',
-            'process-pelanggaran',
+            'proses-pelanggaran',
         ]);
 
         // User - basic permissions
@@ -195,7 +232,9 @@ class RolePermissionSeeder extends Seeder
             'view-users',
             'view-reports',
             'view-pelanggaran',
-            'process-pelanggaran',
+            'laporkan-pelanggaran',
+            'proses-pelanggaran',
+            'view-resume-pelanggaran',
             'view-profil-siswa',
         ]);
 
@@ -206,8 +245,18 @@ class RolePermissionSeeder extends Seeder
             'view-users',
             'view-reports',
             'view-pelanggaran',
+            'view-resume-pelanggaran',
             'view-riwayat-konseling',
             'view-profil-siswa',
+        ]);
+
+        // Guru Piket
+        $piket = Role::firstOrCreate(['name' => 'guru-piket']);
+        $piket->givePermissionTo([
+            'view-dashboard',
+            'view-pelanggaran',
+            'laporkan-pelanggaran',
+            'manage-absensi-harian',
         ]);
     }
 }

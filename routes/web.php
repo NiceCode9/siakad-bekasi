@@ -364,6 +364,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('buku-induk', BukuIndukController::class)->only(['index', 'show', 'edit', 'update']);
     Route::resource('prestasi-siswa', PrestasiSiswaController::class);
     Route::get('pelanggaran-siswa/get-students', [PelanggaranSiswaController::class, 'getStudents'])->name('pelanggaran-siswa.get-students');
+    Route::get('pelanggaran-siswa/resume', [PelanggaranSiswaController::class, 'resume'])->name('pelanggaran-siswa.resume');
+    Route::get('pelanggaran-siswa/siswa/{siswa}', [PelanggaranSiswaController::class, 'showStudent'])->name('pelanggaran-siswa.student');
     Route::resource('pelanggaran-siswa', PelanggaranSiswaController::class);
     Route::resource('presensi-harian', PresensiHarianController::class)->only(['index', 'store']);
 });

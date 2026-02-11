@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\Menu;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class GuruPiketMenuSeeder extends Seeder
 {
@@ -21,7 +21,7 @@ class GuruPiketMenuSeeder extends Seeder
                 'order' => 25, // Between Master Data and Pembelajaran
             ]
         );
-        
+
         // Roles allowed to see the parent menu
         $piketRoles = Role::whereIn('name', ['guru', 'staf-kesiswaan', 'guru-bk', 'admin', 'super-admin'])->get();
         $piketMenu->roles()->syncWithoutDetaching($piketRoles);
@@ -37,7 +37,7 @@ class GuruPiketMenuSeeder extends Seeder
                 'order' => 1,
             ]
         );
-        $presensiHarian->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'manage-daily-attendance'])->id]);
+        $presensiHarian->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'manage-absensi-harian'])->id]);
         $presensiHarian->roles()->syncWithoutDetaching($piketRoles); // Filtered by permission anyway
 
         // 3. Child: Data Pelanggaran
@@ -51,8 +51,21 @@ class GuruPiketMenuSeeder extends Seeder
                 'order' => 2,
             ]
         );
-        // Visible to those who can view violations
-        $pelanggaran->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-violations'])->id]);
+        $pelanggaran->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-pelanggaran'])->id]);
         $pelanggaran->roles()->syncWithoutDetaching($piketRoles);
+
+        // 4. Child: Rekap Pelanggaran
+        $rekap = Menu::firstOrCreate(
+            ['slug' => 'rekap-pelanggaran-siswa'],
+            [
+                'name' => 'Rekap Pelanggaran',
+                'icon' => 'simple-icon-chart',
+                'url' => '/pelanggaran-siswa/resume',
+                'parent_id' => $piketMenu->id,
+                'order' => 3,
+            ]
+        );
+        $rekap->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-resume-pelanggaran'])->id]);
+        $rekap->roles()->syncWithoutDetaching($piketRoles);
     }
 }

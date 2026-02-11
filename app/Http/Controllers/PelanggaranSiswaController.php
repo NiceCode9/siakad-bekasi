@@ -8,16 +8,13 @@ use App\Models\Siswa;
 use App\Models\TahunAkademik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class PelanggaranSiswaController extends Controller
 {
     public function index()
     {
-        $this->authorize('view-violations');
+        $this->authorize('view-pelanggaran');
 
-        // Fetch violations based on role/permissions? 
-        // For now, list all. Maybe filter by academic year if needed.
         $pelanggaran = PelanggaranSiswa::with(['siswa.siswaKelas.kelas', 'pelapor'])
             ->latest('tanggal')
             ->get();
@@ -27,11 +24,11 @@ class PelanggaranSiswaController extends Controller
 
     public function create()
     {
-        $this->authorize('report-violations');
+        $this->authorize('laporkan-pelanggaran');
 
         $activeTahun = TahunAkademik::active()->first();
         $kelas = collect([]);
-        
+
         if ($activeTahun) {
             $kelas = Kelas::whereHas('semester', function ($q) use ($activeTahun) {
                 $q->where('tahun_akademik_id', $activeTahun->id);
@@ -43,7 +40,7 @@ class PelanggaranSiswaController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorize('report-violations');
+        $this->authorize('laporkan-pelanggaran');
 
         $request->validate([
             'siswa_id' => 'required|exists:siswa,id',
@@ -56,10 +53,10 @@ class PelanggaranSiswaController extends Controller
             'siswa_id' => $request->siswa_id,
             'tanggal' => $request->tanggal,
             'jenis_pelanggaran' => $request->jenis_pelanggaran,
-            'kategori' => 'ringan', // Default, updated by Kesiswaan later
-            'poin' => 0, // Default, updated by Kesiswaan later
+            'kategori' => 'ringan',
+            'poin' => 0,
             'kronologi' => $request->kronologi,
-            'pelapor_id' => Auth::user()->guru ? Auth::user()->guru->id : null, // If user is guru
+            'pelapor_id' => Auth::user()->guru ? Auth::user()->guru->id : null,
             'status' => 'proses',
         ]);
 
@@ -68,14 +65,14 @@ class PelanggaranSiswaController extends Controller
 
     public function edit(PelanggaranSiswa $pelanggaranSiswa)
     {
-        $this->authorize('process-violations'); // Only Kesiswaan/BK can edit/process
+        $this->authorize('proses-pelanggaran');
 
         return view('pelanggaran.edit', compact('pelanggaranSiswa'));
     }
 
     public function update(Request $request, PelanggaranSiswa $pelanggaranSiswa)
     {
-        $this->authorize('process-violations');
+        $this->authorize('proses-pelanggaran');
 
         $request->validate([
             'kategori' => 'required|in:ringan,sedang,berat',
@@ -96,8 +93,41 @@ class PelanggaranSiswaController extends Controller
 
     public function destroy(PelanggaranSiswa $pelanggaranSiswa)
     {
-        $this->authorize('process-violations'); // Only process role can delete
+        $this->authorize('proses-pelanggaran');
         $pelanggaranSiswa->delete();
+
         return redirect()->route('pelanggaran-siswa.index')->with('success', 'Data pelanggaran dihapus.');
+    }
+
+    /**
+     * Display a resume of violations per student (for BK/Kesiswaan)
+     */
+    public function resume()
+    {
+        $this->authorize('view-resume-pelanggaran');
+
+        $resume = Siswa::whereHas('pelanggaran')
+            ->withCount('pelanggaran')
+            ->withSum('pelanggaran', 'poin')
+            ->with(['kelas' => function ($q) {
+                $q->wherePivot('status', 'aktif');
+            }])
+            ->get();
+
+        return view('pelanggaran.resume', compact('resume'));
+    }
+
+    /**
+     * Display details of violations for a specific student
+     */
+    public function showStudent(Siswa $siswa)
+    {
+        $this->authorize('view-resume-pelanggaran');
+
+        $siswa->load(['pelanggaran.pelapor', 'kelas' => function ($q) {
+            $q->wherePivot('status', 'aktif');
+        }]);
+
+        return view('pelanggaran.show', compact('siswa'));
     }
 }
