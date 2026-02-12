@@ -130,4 +130,14 @@ class PelanggaranSiswaController extends Controller
 
         return view('pelanggaran.show', compact('siswa'));
     }
+
+    public function getStudents(Request $request)
+    {
+        $kelasId = $request->kelas_id;
+        $students = Siswa::whereHas('kelas', function ($q) use ($kelasId) {
+            $q->where('kelas_id', $kelasId);
+        })->get();
+
+        return response()->json($students);
+    }
 }
