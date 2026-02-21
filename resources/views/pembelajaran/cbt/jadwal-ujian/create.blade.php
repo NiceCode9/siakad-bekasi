@@ -52,7 +52,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Pilih Kelas & Mapel (Bisa Banyak) <span class="text-danger">*</span></label>
-                                    <select name="mata_pelajaran_kelas_id[]" class="form-control select2" multiple="multiple" required data-placeholder="Pilih Kelas & Mapel">
+                                    <select name="mata_pelajaran_kelas_id[]" class="form-control select2-multiple" multiple="multiple" required data-placeholder="Pilih Kelas & Mapel">
                                         @foreach($kelas as $k)
                                             <optgroup label="Kelas {{ $k->nama }}">
                                                 @foreach($k->mataPelajaranKelas as $mpk)
@@ -67,7 +67,7 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Bank Soal <span class="text-danger">*</span></label>
-                                    <select name="bank_soal_id" class="form-control select2" required>
+                                    <select name="bank_soal_id" class="form-control select2-single" required>
                                         <option value="">-- Pilih Bank Soal --</option>
                                         @foreach($bankSoal as $b)
                                             <option value="{{ $b->id }}">{{ $b->kode }} - {{ $b->nama }} ({{ $b->mataPelajaran->nama }})</option>
@@ -153,12 +153,7 @@
 </div>
 @endsection
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.select2').select2();

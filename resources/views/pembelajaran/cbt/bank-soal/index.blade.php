@@ -23,16 +23,16 @@
     <div class="card mb-3">
         <div class="card-body py-3">
             <form id="filterForm" class="row align-items-end">
-                <div class="col-md-3">
+                <div class="col-md-3 mt-2">
                     <label>Mata Pelajaran</label>
-                    <select name="mata_pelajaran_id" id="filter_mapel" class="form-control select2">
+                    <select name="mata_pelajaran_id" id="filter_mapel" class="form-control select2-single">
                         <option value="">L- Semua Mapel --</option>
                         @foreach($mapel as $m)
                             <option value="{{ $m->id }}">{{ $m->nama }}</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mt-2">
                      <label>Tingkat Kesulitan</label>
                      <select name="tingkat_kesulitan" id="filter_tingkat" class="form-control">
                         <option value="">-- Semua --</option>
@@ -41,8 +41,11 @@
                         <option value="sulit">Sulit</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-2 mt-2">
                     <button type="button" id="btnFilter" class="btn btn-secondary btn-block">Filter</button>
+                </div>
+                <div class="col-md-2 mt-2">
+                    <button type="button" id="btnReset" class="btn btn-secondary btn-block">Reset</button>
                 </div>
             </form>
         </div>
@@ -51,7 +54,7 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
-                <table id="tableBankSoal" class="table table-bordered table-striped table-hover" style="width:100%">
+                <table id="tableBankSoal" style="width:100%">
                     <thead>
                         <tr>
                             <th width="5%">No</th>
@@ -124,22 +127,24 @@
 </div>
 @endsection
 
-@push('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
 @push('scripts')
-    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2').select2();
+            $('.select2-single').select2({
+                placeholder: "Pilih Bank Soal",
+                width: "100%"
+            });
+
+            $('#btnReset').click(function() {
+                $('#filter_mapel').val('').trigger('change');
+                $('#filter_tingkat').val('').trigger('change');
+                table.draw();
+            });
 
             var table = $('#tableBankSoal').DataTable({
                 processing: true,
                 serverSide: true,
+                scrollX: true,
                 ajax: {
                     url: "{{ route('bank-soal.index') }}",
                     data: function(d) {

@@ -49,10 +49,10 @@ class BankSoalController extends Controller
                 })
                 ->addColumn('action', function ($row) {
                     $btn = '<div class="btn-group" role="group">';
-                    $btn .= '<a href="' . route('bank-soal.show', $row->id) . '" class="btn btn-info btn-sm" title="Kelola Soal"><i class="fas fa-list"></i> Soal</a>';
+                    $btn .= '<a href="' . route('bank-soal.show', $row->id) . '" class="btn btn-info btn-sm" title="Kelola Soal"><i class="fas fa-list"></i></a>';
                     $btn .= '<a href="' . route('bank-soal.edit', $row->id) . '" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>';
                     // Duplicate Button
-                    $btn .= '<form action="'.route('bank-soal.duplicate', $row->id).'" method="POST" class="d-inline" onsubmit="return confirm(\'Duplicate bank soal ini?\')">'.csrf_field().'<button type="submit" class="btn btn-secondary btn-sm" title="Duplicate"><i class="fas fa-copy"></i></button></form>';
+                    // $btn .= '<form action="'.route('bank-soal.duplicate', $row->id).'" method="POST" class="d-inline" onsubmit="return confirm(\'Duplicate bank soal ini?\')">'.csrf_field().'<button type="submit" class="btn btn-secondary btn-sm" title="Duplicate"><i class="fas fa-copy"></i></button></form>';
                     
                     $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" title="Hapus"><i class="fas fa-trash"></i></button>';
                     $btn .= '</div>';
@@ -89,7 +89,7 @@ class BankSoalController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $validated['pembuat_id'] = Auth::user()->guru_id ?? 1; // Fallback for dev if not linked
+        $validated['pembuat_id'] = Auth::user()->guru->id ?? 1; // Fallback for dev if not linked
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
 
         BankSoal::create($validated);

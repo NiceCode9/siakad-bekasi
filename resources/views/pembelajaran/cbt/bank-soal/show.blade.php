@@ -34,10 +34,8 @@
             </div>
             
             <div class="card">
-                <div class="card-header">
-                    Filter Soal
-                </div>
                 <div class="card-body">
+                    <h4 class="card-title">Filter Soal</h4>
                     <div class="form-group mb-0">
                         <label>Cari Pertanyaan</label>
                         <input type="text" id="searchSoal" class="form-control form-control-sm" placeholder="Ketik kata kunci...">
@@ -59,7 +57,7 @@
                 @forelse($bankSoal->soal as $index => $soal)
                     <div class="card mb-2 soal-item">
                         <div class="card-header bg-white" id="heading{{ $soal->id }}">
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex justify-content-between align-items-center mt-2">
                                 <h2 class="mb-0">
                                     <button class="btn btn-link text-dark text-left" type="button" data-toggle="collapse" data-target="#collapse{{ $soal->id }}">
                                         <span class="badge badge-primary mr-2">{{ $index + 1 }}</span>

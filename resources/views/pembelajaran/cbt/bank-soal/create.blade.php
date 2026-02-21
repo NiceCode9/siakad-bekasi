@@ -11,6 +11,16 @@
         </a>
     </div>
 
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-body">
             <form action="{{ route('bank-soal.store') }}" method="POST">
@@ -57,10 +67,14 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="form-group pt-4">
-                            <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" checked>
-                                <label class="custom-control-label" for="is_active">Aktif</label>
+                        <div class="form-group row mb-1">
+                            <label class="col-12 col-form-label">Status Aktif</label>
+                            <div class="col-12">
+                                <div class="custom-switch custom-switch-small custom-switch-secondary mb-2">
+                                    <input class="custom-switch-input" id="is_active" name="is_active" type="checkbox"
+                                        value="1" checked>
+                                    <label class="custom-switch-btn" for="is_active"></label>
+                                </div>
                             </div>
                         </div>
                     </div>
