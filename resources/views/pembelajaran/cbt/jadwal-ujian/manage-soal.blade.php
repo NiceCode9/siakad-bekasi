@@ -22,6 +22,20 @@
         </div>
     </div>
 
+    @if(!$jadwalUjian->bank_soal_id)
+        <div class="alert alert-warning border-warning mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="alert-heading mb-1"><i class="fas fa-exclamation-triangle"></i> Bank Soal Belum Dikaitkan</h5>
+                    <p class="mb-0 text-dark">Jadwal ini belum memiliki sumber soal. Silakan pilih Bank Soal terlebih dahulu untuk mulai mengelola butir soal.</p>
+                </div>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#modalLinkBank">
+                    <i class="fas fa-link"></i> Kaitkan Bank Soal
+                </button>
+            </div>
+        </div>
+    @endif
+
     <div class="card">
         <div class="card-header bg-white">
             <i class="fas fa-info-circle text-info"></i> Drag & Drop baris untuk mengubah urutan soal.
@@ -59,9 +73,51 @@
                                 </td>
                             </tr>
                         @endforeach
+                        @if($jadwalUjian->soalUjian->count() == 0)
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fas fa-tasks fa-3x mb-3 d-block"></i>
+                                    Belum ada soal terpilih.
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Link Bank Soal -->
+<div class="modal fade" id="modalLinkBank" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="{{ route('jadwal-ujian.link-bank-soal', $jadwalUjian->id) }}" method="POST">
+                @csrf
+                <div class="modal-header">
+                    <h5 class="modal-title">Kaitkan Bank Soal</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Pilih Bank Soal</label>
+                        <select name="bank_soal_id" class="form-control select2" required style="width: 100%;">
+                            <option value="">-- Pilih Bank Soal --</option>
+                            @foreach($bankSoals as $b)
+                                <option value="{{ $b->id }}">{{ $b->kode }} - {{ $b->nama }} ({{ $b->mataPelajaran->nama }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="generate_auto" name="generate_auto" value="1" checked>
+                        <label class="custom-control-label" for="generate_auto">Otomatis ambil {{ $jadwalUjian->jumlah_soal }} soal secara acak</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Kaitkan</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -75,30 +131,40 @@
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
             </div>
             <div class="modal-body">
-                <p>Pilih soal dari Bank: <strong>{{ $jadwalUjian->bankSoal->nama }}</strong></p>
-                <div class="list-group" style="max-height: 400px; overflow-y: auto;">
-                    @php
-                        // Get questions NOT already in exam
-                        $existingIds = $jadwalUjian->soalUjian->pluck('soal_id')->toArray();
-                        $available = $jadwalUjian->bankSoal->soal()->whereNotIn('id', $existingIds)->get();
-                    @endphp
-                    
-                    @forelse($available as $s)
-                        <div class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <span class="badge badge-info">{{ $s->tingkat_kesulitan }}</span>
-                                <span class="text-muted ml-2">{!! Str::limit(strip_tags($s->pertanyaan), 80) !!}</span>
+                @if($jadwalUjian->bank_soal_id)
+                    <p>Pilih soal dari Bank: <strong>{{ $jadwalUjian->bankSoal->nama }}</strong></p>
+                    <div class="list-group" style="max-height: 400px; overflow-y: auto;">
+                        @php
+                            // Get questions NOT already in exam
+                            $existingIds = $jadwalUjian->soalUjian->pluck('soal_id')->toArray();
+                            $available = $jadwalUjian->bankSoal->soal()->whereNotIn('id', $existingIds)->get();
+                        @endphp
+                        
+                        @forelse($available as $s)
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge badge-info">{{ $s->tingkat_kesulitan }}</span>
+                                    <span class="text-muted ml-2">{!! Str::limit(strip_tags($s->pertanyaan), 80) !!}</span>
+                                </div>
+                                <form action="{{ route('jadwal-ujian.add-soal', $jadwalUjian->id) }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="soal_id" value="{{ $s->id }}">
+                                    <button type="submit" class="btn btn-sm btn-primary">Pilih</button>
+                                </form>
                             </div>
-                            <form action="{{ route('jadwal-ujian.add-soal', $jadwalUjian->id) }}" method="POST">
-                                @csrf
-                                <input type="hidden" name="soal_id" value="{{ $s->id }}">
-                                <button type="submit" class="btn btn-sm btn-primary">Pilih</button>
-                            </form>
-                        </div>
-                    @empty
-                        <div class="alert alert-warning">Semua soal dari bank ini sudah dimasukkan.</div>
-                    @endforelse
-                </div>
+                        @empty
+                            <div class="alert alert-warning">Semua soal dari bank ini sudah dimasukkan.</div>
+                        @endforelse
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-link fa-3x mb-3 text-muted"></i>
+                        <p>Silakan kaitkan Bank Soal terlebih dahulu.</p>
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#modalLinkBank" data-dismiss="modal">
+                             Kaitkan Bank Soal
+                        </button>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -108,38 +174,48 @@
 <div class="modal fade" id="modalRegenerate" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="{{ route('jadwal-ujian.regenerate-soal', $jadwalUjian->id) }}" method="POST">
-                @csrf
+            @if($jadwalUjian->bank_soal_id)
+                <form action="{{ route('jadwal-ujian.regenerate-soal', $jadwalUjian->id) }}" method="POST">
+                    @csrf
+                    <div class="modal-header">
+                        <h5 class="modal-title">Regenerate Komposisi Soal</h5>
+                        <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Tindakan ini akan <strong>MENGHAPUS</strong> semua soal yang ada saat ini dan menggantinya dengan acak baru sesuai komposisi.
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Soal Mudah</label>
+                            <input type="number" name="jml_mudah" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Soal Sedang</label>
+                            <input type="number" name="jml_sedang" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Jumlah Soal Sulit</label>
+                            <input type="number" name="jml_sulit" class="form-control" value="0" min="0">
+                        </div>
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="acak_urutan" name="acak_urutan" checked>
+                            <label class="custom-control-label" for="acak_urutan">Acak urutan hasil generate</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-warning">Regenerate</button>
+                    </div>
+                </form>
+            @else
                 <div class="modal-header">
-                    <h5 class="modal-title">Regenerate Komposisi Soal</h5>
+                    <h5 class="modal-title">Regenerate Soal</h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 </div>
-                <div class="modal-body">
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-triangle"></i> Tindakan ini akan <strong>MENGHAPUS</strong> semua soal yang ada saat ini dan menggantinya dengan acak baru sesuai komposisi.
-                    </div>
-                    <div class="form-group">
-                        <label>Jumlah Soal Mudah</label>
-                        <input type="number" name="jml_mudah" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Jumlah Soal Sedang</label>
-                        <input type="number" name="jml_sedang" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label>Jumlah Soal Sulit</label>
-                        <input type="number" name="jml_sulit" class="form-control" value="0" min="0">
-                    </div>
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="acak_urutan" name="acak_urutan" checked>
-                        <label class="custom-control-label" for="acak_urutan">Acak urutan hasil generate</label>
-                    </div>
+                <div class="modal-body text-center py-4">
+                    <p>Harap kaitkan Bank Soal terlebih dahulu.</p>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning">Regenerate</button>
-                </div>
-            </form>
+            @endif
         </div>
     </div>
 </div>

@@ -44,7 +44,7 @@
                         </tr>
                         <tr>
                              <td class="text-muted">Bank Soal</td>
-                            <td class="font-weight-bold">{{ $jadwalUjian->bankSoal->kode }}</td>
+                            <td class="font-weight-bold">{{ $jadwalUjian->bankSoal->kode ?? 'Belum Dikaitkan' }}</td>
                         </tr>
                         <tr>
                              <td class="text-muted">Mulai</td>

@@ -256,6 +256,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/{jadwal_ujian}/add-soal', [JadwalUjianController::class, 'addSoal'])->name('add-soal');
         Route::delete('/remove-soal/{id}', [JadwalUjianController::class, 'removeSoal'])->name('remove-soal');
         Route::post('/reorder-soal', [JadwalUjianController::class, 'reorderSoal'])->name('reorder-soal');
+        Route::post('/{jadwal_ujian}/link-bank-soal', [JadwalUjianController::class, 'linkBankSoal'])->name('link-bank-soal');
         Route::post('/{jadwal_ujian}/regenerate-soal', [JadwalUjianController::class, 'regenerateSoalByDifficulty'])->name('regenerate-soal');
         Route::post('/{jadwal_ujian}/status', [JadwalUjianController::class, 'setStatus'])->name('status');
     });

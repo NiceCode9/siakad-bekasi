@@ -66,13 +66,14 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label>Bank Soal <span class="text-danger">*</span></label>
-                                    <select name="bank_soal_id" class="form-control select2-single" required>
-                                        <option value="">-- Pilih Bank Soal --</option>
+                                    <label>Bank Soal <span class="text-muted">(Opsional)</span></label>
+                                    <select name="bank_soal_id" class="form-control select2-single">
+                                        <option value="">-- Pilih Nanti (Oleh Guru) --</option>
                                         @foreach($bankSoal as $b)
                                             <option value="{{ $b->id }}">{{ $b->kode }} - {{ $b->nama }} ({{ $b->mataPelajaran->nama }})</option>
                                         @endforeach
                                     </select>
+                                    <small class="text-muted">Jika dikosongkan, guru pengampu dapat menentukan bank soal kemudian.</small>
                                 </div>
                             </div>
                         </div>

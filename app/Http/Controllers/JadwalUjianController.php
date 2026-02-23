@@ -33,6 +33,9 @@ class JadwalUjianController extends Controller
                     return $row->tanggal_mulai->format('d/m/Y H:i') . '<br>s/d<br>' . $row->tanggal_selesai->format('d/m/Y H:i');
                 })
                 ->addColumn('status', function ($row) {
+                    if (!$row->bank_soal_id) {
+                        return '<span class="badge badge-warning">Belum Ada Soal</span>';
+                    }
                     $badges = [
                         'draft' => 'secondary',
                         'aktif' => 'success',
@@ -83,7 +86,7 @@ class JadwalUjianController extends Controller
         $validated = $request->validate([
             'mata_pelajaran_kelas_id' => 'required|array',
             'mata_pelajaran_kelas_id.*' => 'exists:mata_pelajaran_kelas,id',
-            'bank_soal_id' => 'required|exists:bank_soal,id',
+            'bank_soal_id' => 'nullable|exists:bank_soal,id',
             'jenis_ujian' => 'required|in:ulangan_harian,uts,uas,ujian_praktik,ujian_sekolah',
             'nama_ujian' => 'required|string|max:100',
             'tanggal_mulai' => 'required|date',
@@ -96,7 +99,7 @@ class JadwalUjianController extends Controller
         $baseData = [
             'semester_id' => Semester::active()->first()->id,
             'status' => 'draft',
-            'bank_soal_id' => $validated['bank_soal_id'],
+            'bank_soal_id' => $validated['bank_soal_id'] ?? null,
             'jenis_ujian' => $validated['jenis_ujian'],
             'nama_ujian' => $validated['nama_ujian'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
@@ -111,9 +114,11 @@ class JadwalUjianController extends Controller
 
         DB::beginTransaction();
         try {
-            $bank = BankSoal::withCount('soal')->findOrFail($validated['bank_soal_id']);
-            if ($bank->soal_count < (int) $validated['jumlah_soal']) {
-                return back()->with('error', "Bank soal hanya memiliki {$bank->soal_count} soal.")->withInput();
+            if ($validated['bank_soal_id']) {
+                $bank = BankSoal::withCount('soal')->findOrFail($validated['bank_soal_id']);
+                if ($bank->soal_count < (int) $validated['jumlah_soal']) {
+                    return back()->with('error', "Bank soal hanya memiliki {$bank->soal_count} soal.")->withInput();
+                }
             }
 
             // Loop through each selected class
@@ -124,18 +129,20 @@ class JadwalUjianController extends Controller
 
                 $jadwal = JadwalUjian::create($data);
 
-                // Generate Questions
-                $soals = Soal::where('bank_soal_id', $bank->id)
-                    ->inRandomOrder()
-                    ->take($validated['jumlah_soal'])
-                    ->get();
+                // Generate Questions only if bank_soal_id is provided
+                if ($validated['bank_soal_id']) {
+                    $soals = Soal::where('bank_soal_id', $validated['bank_soal_id'])
+                        ->inRandomOrder()
+                        ->take($validated['jumlah_soal'])
+                        ->get();
 
-                foreach ($soals as $index => $soal) {
-                    SoalUjian::create([
-                        'jadwal_ujian_id' => $jadwal->id,
-                        'soal_id' => $soal->id,
-                        'urutan' => $index + 1,
-                    ]);
+                    foreach ($soals as $index => $soal) {
+                        SoalUjian::create([
+                            'jadwal_ujian_id' => $jadwal->id,
+                            'soal_id' => $soal->id,
+                            'urutan' => $index + 1,
+                        ]);
+                    }
                 }
             }
 
@@ -180,14 +187,12 @@ class JadwalUjianController extends Controller
 
         $validated = $request->validate([
             'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
-            'bank_soal_id' => 'required|exists:bank_soal,id',
+            'bank_soal_id' => 'nullable|exists:bank_soal,id',
             'jenis_ujian' => 'required|in:ulangan_harian,uts,uas,ujian_praktik,ujian_sekolah',
             'nama_ujian' => 'required|string|max:100',
             'tanggal_mulai' => 'required|date',
             'tanggal_selesai' => 'required|date|after:tanggal_mulai',
             'durasi' => 'required|integer|min:1',
-            // 'jumlah_soal' => 'required|integer|min:1', // Changing question count implies simple re-gen or complex diff?
-            // For simplicity, if bank or count changes, we RE-GENERATE questions.
             'jumlah_soal' => 'required|integer|min:1',
             'keterangan' => 'nullable|string',
         ]);
@@ -310,7 +315,56 @@ class JadwalUjianController extends Controller
     public function manageSoal(JadwalUjian $jadwalUjian)
     {
         $jadwalUjian->load(['soalUjian.soal', 'bankSoal']);
-        return view('pembelajaran.cbt.jadwal-ujian.manage-soal', compact('jadwalUjian'));
+        
+        $bankSoals = collect([]);
+        if (!$jadwalUjian->bank_soal_id) {
+            // Load available bank soals for the same subject if possible
+            // Or just all active bank soals
+            $bankSoals = BankSoal::active()->with('mataPelajaran')->get();
+        }
+
+        return view('pembelajaran.cbt.jadwal-ujian.manage-soal', compact('jadwalUjian', 'bankSoals'));
+    }
+
+    public function linkBankSoal(Request $request, JadwalUjian $jadwalUjian)
+    {
+        $request->validate([
+            'bank_soal_id' => 'required|exists:bank_soal,id',
+            'generate_auto' => 'nullable|boolean'
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $jadwalUjian->update(['bank_soal_id' => $request->bank_soal_id]);
+
+            if ($request->generate_auto) {
+                $bank = BankSoal::withCount('soal')->findOrFail($request->bank_soal_id);
+                $count = min($bank->soal_count, $jadwalUjian->jumlah_soal);
+
+                $soals = Soal::where('bank_soal_id', $bank->id)
+                    ->inRandomOrder()
+                    ->take($count)
+                    ->get();
+
+                foreach ($soals as $index => $soal) {
+                    SoalUjian::create([
+                        'jadwal_ujian_id' => $jadwalUjian->id,
+                        'soal_id' => $soal->id,
+                        'urutan' => $index + 1,
+                    ]);
+                }
+                
+                // If count was lower than expected, update the schedule count?
+                // For now, just generate what's available.
+            }
+
+            DB::commit();
+            return back()->with('success', 'Bank soal berhasil dikaitkan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', $e->getMessage());
+        }
     }
 
     public function addSoal(Request $request, JadwalUjian $jadwalUjian)
