@@ -29,7 +29,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label>Mata Pelajaran <span class="text-danger">*</span></label>
-                            <select name="mata_pelajaran_id" class="form-control select2" required>
+                            <select name="mata_pelajaran_id" class="form-control select2-single" required>
                                 <option value="">-- Pilih Mapel --</option>
                                 @foreach($mapel as $m)
                                     <option value="{{ $m->id }}">{{ $m->kode }} - {{ $m->nama }}</option>
@@ -91,12 +91,7 @@
 </div>
 @endsection
 
-@push('styles')
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-@endpush
-
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         $('.select2').select2();

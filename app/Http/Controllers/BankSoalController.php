@@ -24,7 +24,7 @@ class BankSoalController extends Controller
             if (Auth::user()->hasRole('guru')) {
                 $query->where('pembuat_id', Auth::user()->guru->id);
             }
-            
+
             // Filter
             if ($request->filled('mata_pelajaran_id')) {
                 $query->where('mata_pelajaran_id', $request->mata_pelajaran_id);
@@ -53,7 +53,7 @@ class BankSoalController extends Controller
                     $btn .= '<a href="' . route('bank-soal.edit', $row->id) . '" class="btn btn-warning btn-sm" title="Edit"><i class="fas fa-edit"></i></a>';
                     // Duplicate Button
                     // $btn .= '<form action="'.route('bank-soal.duplicate', $row->id).'" method="POST" class="d-inline" onsubmit="return confirm(\'Duplicate bank soal ini?\')">'.csrf_field().'<button type="submit" class="btn btn-secondary btn-sm" title="Duplicate"><i class="fas fa-copy"></i></button></form>';
-                    
+
                     $btn .= '<button type="button" class="btn btn-danger btn-sm btn-delete" data-id="' . $row->id . '" title="Hapus"><i class="fas fa-trash"></i></button>';
                     $btn .= '</div>';
                     return $btn;
@@ -63,7 +63,12 @@ class BankSoalController extends Controller
         }
 
         $mapel = MataPelajaran::orderBy('nama')->get();
-        return view('pembelajaran.cbt.bank-soal.index', compact('mapel'));
+        $banks = BankSoal::when(Auth::user()->hasRole('guru'), function ($query) {
+            return $query->where('pembuat_id', Auth::user()->guru->id);
+        })
+            ->orderBy('nama')
+            ->get();
+        return view('pembelajaran.cbt.bank-soal.index', compact('mapel', 'banks'));
     }
 
     /**
@@ -130,7 +135,7 @@ class BankSoalController extends Controller
         ]);
 
         $validated['is_active'] = $request->has('is_active') ? 1 : 0;
-        
+
         $bankSoal->update($validated);
 
         return redirect()->route('bank-soal.index')->with('success', 'Bank Soal berhasil diperbarui');
@@ -150,7 +155,7 @@ class BankSoalController extends Controller
     public function duplicate($id)
     {
         $original = BankSoal::with('soal')->findOrFail($id);
-        
+
         $new = $original->replicate();
         $new->kode = $original->kode . '-COPY-' . time();
         $new->nama = $original->nama . ' (Copy)';

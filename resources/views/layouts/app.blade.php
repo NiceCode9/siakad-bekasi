@@ -183,6 +183,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/all.min.js"></script>
 
     <script>
+        window.Dropzone = window.Dropzone || {};
+        Dropzone.autoDiscover = false;
+    </script>
+    <script>
         // Show success/error message from session
         @if (session('success'))
             Swal.fire({

@@ -18,7 +18,7 @@ class SoalController extends Controller
     {
         $bankSoalId = $request->input('bank_soal_id');
         $bankSoal = BankSoal::findOrFail($bankSoalId);
-        
+
         return view('pembelajaran.cbt.soal.create', compact('bankSoal'));
     }
 
@@ -39,25 +39,23 @@ class SoalController extends Controller
         DB::beginTransaction();
         try {
             $data = $validated;
-            
+
             // Handle Media
             if ($request->hasFile('file_media')) {
                 $file = $request->file('file_media');
                 $mime = $file->getMimeType();
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('public/soal-media', $filename);
-                
-                // Determine Type
+
+                // Determine Type & Save to 'file' column
                 if (str_starts_with($mime, 'image/')) {
                     $data['tipe_media'] = 'image';
-                    $data['gambar'] = 'soal-media/' . $filename; // Just path after public/
                 } elseif (str_starts_with($mime, 'audio/')) {
                     $data['tipe_media'] = 'audio';
-                    $data['audio'] = 'soal-media/' . $filename;
                 } elseif (str_starts_with($mime, 'video/')) {
                     $data['tipe_media'] = 'video';
-                    $data['video'] = 'soal-media/' . $filename;
                 }
+                $data['file'] = 'soal-media/' . $filename;
             }
 
             if ($validated['tipe_soal'] == 'pilihan_ganda') {
@@ -66,15 +64,15 @@ class SoalController extends Controller
                  $data['opsi_c'] = $request->opsi_c;
                  $data['opsi_d'] = $request->opsi_d;
                  $data['opsi_e'] = $request->opsi_e;
-                 $data['kunci_jawaban'] = $request->kunci_jawaban; 
+                 $data['kunci_jawaban'] = $request->kunci_jawaban;
             }
-            
+
             if ($validated['tipe_soal'] == 'isian_singkat') {
                 $data['kunci_jawaban'] = $request->kunci_jawaban_text;
             }
 
             Soal::create($data);
-            
+
             DB::commit();
 
             return redirect()->route('bank-soal.show', $validated['bank_soal_id'])
@@ -108,36 +106,24 @@ class SoalController extends Controller
 
              // Handle Media
             if ($request->hasFile('file_media')) {
-                // Determine Old File to Delete
-                $oldFile = null;
-                if ($soal->tipe_media == 'image') $oldFile = $soal->gambar;
-                if ($soal->tipe_media == 'audio') $oldFile = $soal->audio;
-                if ($soal->tipe_media == 'video') $oldFile = $soal->video;
-                
-                if ($oldFile) {
-                    Storage::delete('public/' . $oldFile);
+                // Delete Old File
+                if ($soal->file) {
+                    Storage::delete('public/' . $soal->file);
                 }
 
                 $file = $request->file('file_media');
                 $mime = $file->getMimeType();
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('public/soal-media', $filename);
-                
-                // Clear old columns first to avoid confusion
-                $data['gambar'] = null;
-                $data['audio'] = null;
-                $data['video'] = null;
 
                 if (str_starts_with($mime, 'image/')) {
                     $data['tipe_media'] = 'image';
-                    $data['gambar'] = 'soal-media/' . $filename; 
                 } elseif (str_starts_with($mime, 'audio/')) {
                     $data['tipe_media'] = 'audio';
-                    $data['audio'] = 'soal-media/' . $filename;
                 } elseif (str_starts_with($mime, 'video/')) {
                     $data['tipe_media'] = 'video';
-                    $data['video'] = 'soal-media/' . $filename;
                 }
+                $data['file'] = 'soal-media/' . $filename;
             }
 
              if ($validated['tipe_soal'] == 'pilihan_ganda') {
@@ -148,13 +134,13 @@ class SoalController extends Controller
                  $data['opsi_e'] = $request->opsi_e;
                  $data['kunci_jawaban'] = $request->kunci_jawaban;
             }
-            
+
             if ($validated['tipe_soal'] == 'isian_singkat') {
                 $data['kunci_jawaban'] = $request->kunci_jawaban_text;
             }
 
             $soal->update($data);
-            
+
             DB::commit();
 
             return redirect()->route('bank-soal.show', $soal->bank_soal_id)
@@ -171,6 +157,9 @@ class SoalController extends Controller
      */
     public function destroy(Soal $soal)
     {
+        if ($soal->file) {
+            Storage::delete('public/' . $soal->file);
+        }
         $soal->delete();
         return redirect()->back()->with('success', 'Soal berhasil dihapus');
     }

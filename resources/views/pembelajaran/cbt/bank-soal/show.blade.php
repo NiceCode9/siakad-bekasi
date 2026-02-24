@@ -32,7 +32,7 @@
                     </a>
                 </div>
             </div>
-            
+
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Filter Soal</h4>
@@ -89,15 +89,15 @@
                                     <strong>Pertanyaan:</strong>
                                     <div class="border p-2 rounded bg-light">
                                         {!! $soal->pertanyaan !!}
-                                        
+
                                         @if($soal->tipe_media)
                                             <div class="mt-2">
                                                 @if($soal->tipe_media == 'image')
-                                                    <img src="{{ asset('storage/'.$soal->gambar) }}" class="img-fluid" style="max-height: 300px">
+                                                    <img src="{{ asset('storage/'.$soal->file) }}" class="img-fluid" style="max-height: 300px">
                                                 @elseif($soal->tipe_media == 'audio')
-                                                    <audio controls src="{{ asset('storage/'.$soal->audio) }}" class="w-100"></audio>
+                                                    <audio controls src="{{ asset('storage/'.$soal->file) }}" class="w-100"></audio>
                                                 @elseif($soal->tipe_media == 'video')
-                                                    <video controls src="{{ asset('storage/'.$soal->video) }}" style="max-height: 300px; max-width: 100%;"></video>
+                                                    <video controls src="{{ asset('storage/'.$soal->file) }}" style="max-height: 300px; max-width: 100%;"></video>
                                                 @endif
                                             </div>
                                         @endif
@@ -128,7 +128,7 @@
                                     </div>
                                 @elseif($soal->tipe_soal == 'isian_singkat')
                                     <div class="mt-2">
-                                        <strong>Kunci Jawaban:</strong> 
+                                        <strong>Kunci Jawaban:</strong>
                                         <div class="alert alert-success py-1 mt-1">{{ $soal->kunci_jawaban }}</div>
                                     </div>
                                 @elseif($soal->tipe_soal == 'uraian')

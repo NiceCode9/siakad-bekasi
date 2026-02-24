@@ -28,15 +28,15 @@
                     <div class="card-body">
                         <div class="mb-4 question-text">
                             {!! $su->soal->pertanyaan !!}
-                            
+
                             @if($su->soal->tipe_media)
                                 <div class="mt-3 text-center">
                                     @if($su->soal->tipe_media == 'image')
-                                        <img src="{{ asset('storage/'.$su->soal->gambar) }}" class="img-fluid rounded border" style="max-height: 400px">
+                                        <img src="{{ asset('storage/'.$su->soal->file) }}" class="img-fluid rounded border" style="max-height: 400px">
                                     @elseif($su->soal->tipe_media == 'audio')
-                                        <audio controls src="{{ asset('storage/'.$su->soal->audio) }}" class="w-100 mt-2"></audio>
+                                        <audio controls src="{{ asset('storage/'.$su->soal->file) }}" class="w-100 mt-2"></audio>
                                     @elseif($su->soal->tipe_media == 'video')
-                                        <video controls src="{{ asset('storage/'.$su->soal->video) }}" class="rounded shadow-sm" style="max-height: 400px; max-width: 100%;"></video>
+                                        <video controls src="{{ asset('storage/'.$su->soal->file) }}" class="rounded shadow-sm" style="max-height: 400px; max-width: 100%;"></video>
                                     @endif
                                 </div>
                             @endif
@@ -44,8 +44,8 @@
 
                         <!-- Options / Input -->
                         @if($su->soal->tipe_soal == 'pilihan_ganda')
-                            @php 
-                                $opsi = ['a','b','c','d','e']; 
+                            @php
+                                $opsi = ['a','b','c','d','e'];
                                 $currentAnswer = $jawaban[$su->id] ?? null;
                             @endphp
                             <div class="list-group">
@@ -53,7 +53,7 @@
                                     @php $field = 'opsi_'.$k; @endphp
                                     @if($su->soal->$field)
                                         <label class="list-group-item list-group-item-action">
-                                            <input type="radio" name="jawaban_{{ $su->id }}" value="{{ strtoupper($k) }}" 
+                                            <input type="radio" name="jawaban_{{ $su->id }}" value="{{ strtoupper($k) }}"
                                                 onchange="saveAnswer({{ $ujianSiswa->id }}, {{ $su->id }}, this.value)"
                                                 {{ $currentAnswer == strtoupper($k) ? 'checked' : '' }}>
                                             <span class="ml-2 font-weight-bold">{{ strtoupper($k) }}.</span> {{ $su->soal->$field }}
@@ -65,8 +65,8 @@
                              @php $currentAnswer = $jawaban[$su->id] ?? ''; @endphp
                             <div class="form-group">
                                 <label>Jawaban Singkat:</label>
-                                <input type="text" class="form-control" name="jawaban_{{ $su->id }}" 
-                                    value="{{ $currentAnswer }}" 
+                                <input type="text" class="form-control" name="jawaban_{{ $su->id }}"
+                                    value="{{ $currentAnswer }}"
                                     onblur="saveAnswer({{ $ujianSiswa->id }}, {{ $su->id }}, this.value)">
                             </div>
                         @elseif($su->soal->tipe_soal == 'uraian')
@@ -82,7 +82,7 @@
                         <button class="btn btn-secondary" onclick="prevQ({{ $index }})" {{ $index == 0 ? 'disabled' : '' }}>
                             <i class="fas fa-chevron-left"></i> Sebelumnya
                         </button>
-                        
+
                         @if($index == count($soalList) - 1)
                             <button class="btn btn-warning" onclick="confirmFinish()">
                                 Selesai <i class="fas fa-check"></i>
@@ -104,11 +104,11 @@
                 <div class="card-body">
                     <div class="row no-gutters">
                         @foreach($soalList as $index => $su)
-                            @php 
+                            @php
                                 $hasAnswer = isset($jawaban[$su->id]) && !empty($jawaban[$su->id]);
                             @endphp
                             <div class="col-3 p-1">
-                                <button class="btn btn-block btn-sm {{ $hasAnswer ? 'btn-success' : 'btn-outline-secondary' }}" 
+                                <button class="btn btn-block btn-sm {{ $hasAnswer ? 'btn-success' : 'btn-outline-secondary' }}"
                                     id="nav_{{ $su->id }}" onclick="jumpTo({{ $index }}, 'q_{{ $su->id }}')">
                                     {{ $index + 1 }}
                                 </button>
@@ -127,7 +127,7 @@
     // --- Security & Timer ---
     var currentQIndex = 0;
     var totalQ = {{ count($soalList) }};
-    var ids = @json($soalList->pluck('id')); 
+    var ids = @json($soalList->pluck('id'));
     var timeLeft = {{ $sisaDetik }};
     var ujianSiswaId = {{ $ujianSiswa->id }};
     var isFullscreen = false;
@@ -148,11 +148,11 @@
             var minutes = Math.floor((timeLeft % 3600) / 60);
             var seconds = timeLeft % 60;
 
-            timerDisplay.textContent = 
-                (hours < 10 ? "0" + hours : hours) + ":" + 
-                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+            timerDisplay.textContent =
+                (hours < 10 ? "0" + hours : hours) + ":" +
+                (minutes < 10 ? "0" + minutes : minutes) + ":" +
                 (seconds < 10 ? "0" + seconds : seconds);
-            
+
             // Warning color
             if(timeLeft < 300) { // < 5 mins
                 document.getElementById('timerBadge').classList.add('text-danger', 'blink');
@@ -181,7 +181,7 @@
     $(document).on('click', function() {
         if (!document.fullscreenElement) {
              // Optional: Force or nag
-             requestFullScreen(); 
+             requestFullScreen();
         }
     });
 
@@ -201,7 +201,7 @@
             return false;
         }
     }
-    
+
     // CSS to disable selection
     const style = document.createElement('style');
     style.innerHTML = `
@@ -216,20 +216,20 @@
 
     // 4. Violation Detection (Tab Switch / Blur)
     var violationCount = {{ $ujianSiswa->violation_count }};
-    
+
     document.addEventListener("visibilitychange", function() {
         if (document.hidden) {
             handleViolation("Meninggalkan halaman ujian (Tab Switch / Minimize)");
         }
     });
-    
+
     window.onblur = function() {
         // handleViolation("Kehilangan fokus browser"); // Too sensitive? maybe. Visibility logic covers tab switch.
     };
 
     function handleViolation(reason) {
         violationCount++;
-        
+
         // Log to server
         $.ajax({
             url: "{{ route('ujian-siswa.log-violation') }}",
@@ -290,7 +290,7 @@
             success: function(response) {
                 // Done
             },
-            error: function(xhr) { 
+            error: function(xhr) {
                 if(xhr.status === 403) {
                     Swal.fire('Error', xhr.responseJSON.message, 'error').then(() => {
                         window.location.reload();

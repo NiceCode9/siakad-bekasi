@@ -569,7 +569,7 @@ class MenuSeeder extends Seeder
         $masterData->roles()->syncWithoutDetaching($adminRoles);
         $cbtMenu->roles()->syncWithoutDetaching($academicRoles);
         $elearningMenu->roles()->syncWithoutDetaching($academicRoles);
-        $presensiMenu->roles()->syncWithoutDetaching($academicRoles);
+        $presensiMenu->roles()->syncWithoutDetaching($academicRoles->where('name', '!=', 'siswa'));
         $nilaiAkademikMenu->roles()->syncWithoutDetaching($academicRoles);
         $nilaiSikapMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $nilaiEkskulMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());

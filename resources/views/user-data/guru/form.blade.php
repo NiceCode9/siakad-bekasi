@@ -136,7 +136,7 @@
                     <div class="form-group">
                         <label>Tanggal Lahir</label>
                         <input type="date" name="tanggal_lahir" class="form-control"
-                            value="{{ old('tanggal_lahir', $guru->tanggal_lahir ?? '') }}">
+                            value="{{ old('tanggal_lahir', $guru && $guru->tanggal_lahir ? $guru->tanggal_lahir->format('Y-m-d') : '') }}">
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@
                     <div class="form-group">
                         <label>Tanggal Masuk</label>
                         <input type="date" name="tanggal_masuk" class="form-control"
-                            value="{{ old('tanggal_masuk', $guru->tanggal_masuk ?? '') }}">
+                            value="{{ old('tanggal_masuk', $guru && $guru->tanggal_masuk ? $guru->tanggal_masuk->format('Y-m-d') : '') }}">
                     </div>
                 </div>
             </div>

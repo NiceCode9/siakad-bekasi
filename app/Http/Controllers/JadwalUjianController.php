@@ -20,7 +20,13 @@ class JadwalUjianController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $query = JadwalUjian::with(['mataPelajaranKelas.kelas', 'mataPelajaranKelas.mataPelajaran', 'bankSoal']);
+            $query = JadwalUjian::with(['mataPelajaranKelas.kelas', 'mataPelajaranKelas.mataPelajaran', 'mataPelajaranKelas.guru','bankSoal'])->where('semester_id', Semester::active()->first()->id);
+
+            if(auth()->user()->hasRole('guru')){
+                $query->whereHas('mataPelajaranKelas', function($query){
+                    $query->where('guru_id', auth()->user()->guru->id);
+                });
+            }
 
             return DataTables::of($query)
                 ->addIndexColumn()
@@ -74,7 +80,7 @@ class JadwalUjianController extends Controller
             ->with(['mataPelajaranKelas.mataPelajaran'])
             ->orderBy('nama')
             ->get();
-            
+
         // Bank Soal loaded via AJAX based on selected Subject usually, but for simple MVP let's load all active
         $bankSoal = BankSoal::active()->with('mataPelajaran')->get();
 
@@ -173,7 +179,7 @@ class JadwalUjianController extends Controller
             ->with(['mataPelajaranKelas.mataPelajaran'])
             ->orderBy('nama')
             ->get();
-            
+
         $bankSoal = BankSoal::active()->with('mataPelajaran')->get();
 
         return view('pembelajaran.cbt.jadwal-ujian.edit', compact('jadwalUjian', 'kelas', 'bankSoal'));
@@ -201,7 +207,7 @@ class JadwalUjianController extends Controller
         try {
             // If Bank or Count changed, regenerate questions
             $regenerate = false;
-            
+
             if ($jadwalUjian->bank_soal_id != $validated['bank_soal_id'] || $jadwalUjian->jumlah_soal != $validated['jumlah_soal']) {
                 $regenerate = true;
             }
@@ -315,7 +321,7 @@ class JadwalUjianController extends Controller
     public function manageSoal(JadwalUjian $jadwalUjian)
     {
         $jadwalUjian->load(['soalUjian.soal', 'bankSoal']);
-        
+
         $bankSoals = collect([]);
         if (!$jadwalUjian->bank_soal_id) {
             // Load available bank soals for the same subject if possible
@@ -353,7 +359,7 @@ class JadwalUjianController extends Controller
                         'urutan' => $index + 1,
                     ]);
                 }
-                
+
                 // If count was lower than expected, update the schedule count?
                 // For now, just generate what's available.
             }
@@ -370,7 +376,7 @@ class JadwalUjianController extends Controller
     public function addSoal(Request $request, JadwalUjian $jadwalUjian)
     {
         $request->validate(['soal_id' => 'required|exists:soal,id']);
-        
+
         // Count existing to determine order
         $maxOrder = $jadwalUjian->soalUjian()->max('urutan') ?? 0;
 
@@ -393,7 +399,7 @@ class JadwalUjianController extends Controller
     public function reorderSoal(Request $request)
     {
         $request->validate(['order' => 'required|array']);
-        
+
         foreach($request->order as $index => $id) {
             SoalUjian::where('id', $id)->update(['urutan' => $index + 1]);
         }
@@ -418,7 +424,7 @@ class JadwalUjianController extends Controller
         try {
             // Check availability in Bank
             $bankId = $jadwalUjian->bank_soal_id;
-            
+
             $mudah = Soal::where('bank_soal_id', $bankId)->where('tingkat_kesulitan', 'mudah')->inRandomOrder()->take($request->jml_mudah)->get();
             $sedang = Soal::where('bank_soal_id', $bankId)->where('tingkat_kesulitan', 'sedang')->inRandomOrder()->take($request->jml_sedang)->get();
             $sulit = Soal::where('bank_soal_id', $bankId)->where('tingkat_kesulitan', 'sulit')->inRandomOrder()->take($request->jml_sulit)->get();
@@ -432,10 +438,10 @@ class JadwalUjianController extends Controller
 
             // Insert new
             $urutan = 1;
-            
+
             // Merge all
             $allSoal = $mudah->merge($sedang)->merge($sulit);
-            
+
             if ($request->has('acak_urutan')) {
                 $allSoal = $allSoal->shuffle();
             }

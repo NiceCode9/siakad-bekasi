@@ -1,4 +1,4 @@
-/* Dore Main Script 
+/* Dore Main Script
 
 Table of Contents
 
@@ -40,7 +40,7 @@ Table of Contents
   03.33. Showing Body
   03.34. Keyboard Shortcuts
   03.35. Context Menu
-  03.36. Select from Library 
+  03.36. Select from Library
   03.37. Feedback
   03.38. Smart Wizard
   03.39. Countdown
@@ -673,11 +673,11 @@ $.dore = function (element, options) {
           $(event.target).hasClass("sidebar")
         )
       ) {
-        // Prevent sub menu closing on collapse click 
+        // Prevent sub menu closing on collapse click
         if ($(event.target).parents("a[data-toggle='collapse']").length > 0 || $(event.target).attr("data-toggle") == 'collapse') {
           return;
         }
-        // Prevent sub menu closing on custom control click 
+        // Prevent sub menu closing on custom control click
         if ($(event.target).parents(".dont-close-menu").length > 0) {
           return;
         }

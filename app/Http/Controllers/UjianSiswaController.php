@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\Nilai;
 use App\Models\KomponenNilai;
+use App\Models\Semester;
+use App\Models\MataPelajaran;
+use App\Models\MataPelajaranKelas;
 use Illuminate\Support\Facades\DB;
 
 class UjianSiswaController extends Controller
@@ -19,31 +22,71 @@ class UjianSiswaController extends Controller
     /**
      * List exams available for logged in student.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
-        if (!$user->hasRole('siswa')) {
-            abort(403, 'Anda bukan siswa aktif.');
+
+        // --- 1. Fetch Mapel Options for Filter ---
+        $mapelOptions = collect();
+        if ($user->hasRole('siswa') && $user->siswa) {
+            $siswaKelas = SiswaKelas::where('siswa_id', $user->siswa->id)
+                ->where('status', 'aktif')
+                ->latest()
+                ->first();
+
+            if ($siswaKelas) {
+                $mapelOptions = MataPelajaranKelas::where('kelas_id', $siswaKelas->kelas_id)
+                    ->with('mataPelajaran')
+                    ->get()
+                    ->map(fn($mpk) => $mpk->mataPelajaran)
+                    ->unique('id');
+            }
+        } elseif ($user->hasRole('guru') && $user->guru) {
+            $mapelOptions = MataPelajaranKelas::where('guru_id', $user->guru->id)
+                ->with('mataPelajaran')
+                ->get()
+                ->map(fn($mpk) => $mpk->mataPelajaran)
+                ->unique('id');
+        } else {
+            // Admin or other roles: get all active mapel
+            $mapelOptions = MataPelajaran::active()->orderBy('nama')->get();
         }
 
-        // Get Student's Class (Active Semester)
-        // Adjust logic if multiple active semesters allowed, but usually one.
-        $siswaKelas = SiswaKelas::where('siswa_id', $user->siswa->id)
-            ->where('status', 'aktif')
-            ->latest()
-            ->first();
+        // --- 2. Query Jadwal Ujian ---
+        $query = JadwalUjian::query();
 
-        $ujianList = collect();
-        if ($siswaKelas) {
-            $ujianList = JadwalUjian::whereHas('mataPelajaranKelas', function ($q) use ($siswaKelas) {
+        // Role-based restrict (if not admin)
+        if ($user->hasRole('siswa') && $user->siswa && isset($siswaKelas)) {
+            $query->whereHas('mataPelajaranKelas', function ($q) use ($siswaKelas) {
                 $q->where('kelas_id', $siswaKelas->kelas_id);
-            })
+            });
+        } elseif ($user->hasRole('guru') && $user->guru) {
+            $query->whereHas('mataPelajaranKelas', function ($q) use ($user) {
+                $q->where('guru_id', $user->guru->id);
+            });
+        }
+
+        // Filter by Mapel
+        if ($request->filled('mata_pelajaran_id')) {
+            $query->whereHas('mataPelajaranKelas', function ($q) use ($request) {
+                $q->where('mata_pelajaran_id', $request->mata_pelajaran_id);
+            });
+        }
+
+        $ujianList = $query->with([
+                'ujianSiswa' => function($q) use ($user) {
+                    if ($user->hasRole('siswa') && $user->siswa) {
+                        $q->where('siswa_id', $user->siswa->id);
+                    }
+                },
+                'mataPelajaranKelas.mataPelajaran'
+            ])
             ->whereIn('status', ['aktif', 'selesai'])
             ->orderBy('tanggal_mulai', 'desc')
-            ->get();
-        }
+            ->paginate(10)
+            ->withQueryString();
 
-        return view('pembelajaran.cbt.ujian.student.index', compact('ujianList'));
+        return view('pembelajaran.cbt.ujian.student.index', compact('ujianList', 'mapelOptions'));
     }
 
     /**
@@ -68,7 +111,7 @@ class UjianSiswaController extends Controller
     public function start(Request $request, $id)
     {
         $jadwal = JadwalUjian::findOrFail($id);
-        
+
         // Validate Token
         if ($request->token !== $jadwal->token) {
             return back()->with('error', 'Token salah.');
@@ -80,7 +123,7 @@ class UjianSiswaController extends Controller
         }
 
         $user = Auth::user();
-        
+
         // Check if already started elsewhere?
         $existing = UjianSiswa::where('jadwal_ujian_id', $jadwal->id)
             ->where('siswa_id', $user->siswa->id)
@@ -137,7 +180,7 @@ class UjianSiswaController extends Controller
         if ($jadwal->tanggal_selesai < $endTime) {
             $endTime = $jadwal->tanggal_selesai;
         }
-        
+
         // If time up
         if (now() > $endTime) {
             return redirect()->route('ujian-siswa.finish', $id);
@@ -147,9 +190,9 @@ class UjianSiswaController extends Controller
 
         // Get Questions
         $soalList = $jadwal->soalUjian;
-        
+
         if ($jadwal->acak_soal) {
-            $soalList = $soalList->shuffle(getSeed($user->id . $jadwal->id)); 
+            $soalList = $soalList->shuffle(getSeed($user->id . $jadwal->id));
         }
 
         // Load existing answers
@@ -205,13 +248,13 @@ class UjianSiswaController extends Controller
     {
          $request->validate(['ujian_siswa_id' => 'required|exists:ujian_siswa,id']);
          $ujianSiswa = UjianSiswa::findOrFail($request->ujian_siswa_id);
-         
+
          if ($ujianSiswa->session_id !== session()->getId()) {
             return response()->json(['status' => 'error'], 403);
          }
 
          $ujianSiswa->increment('violation_count');
-         
+
          return response()->json(['status' => 'recorded', 'count' => $ujianSiswa->violation_count]);
     }
 
@@ -222,7 +265,7 @@ class UjianSiswaController extends Controller
     {
         $jadwal = JadwalUjian::findOrFail($id);
         $user = Auth::user();
-        
+
         $ujianSiswa = UjianSiswa::where('jadwal_ujian_id', $jadwal->id)
             ->where('siswa_id', $user->siswa->id)
             ->firstOrFail();
@@ -230,7 +273,7 @@ class UjianSiswaController extends Controller
         // Calculate Score
         $totalNilai = 0;
         $jawabans = JawabanSiswa::where('ujian_siswa_id', $ujianSiswa->id)->get();
-        
+
         DB::beginTransaction();
         try {
             foreach ($jawabans as $j) {
@@ -239,17 +282,17 @@ class UjianSiswaController extends Controller
                     $totalNilai += $j->nilai;
                 }
             }
-            
+
             // Normalize Score ? Usually raw sum of bobot, or percentage?
             // Let's assume Score = (Total Perolehan / Total Bobot Jadwal) * 100
             // But currently code adds raw bobot.
             // Let's stick to raw sum or handle scaling if needed.
             // For general CBT, often we want 0-100 scale.
-            
+
             $maxScore = $jadwal->soalUjian->sum(function($su) {
                 return $su->soal->bobot;
             });
-            
+
             $finalScore = 0;
             if ($maxScore > 0) {
                 $finalScore = ($totalNilai / $maxScore) * 100;
@@ -263,14 +306,14 @@ class UjianSiswaController extends Controller
 
             // --- SYNC TO NILAI MODULE ---
             $semester = $jadwal->semester;
-            
+
             // Map jenis_ujian to Nilai category (enum in 'nilai' table)
             $mapJenis = [
                 'ulangan_harian' => 'ulangan_harian',
                 'uts' => 'uts',
                 'uas' => 'uas',
                 'ujian_praktik' => 'praktik',
-                'ujian_sekolah' => 'uas', 
+                'ujian_sekolah' => 'uas',
             ];
             $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
 
@@ -279,7 +322,7 @@ class UjianSiswaController extends Controller
                 ->where(function($q) use ($jadwal) {
                     $q->where('nama', 'like', '%' . $jadwal->jenis_ujian . '%')
                       ->orWhere('kode', 'like', '%' . $jadwal->jenis_ujian . '%');
-                    
+
                     // Fallback search strings
                     if ($jadwal->jenis_ujian == 'uts') $q->orWhere('nama', 'like', '%tengah%');
                     if ($jadwal->jenis_ujian == 'uas') $q->orWhere('nama', 'like', '%akhir%');
@@ -311,7 +354,7 @@ class UjianSiswaController extends Controller
                     ]
                 );
             }
-            
+
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -325,7 +368,7 @@ class UjianSiswaController extends Controller
     {
         // $id here is ujian_siswa ID
         $ujianSiswa = UjianSiswa::with(['siswa', 'jadwalUjian.bankSoal', 'jawabanSiswa.soalUjian.soal'])->findOrFail($id);
-        
+
         $jadwal = $ujianSiswa->jadwalUjian;
         $jawabans = $ujianSiswa->jawabanSiswa->keyBy('soal_ujian_id');
         $soalList = SoalUjian::where('jadwal_ujian_id', $jadwal->id)
@@ -339,5 +382,5 @@ class UjianSiswaController extends Controller
 
 // Helper for consistent shuffle
 function getSeed($val) {
-    return crc32($val); 
+    return crc32($val);
 }

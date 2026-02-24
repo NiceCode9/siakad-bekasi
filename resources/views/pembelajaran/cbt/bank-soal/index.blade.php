@@ -91,18 +91,17 @@
                         {{-- For now let's reuse DataTables logic or just simple select --}}
                         <select name="bank_soal_id" class="form-control select2" style="width:100%" required>
                             <option value="">-- Pilih Bank --</option>
-                           {{-- We need to pass banks to view. Controller index passes only mapel. 
-                                Let's load via AJAX or just use the ones we have? 
-                                Actually controller index passes `mapel` only. 
+                           {{-- We need to pass banks to view. Controller index passes only mapel.
+                                Let's load via AJAX or just use the ones we have?
+                                Actually controller index passes `mapel` only.
                                 Let's assume user creates bank first, then imports.
-                                So we list all? Or we can query in view? No. 
+                                So we list all? Or we can query in view? No.
                                 Let's update controller to pass banks? Or use select2 ajax.
                                 Quick fix: just add logic to load recent banks or all?
                                 Let's reload banks in View Composer or inject.
-                                For now, I'll use a placeholder and suggest user to go to detail page to import? 
+                                For now, I'll use a placeholder and suggest user to go to detail page to import?
                                 Or simply, add `banks` to index.
                            --}}
-                           @php $banks = \App\Models\BankSoal::orderBy('nama')->limit(100)->get(); @endphp
                            @foreach($banks as $b)
                                <option value="{{ $b->id }}">{{ $b->kode }} - {{ $b->nama }}</option>
                            @endforeach

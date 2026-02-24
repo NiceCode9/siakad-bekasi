@@ -23,10 +23,11 @@ class Soal extends Model
         'kunci_jawaban',
         'bobot',
         'pembahasan',
-        'gambar',
+        'tipe_media',
+        'file',
         'urutan',
         'metadata',
-];
+    ];
 
     protected $casts = [
         'bobot' => 'decimal:2',

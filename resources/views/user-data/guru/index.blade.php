@@ -204,7 +204,7 @@
                     '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>');
                 $('#formModal').modal('show');
 
-                $.get("{{ url('user-data/guru') }}/" + id + "/edit", function(data) {
+                $.get("{{ route('guru.edit', ':id') }}".replace(':id', id), function(data) {
                     $('#formModalBody').html(data);
                 });
             });
