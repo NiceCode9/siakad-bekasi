@@ -21,7 +21,7 @@ class NilaiController extends Controller
     {
         $user = Auth::user();
         $semesterAktif = Semester::active()->first();
-        
+
         // Load classes for filter - Restricted for Guru
         $queryKelas = Kelas::query();
         if ($semesterAktif) {
@@ -30,7 +30,7 @@ class NilaiController extends Controller
 
         if (!$user->hasRole(['admin', 'super-admin'])) {
             $guruId = $user->guru->id ?? 0;
-            
+
             $queryKelas->where(function($q) use ($guruId) {
                 $q->where('wali_kelas_id', $guruId)
                   ->orWhereHas('mataPelajaranKelas', function($q2) use ($guruId) {
@@ -38,7 +38,7 @@ class NilaiController extends Controller
                   });
             });
         }
-        
+
         $kelas = $queryKelas->orderBy('nama')->get();
 
         // If class selected, load subjects filtered by teacher assignment
@@ -52,7 +52,7 @@ class NilaiController extends Controller
                 if (!$user->hasRole(['admin', 'super-admin'])) {
                     $guruId = $user->guru->id ?? 0;
                     $isWali = ($selectedKelas->wali_kelas_id == $guruId);
-                    
+
                     // If not Wali Kelas, only show subjects taught by this teacher
                     if (!$isWali) {
                         $querySubjects->where('guru_id', $guruId);
@@ -138,7 +138,7 @@ class NilaiController extends Controller
             $kelas = Kelas::find($kelasId);
             $mpk = MataPelajaranKelas::find($mpkId);
             $guruId = $user->guru->id ?? 0;
-            
+
             $isWali = ($kelas->wali_kelas_id == $guruId);
             $isTeacher = ($mpk->guru_id == $guruId);
 
@@ -146,9 +146,9 @@ class NilaiController extends Controller
                 return redirect()->route('nilai.index')->with('error', 'Akses ditolak. Anda tidak memiliki wewenang menyimpan nilai untuk kelas/mapel ini.');
             }
         }
-        
+
         $userId = $user->id;
-        
+
         // Determine jenis_nilai based on Component mapping or default to component name slug
         $komponen = KomponenNilai::find($komponenId);
         $jenisNilai = \Illuminate\Support\Str::slug($komponen->nama, '_');
@@ -156,10 +156,10 @@ class NilaiController extends Controller
         DB::beginTransaction();
         try {
             foreach ($validated['nilai'] as $siswaId => $data) {
-                // If value is null/empty, we might want to skip or delete? 
+                // If value is null/empty, we might want to skip or delete?
                 // Let's assume we updateOrCreate. If empty, maybe set to 0 or null?
                 // Standard behavior: if empty, do nothing or delete? PROPOSAL: Update if provided.
-                
+
                 if (isset($data['angka']) && $data['angka'] !== null) {
                     Nilai::updateOrCreate(
                         [
@@ -181,7 +181,7 @@ class NilaiController extends Controller
             DB::commit();
 
             return redirect()->route('nilai.index', [
-                'kelas_id' => $validated['kelas_id'], 
+                'kelas_id' => $validated['kelas_id'],
                 'mata_pelajaran_kelas_id' => $mpkId
             ])->with('success', 'Nilai berhasil disimpan.');
 
@@ -213,14 +213,14 @@ class NilaiController extends Controller
         if (!$user->hasRole(['admin', 'super-admin'])) {
             $isWali = ($kelas->wali_kelas_id == ($user->guru->id ?? 0));
             $isTeacher = ($mpk->guru_id == ($user->guru->id ?? 0));
-            
+
             if (!$isWali && !$isTeacher) {
                 return redirect()->route('nilai.index')->with('error', 'Anda tidak memiliki akses rekap nilai untuk kelas/mapel ini.');
             }
         }
 
-        $components = KomponenNilai::where('kurikulum_id', $semesterAktif->kurikulum_id ?? 0)->get();
-        
+        $components = KomponenNilai::where('kurikulum_id', $semesterAktif->tahunAkademik->kurikulum_id ?? 0)->get();
+
         $siswa = SiswaKelas::with('siswa')
             ->where('kelas_id', $kelasId)
             ->where('status', 'aktif')

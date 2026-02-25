@@ -32,6 +32,7 @@
                                 <th>Mata Pelajaran</th>
                                 <th>Guru Pengajar</th>
                                 <th>Jam/Minggu</th>
+                                <th>KKM</th>
                                 <th width="15%">Aksi</th>
                             </tr>
                         </thead>
@@ -71,9 +72,19 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group">
-                            <label>Jam Per Minggu <span class="text-danger">*</span></label>
-                            <input type="number" name="jam_per_minggu" class="form-control" value="2" min="1" max="10" required>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jam Per Minggu <span class="text-danger">*</span></label>
+                                    <input type="number" name="jam_per_minggu" class="form-control" value="2" min="1" max="10" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>KKM <span class="text-danger">*</span></label>
+                                    <input type="number" name="kkm" id="add_kkm" class="form-control" min="0" max="100" step="0.01" value="75" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -102,9 +113,19 @@
                             <label>Mata Pelajaran</label>
                             <input type="text" id="edit_nama_mapel" class="form-control" readonly>
                         </div>
-                        <div class="form-group">
-                            <label>Jam Per Minggu <span class="text-danger">*</span></label>
-                            <input type="number" name="jam_per_minggu" id="edit_jam" class="form-control" min="1" max="10" required>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jam Per Minggu <span class="text-danger">*</span></label>
+                                    <input type="number" name="jam_per_minggu" id="edit_jam" class="form-control" min="1" max="10" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>KKM <span class="text-danger">*</span></label>
+                                    <input type="number" name="kkm" id="edit_kkm" class="form-control" min="0" max="100" step="0.01" required>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -132,7 +153,7 @@
                             <label>Mata Pelajaran</label>
                             <input type="text" id="assign_nama_mapel" class="form-control" readonly>
                         </div>
-                        
+
                         <div class="form-group">
                             <label>Pilih Guru <span class="text-danger">*</span></label>
                             <select name="guru_id" id="selectGuru" class="form-control" style="width: 100%" required>
@@ -159,7 +180,7 @@
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    
+
     <script>
         $(document).ready(function() {
             // Select2 Init
@@ -189,6 +210,7 @@
                     { data: 'nama_mapel', name: 'mataPelajaran.nama' },
                     { data: 'guru_pengajar', name: 'guru_pengajar', orderable: false, searchable: false },
                     { data: 'jam_per_minggu', name: 'jam_per_minggu' },
+                    { data: 'kkm', name: 'kkm' },
                     { data: 'action', name: 'action', orderable: false, searchable: false }
                 ]
             });
@@ -220,6 +242,7 @@
                     $('#edit_id').val(res.id);
                     $('#edit_nama_mapel').val(res.mata_pelajaran.nama);
                     $('#edit_jam').val(res.jam_per_minggu);
+                    $('#edit_kkm').val(res.kkm);
                     $('#modalEditMapel').modal('show');
                 });
             });
@@ -269,11 +292,11 @@
              // Assign Guru Modal
             $('#mapelKelasTable').on('click', '.btn-assign-guru', function() {
                 var id = $(this).data('id');
-                
+
                 $.get("{{ url('mata-pelajaran-kelas') }}/" + id, function(res) {
                     $('#assign_mpk_id').val(id);
                     $('#assign_nama_mapel').val(res.mata_pelajaran.nama);
-                    
+
                     if (res.guru) {
                         var newOption = new Option(res.guru.nama_lengkap, res.guru.id, true, true);
                         $('#selectGuru').append(newOption).trigger('change');
@@ -293,10 +316,10 @@
                     .done(function(res) {
                         Swal.fire({ icon: 'success', title: 'Berhasil', text: res.message, timer: 1500, showConfirmButton: false });
                         $('#selectGuru').val('').trigger('change');
-                        
+
                         // Refresh guru list manually or just reload table
                         table.draw();
-                        
+
                          // Re-open modal logic could be complex due to async, simpler to close or refresh List
                          // For now, let's close modal - user can open again to see changes or add more
                          $('#modalAssignGuru').modal('hide');

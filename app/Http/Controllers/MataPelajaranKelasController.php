@@ -33,7 +33,7 @@ class MataPelajaranKelasController extends Controller
                     if (!$row->guru) {
                         return '<span class="badge badge-warning">Belum ada guru</span>';
                     }
-                    
+
                     return '<span class="badge badge-info">' . $row->guru->nama_lengkap . '</span>';
                 })
                 ->addColumn('jam_per_minggu', function ($row) {
@@ -64,6 +64,7 @@ class MataPelajaranKelasController extends Controller
             'mata_pelajaran_id' => 'required|exists:mata_pelajaran,id',
             'guru_id' => 'required|exists:guru,id',
             'jam_per_minggu' => 'required|integer|min:1|max:10',
+            'kkm' => 'required|numeric|min:0|max:100',
         ]);
 
         // Check duplicates
@@ -80,6 +81,7 @@ class MataPelajaranKelasController extends Controller
             'mata_pelajaran_id' => $validated['mata_pelajaran_id'],
             'guru_id' => $validated['guru_id'],
             'jam_per_minggu' => $validated['jam_per_minggu'],
+            'kkm' => $validated['kkm'],
         ]);
 
         return response()->json(['message' => 'Mata pelajaran berhasil ditambahkan']);
@@ -88,7 +90,7 @@ class MataPelajaranKelasController extends Controller
     /**
      * Get details for editing
      */
-    public function show($id) 
+    public function show($id)
     {
         $mpk = MataPelajaranKelas::with('mataPelajaran', 'guru')->findOrFail($id);
         return response()->json($mpk);
@@ -100,10 +102,11 @@ class MataPelajaranKelasController extends Controller
     public function update(Request $request, $id)
     {
         $mpk = MataPelajaranKelas::findOrFail($id);
-        
+
         $validated = $request->validate([
             'guru_id' => 'required|exists:guru,id',
             'jam_per_minggu' => 'required|integer|min:1|max:10',
+            'kkm' => 'required|numeric|min:0|max:100',
         ]);
 
         $mpk->update($validated);
@@ -117,9 +120,9 @@ class MataPelajaranKelasController extends Controller
     public function destroy($id)
     {
         $mpk = MataPelajaranKelas::findOrFail($id);
-        
+
         // Optional: Check constraint if needed (e.g. if already used in schedule)
-        
+
         $mpk->delete();
 
         return response()->json(['message' => 'Mata pelajaran berhasil dihapus dari kelas']);

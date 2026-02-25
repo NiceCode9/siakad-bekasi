@@ -216,6 +216,7 @@ class MataPelajaranController extends Controller
             'kelas_id.*' => 'exists:kelas,id',
             'guru_id' => 'required|exists:guru,id',
             'jam_per_minggu' => 'required|integer|min:1|max:20',
+            'kkm' => 'required|numeric|min:0|max:100',
         ]);
 
        foreach ($validated['kelas_id'] as $kelasId) {
@@ -224,7 +225,8 @@ class MataPelajaranController extends Controller
                 ['kelas_id' => $kelasId],
                 [
                     'guru_id' => $validated['guru_id'],
-                    'jam_per_minggu' => $validated['jam_per_minggu']
+                    'jam_per_minggu' => $validated['jam_per_minggu'],
+                    'kkm' => $validated['kkm']
                 ]
             );
         }

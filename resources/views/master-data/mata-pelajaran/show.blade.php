@@ -260,11 +260,23 @@
                             </select>
                         </div>
 
-                        <div class="form-group">
-                            <label>Jam per Minggu <span class="text-danger">*</span></label>
-                            <input type="number" name="jam_per_minggu" class="form-control" min="1"
-                                max="20" required>
-                            <small class="form-text text-muted">Jumlah jam pelajaran per minggu</small>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Jam per Minggu <span class="text-danger">*</span></label>
+                                    <input type="number" name="jam_per_minggu" class="form-control" min="1"
+                                        max="20" required>
+                                    <small class="form-text text-muted">Jumlah jam pelajaran per minggu</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>KKM <span class="text-danger">*</span></label>
+                                    <input type="number" name="kkm" class="form-control" min="0" max="100"
+                                        step="0.01" value="{{ $mataPelajaran->kkm }}" required>
+                                    <small class="form-text text-muted">Kriteria Ketuntasan Minimal</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">

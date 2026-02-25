@@ -59,9 +59,15 @@ class RaportDetail extends Model
 
     private function konversiPredikat($nilai)
     {
-        if ($nilai >= 90) return 'A';
-        if ($nilai >= 80) return 'B';
-        if ($nilai >= 70) return 'C';
+        $kkm = MataPelajaranKelas::where('kelas_id', $this->raport->kelas_id)
+            ->where('mata_pelajaran_id', $this->mata_pelajaran_id)
+            ->value('kkm') ?? 70;
+
+        $interval = (100 - $kkm) / 3;
+
+        if ($nilai >= (100 - $interval)) return 'A';
+        if ($nilai >= ($kkm + $interval)) return 'B';
+        if ($nilai >= $kkm) return 'C';
         return 'D';
     }
 }

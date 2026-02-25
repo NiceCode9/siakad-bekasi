@@ -16,6 +16,11 @@ class MataPelajaranKelas extends Model
         'kelas_id',
         'guru_id',
         'jam_per_minggu',
+        'kkm',
+    ];
+
+    protected $casts = [
+        'kkm' => 'decimal:2',
     ];
 
     // Relationships

@@ -134,7 +134,7 @@
                             <tr>
                                 <td><strong>KKM</strong></td>
                                 <td>:
-                                    {{ $jadwalPelajaran->mataPelajaranKelas->mataPelajaran->kkm ?? '-' }}
+                                    {{ $jadwalPelajaran->mataPelajaranKelas->kkm ?? '-' }}
                                 </td>
                             </tr>
                         </table>

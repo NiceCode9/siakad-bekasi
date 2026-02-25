@@ -7,7 +7,12 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h4 class="mb-0">Rekap Nilai: {{ $mpk->mataPelajaran->nama }}</h4>
-            <small class="text-muted">Kelas: {{ $kelas->nama }} | Semester: {{ $semesterAktif->nama }}</small>
+            <div class="text-muted">
+                Kelas: {{ $kelas->nama }} | Semester: {{ $semesterAktif->nama }}
+                @if($mpk->kkm)
+                    <span class="badge badge-success ml-2">KKM: {{ $mpk->kkm }}</span>
+                @endif
+            </div>
         </div>
         <div>
             <a href="{{ route('nilai.index', ['kelas_id' => $kelas->id]) }}" class="btn btn-secondary btn-sm">
@@ -18,7 +23,7 @@
 
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div class="table-responsive text-nowrap">
                 <table class="table table-bordered table-hover mb-0" style="font-size: 0.85rem;">
                     <thead class="thead-light text-center">
                         <tr>
@@ -26,7 +31,7 @@
                             <th rowspan="2" class="align-middle" style="min-width: 200px;">Nama Siswa</th>
                             <th colspan="{{ $components->count() }}">Komponen Nilai</th>
                             <th rowspan="2" class="align-middle bg-light" width="80">Nilai Akhir (Sistem)</th>
-                            <th rowspan="2" class="align-middle bg-info text-white" width="100">Nilai Akhir (Manual)</th>
+                            <th rowspan="2" class="align-middle bg-info" width="100">Nilai Akhir (Manual)</th>
                             <th rowspan="2" class="align-middle" width="100">Aksi</th>
                         </tr>
                         <tr>
@@ -56,11 +61,11 @@
                                 <td>{{ $sk->siswa->nama_lengkap }}</td>
                                 @foreach($components as $c)
                                     @php $g = $grades->where('komponen_nilai_id', $c->id)->first(); @endphp
-                                    <td class="text-center {{ $g ? '' : 'text-muted' }}">
+                                    <td class="text-center {{ $g ? '' : 'text-muted' }} {{ ($g && $mpk->kkm && $g->nilai < $mpk->kkm) ? 'text-danger font-weight-bold' : '' }}">
                                         {{ $g ? number_format($g->nilai, 0) : '-' }}
                                     </td>
                                 @endforeach
-                                <td class="text-center font-weight-bold bg-light">
+                                <td class="text-center font-weight-bold bg-light {{ ($avg < ($mpk->kkm ?? 0)) ? 'text-danger' : '' }}">
                                     {{ number_format($avg, 1) }}
                                 </td>
                                 <td class="text-center font-weight-bold {{ $raportDetail && $raportDetail->is_manual_override ? 'text-danger' : 'text-info' }}">
@@ -76,7 +81,7 @@
                                 <td class="text-center">
                                     @if($raportDetail)
                                         @if($isWali)
-                                            <button type="button" class="btn btn-outline-info btn-xs" 
+                                            <button type="button" class="btn btn-outline-info btn-xs"
                                                 onclick="openOverrideModal({{ $raportDetail->id }}, '{{ $sk->siswa->nama_lengkap }}', {{ $avg }}, {{ $raportDetail->nilai_akhir_manual ?? 'null' }}, '{{ $raportDetail->override_reason ?? '' }}')">
                                                 <i class="fas fa-edit"></i> Override
                                             </button>

@@ -23,6 +23,18 @@ class MenuSeeder extends Seeder
         );
         $dashboard->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-dashboard'])->id]);
 
+        // Mata Pelajaran Saya (For Teacher)
+        $mySubjects = Menu::firstOrCreate(
+            ['slug' => 'mata-pelajaran-saya'],
+            [
+                'name' => 'Mata Pelajaran Saya',
+                'icon' => 'iconsminds-books',
+                'url' => '/teacher/my-subjects',
+                'order' => 5,
+            ]
+        );
+
+
         // Settings (Parent)
         $settings = Menu::firstOrCreate(
             ['slug' => 'settings'],
@@ -574,6 +586,7 @@ class MenuSeeder extends Seeder
         $nilaiSikapMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $nilaiEkskulMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $dashboardNilaiMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
+        $mySubjects->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
 
         $reports->roles()->syncWithoutDetaching($academicRoles);
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);

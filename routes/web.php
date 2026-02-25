@@ -48,6 +48,7 @@ use App\Http\Controllers\SoalController;
 use App\Http\Controllers\TahunAkademikController;
 use App\Http\Controllers\TugasController;
 use App\Http\Controllers\UjianSiswaController;
+use App\Http\Controllers\Teacher\MySubjectController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -369,6 +370,12 @@ Route::middleware('auth')->group(function () {
     Route::get('pelanggaran-siswa/siswa/{siswa}', [PelanggaranSiswaController::class, 'showStudent'])->name('pelanggaran-siswa.student');
     Route::resource('pelanggaran-siswa', PelanggaranSiswaController::class);
     Route::resource('presensi-harian', PresensiHarianController::class)->only(['index', 'store']);
+    // 11. Teacher Dashboard
+    Route::middleware(['role:guru|admin|super-admin'])->prefix('teacher')->name('teacher.')->group(function () {
+        Route::get('/my-subjects', [MySubjectController::class, 'index'])->name('my-subjects');
+        Route::post('/my-subjects/{id}/update-kkm', [MySubjectController::class, 'updateKkm'])->name('update-kkm');
+    });
+
 });
 
 require __DIR__.'/auth.php';

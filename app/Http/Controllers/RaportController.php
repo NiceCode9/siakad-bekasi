@@ -33,7 +33,7 @@ class RaportController extends Controller
                 ->with(['semester', 'kelas'])
                 ->orderByDesc('created_at')
                 ->get();
-            
+
             return view('raport.student', compact('siswa', 'raports', 'semester'));
         }
 
@@ -81,12 +81,12 @@ class RaportController extends Controller
 
             $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
             $allSiswa = Siswa::orderBy('nama_lengkap')->get();
-            
+
             // For Admin, we allow selecting any semester
             $semester = $currentSemester;
             return view('raport.index', compact('siswas', 'kelas', 'semester', 'tahunAkademiks', 'allSiswa', 'filterTahun', 'filterSemester', 'filterSiswa'));
-        } 
-        
+        }
+
         // Wali Kelas logic
         $kelas = $user->guru->kelasWali()->where('semester_id', $semester->id)->first();
         if ($kelas) {
@@ -107,7 +107,7 @@ class RaportController extends Controller
         $semesters = Semester::where('tahun_akademik_id', $tahun_id)
             ->orderBy('nama', 'asc')
             ->get(['id', 'nama']);
-        
+
         return response()->json($semesters);
     }
 
@@ -160,7 +160,7 @@ class RaportController extends Controller
                 if ($scores->count() > 0) {
                     $nilaiPengetahuan = $scores->whereIn('jenis_nilai', ['tugas', 'ulangan_harian', 'uts', 'uas'])->avg('nilai');
                     $nilaiKeterampilan = $scores->whereIn('jenis_nilai', ['praktik', 'proyek'])->avg('nilai');
-                    
+
                     // Fallback if no skills assessment
                     if (is_null($nilaiKeterampilan)) $nilaiKeterampilan = $nilaiPengetahuan;
 
@@ -186,7 +186,7 @@ class RaportController extends Controller
                             'nilai_pengetahuan' => $nilaiPengetahuan,
                             'nilai_keterampilan' => $nilaiKeterampilan,
                             'nilai_akhir' => $nilaiAkhir,
-                            'predikat' => $this->calculatePredikat($nilaiAkhir),
+                            'predikat' => $this->calculatePredikat($nilaiAkhir, $mk->kkm),
                             'deskripsi' => "Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama,
                             'jumlah_pertemuan' => $totalPertemuan,
                             'jumlah_hadir' => $jumlahHadir,
@@ -205,18 +205,21 @@ class RaportController extends Controller
         }
     }
 
-    private function calculatePredikat($nilai)
+    private function calculatePredikat($nilai, $kkm = null)
     {
-        if ($nilai >= 90) return 'A';
-        if ($nilai >= 80) return 'B';
-        if ($nilai >= 70) return 'C';
+        $kkm = $kkm ?? 70; // Fallback to 70 if not set
+        $interval = (100 - $kkm) / 3;
+
+        if ($nilai >= (100 - $interval)) return 'A';
+        if ($nilai >= ($kkm + $interval)) return 'B';
+        if ($nilai >= $kkm) return 'C';
         return 'D';
     }
 
     public function show($id)
     {
         $raport = Raport::with(['siswa', 'semester', 'kelas', 'raportDetail.mataPelajaran'])->findOrFail($id);
-        
+
         $user = Auth::user();
         if ($user->hasRole('siswa') && $raport->siswa_id !== $user->siswa->id) {
             abort(403, 'Anda tidak memiliki hak akses melihat raport ini.');
@@ -235,7 +238,7 @@ class RaportController extends Controller
     {
         $raport = Raport::findOrFail($id);
         $raport->update($request->only(['catatan_wali_kelas', 'jumlah_sakit', 'jumlah_izin', 'jumlah_alpha']));
-        
+
         return back()->with('success', 'Data tambahan raport berhasil disimpan.');
     }
 
@@ -258,7 +261,7 @@ class RaportController extends Controller
     public function publish($id)
     {
         $raport = Raport::findOrFail($id);
-        
+
         if ($raport->status !== 'approved') {
             return back()->with('error', 'Raport harus disetujui oleh Kepala Sekolah terlebih dahulu.');
         }
@@ -271,7 +274,7 @@ class RaportController extends Controller
     public function print($id)
     {
         $raport = Raport::with(['siswa', 'semester.tahunAkademik', 'kelas', 'raportDetail.mataPelajaran'])->findOrFail($id);
-        
+
         $user = Auth::user();
         if ($user->hasRole('siswa') && $raport->siswa_id !== $user->siswa->id) {
             abort(403, 'Anda tidak memiliki hak akses mencetak raport ini.');

@@ -10,6 +10,9 @@
             <div class="text-muted">
                 {{ $mpk->mataPelajaran->nama }} | {{ $kelas->nama }}
                 <span class="badge badge-info ml-2">{{ ucfirst($komponen->kategori) }} (Bobot: {{ $komponen->bobot }}%)</span>
+                @if($mpk->kkm)
+                    <span class="badge badge-success ml-2">KKM: {{ $mpk->kkm }}</span>
+                @endif
             </div>
         </div>
         <a href="{{ route('nilai.index', ['kelas_id' => $kelas->id]) }}" class="btn btn-secondary btn-sm">
@@ -50,16 +53,16 @@
                                         <small class="text-muted">{{ $sk->siswa->nis }}</small>
                                     </td>
                                     <td>
-                                        <input type="number" name="nilai[{{ $sk->siswa->id }}][angka]" 
-                                               class="form-control" 
-                                               value="{{ $nilai }}" 
-                                               min="0" max="100" step="0.01" 
+                                        <input type="number" name="nilai[{{ $sk->siswa->id }}][angka]"
+                                               class="form-control"
+                                               value="{{ $nilai }}"
+                                               min="0" max="100" step="0.01"
                                                placeholder="0">
                                     </td>
                                     <td>
-                                        <input type="text" name="nilai[{{ $sk->siswa->id }}][keterangan]" 
-                                               class="form-control" 
-                                               value="{{ $ket }}" 
+                                        <input type="text" name="nilai[{{ $sk->siswa->id }}][keterangan]"
+                                               class="form-control"
+                                               value="{{ $ket }}"
                                                placeholder="Catatan...">
                                     </td>
                                 </tr>
@@ -81,6 +84,27 @@
 @push('scripts')
 <script>
     $(document).ready(function() {
+        const kkm = {{ $mpk->kkm ?? 0 }};
+
+        function checkKkm(input) {
+            const val = parseFloat(input.val());
+            if (!isNaN(val) && val < kkm) {
+                input.addClass('is-invalid text-danger font-weight-bold');
+            } else {
+                input.removeClass('is-invalid text-danger font-weight-bold');
+            }
+        }
+
+        // Initial check
+        $('input[type="number"]').each(function() {
+            checkKkm($(this));
+        });
+
+        // Live check
+        $('input[type="number"]').on('input', function() {
+            checkKkm($(this));
+        });
+
         // Highlight active row on focus
         $('input').focus(function() {
             $(this).closest('tr').addClass('table-primary');
