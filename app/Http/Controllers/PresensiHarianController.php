@@ -14,7 +14,7 @@ class PresensiHarianController extends Controller
 {
     public function index(Request $request)
     {
-        $this->authorize('manage-daily-attendance');
+        $this->authorize('manage-absensi-harian');
 
         $activeTahun = TahunAkademik::active()->first();
         if (!$activeTahun) {

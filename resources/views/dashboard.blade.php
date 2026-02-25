@@ -42,7 +42,7 @@
         <div class="col-xl-3 col-lg-6 mb-4">
             <div class="card">
                 <div class="card-body text-center">
-                    <i class="iconsminds-door text-primary" style="font-size: 32px;"></i>
+                    <i class="iconsminds-home text-primary" style="font-size: 32px;"></i>
                     <p class="card-text mb-0">Total Kelas</p>
                     <p class="lead text-center">{{ $totalKelas }}</p>
                 </div>

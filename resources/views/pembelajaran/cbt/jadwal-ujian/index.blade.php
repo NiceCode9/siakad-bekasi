@@ -9,9 +9,11 @@
             <h4 class="mb-0">Jadwal Ujian</h4>
             <small class="text-muted">Kelola sesi ujian siswa</small>
         </div>
-        <a href="{{ route('jadwal-ujian.create') }}" class="btn btn-primary btn-sm">
-            <i class="fas fa-plus"></i> Buat Jadwal
-        </a>
+        @if (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super-admin'))
+            <a href="{{ route('jadwal-ujian.create') }}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus"></i> Buat Jadwal
+            </a>
+        @endif
     </div>
 
     <div class="card">

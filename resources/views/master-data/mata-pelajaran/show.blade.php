@@ -239,7 +239,7 @@
                     <div class="modal-body">
                         <div class="form-group">
                             <label>Pilih Kelas <span class="text-danger">*</span></label>
-                            <select name="kelas_id[]" class="form-control" multiple size="8" required>
+                            <select name="kelas_id[]" class="form-control select2-multiple" multiple size="8" required>
                                 @foreach (\App\Models\Kelas::with('semester')->orderBy('nama')->get() as $kelas)
                                     <option value="{{ $kelas->id }}">
                                         {{ $kelas->nama }} - {{ $kelas->semester->nama ?? '' }}

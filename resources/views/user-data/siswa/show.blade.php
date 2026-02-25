@@ -66,7 +66,7 @@
                 <!-- Biodata -->
                 <div class="col-md-4">
                     <!-- Foto & Status -->
-                    <div class="card text-center">
+                    <div class="card text-center mb-3">
                         <div class="card-body">
                             @if ($siswa->foto)
                                 <img src="{{ asset('storage/' . $siswa->foto) }}" alt="Foto"
@@ -95,11 +95,9 @@
                     </div>
 
                     <!-- Identitas -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-id-card"></i> Identitas</h6>
-                        </div>
+                    <div class="card mb-3">
                         <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-id-card"></i> Identitas</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
                                     <td width="45%"><strong>NISN</strong></td>
@@ -131,11 +129,9 @@
                     </div>
 
                     <!-- Kontak -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h6 class="mb-0"><i class="fas fa-phone"></i> Kontak</h6>
-                        </div>
+                    <div class="card mb-3">
                         <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-phone"></i> Kontak</h6>
                             <table class="table table-sm table-borderless">
                                 <tr>
                                     <td width="45%"><strong>Telepon</strong></td>
