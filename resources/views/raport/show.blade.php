@@ -26,7 +26,7 @@
                     @endif
                 @endcan
 
-                <a href="{{ route('raport.print', $raport->id) }}" class="btn btn-primary btn-lg top-right-button">
+                <a href="{{ route('raport.print', $raport->id) }}" class="btn btn-primary btn-lg top-right-button" target="_blank">
                     <i class="simple-icon-printer"></i> CETAK PDF
                 </a>
                 <a href="{{ route('raport.index') }}" class="btn btn-secondary btn-lg mx-2 top-right-button">
@@ -105,7 +105,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Sikap -->
                 <div class="card mb-4">
                     <div class="card-body">
