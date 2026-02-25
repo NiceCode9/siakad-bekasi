@@ -187,7 +187,7 @@ class RaportController extends Controller
                             'nilai_keterampilan' => $nilaiKeterampilan,
                             'nilai_akhir' => $nilaiAkhir,
                             'predikat' => $this->calculatePredikat($nilaiAkhir, $mk->kkm),
-                            'deskripsi' => "Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama,
+                            'deskripsi' => $mk->capaian_kompetensi ?? ("Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama),
                             'jumlah_pertemuan' => $totalPertemuan,
                             'jumlah_hadir' => $jumlahHadir,
                             'persentase_kehadiran' => round($persentaseKehadiran, 2)
@@ -287,6 +287,6 @@ class RaportController extends Controller
         })->first();
 
         $pdf = Pdf::loadView('raport.pdf', compact('raport', 'nilaiSikap', 'nilaiEkskul', 'nilaiPkl'));
-        return $pdf->download('Raport_'.$raport->siswa->nama_lengkap.'_'.$raport->semester->nama.'.pdf');
+        return $pdf->stream('Raport_'.$raport->siswa->nama_lengkap.'_'.$raport->semester->nama.'.pdf');
     }
 }

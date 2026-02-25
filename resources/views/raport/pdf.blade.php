@@ -55,11 +55,12 @@
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="45%">Mata Pelajaran</th>
-                <th width="15%">Pengetahuan</th>
-                <th width="15%">Keterampilan</th>
-                <th width="10%">Nilai Akhir</th>
-                <th width="10%">Predikat</th>
+                <th width="25%">Mata Pelajaran</th>
+                <th width="7%">PNS</th>
+                <th width="7%">KTR</th>
+                <th width="7%">NA</th>
+                <th width="7%">PRD</th>
+                <th width="42%">Capaian Kompetensi</th>
             </tr>
         </thead>
         <tbody>
@@ -71,6 +72,9 @@
                 <td class="text-center">{{ round($detail->nilai_keterampilan) }}</td>
                 <td class="text-center"><strong>{{ round($detail->nilai_akhir) }}</strong></td>
                 <td class="text-center">{{ $detail->predikat }}</td>
+                <td style="font-size: 9pt; line-height: 1.1; vertical-align: top;">
+                    {{ $detail->deskripsi }}
+                </td>
             </tr>
             @endforeach
         </tbody>

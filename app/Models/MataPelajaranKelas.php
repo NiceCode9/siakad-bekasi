@@ -17,6 +17,7 @@ class MataPelajaranKelas extends Model
         'guru_id',
         'jam_per_minggu',
         'kkm',
+        'capaian_kompetensi',
     ];
 
     protected $casts = [

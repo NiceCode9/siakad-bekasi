@@ -66,6 +66,7 @@
                                     <th>Kelas</th>
                                     <th>Jam/Minggu</th>
                                     <th>KKM</th>
+                                    <th>Capaian Kompetensi</th>
                                     <th width="12%">Aksi</th>
                                 </tr>
                             </thead>
@@ -83,13 +84,24 @@
                                             </span>
                                         </td>
                                         <td>
+                                            <button class="btn btn-info btn-sm view-kompetensi-btn"
+                                                data-id="{{ $item->id }}"
+                                                data-mapel="{{ $item->mataPelajaran->nama }}"
+                                                data-kelas="{{ $item->kelas->nama }}"
+                                                data-kompetensi="{{ $item->capaian_kompetensi }}"
+                                                title="Lihat Capaian Kompetensi">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                        <td>
                                             <div class="btn-group">
                                                 <button type="button" class="btn btn-warning btn-sm edit-kkm-btn"
                                                     data-id="{{ $item->id }}"
                                                     data-mapel="{{ $item->mataPelajaran->nama }}"
                                                     data-kelas="{{ $item->kelas->nama }}"
                                                     data-kkm="{{ $item->kkm }}"
-                                                    title="Edit KKM">
+                                                    data-capaian_kompetensi="{{ $item->capaian_kompetensi }}"
+                                                    title="Edit Data Mapel">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
                                                 <a href="{{ route('jadwal-pelajaran.by-kelas', $item->kelas_id) }}" class="btn btn-info btn-sm" title="Lihat Jadwal">
@@ -143,12 +155,41 @@
                             <label>Nilai KKM <span class="text-danger">*</span></label>
                             <input type="number" name="kkm" id="edit-kkm" class="form-control" min="0" max="100" step="0.01" required>
                         </div>
+                        <div class="form-group">
+                            <label>Capaian Kompetensi <span class="text-danger">*</span></label>
+                            <textarea name="capaian_kompetensi" id="edit-capaian-kompetensi" class="form-control" rows="3" required></textarea>
+                        </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal View Kompetensi -->
+    <div class="modal fade" id="viewKompetensiModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Capaian Kompetensi</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <h6 class="font-weight-bold mb-1" id="view-mapel-title"></h6>
+                        <p class="text-muted small" id="view-kelas-title"></p>
+                    </div>
+                    <hr>
+                    <div id="view-kompetensi-content" class="p-3 bg-light rounded shadow-sm" style="white-space: pre-wrap; line-height: 1.6; font-size: 16px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>
@@ -163,13 +204,27 @@
                 const mapel = $(this).data('mapel');
                 const kelas = $(this).data('kelas');
                 const kkm = $(this).data('kkm');
+                const capaian_kompetensi = $(this).data('capaian_kompetensi');
 
                 $('#edit-id').val(id);
                 $('#edit-mapel').val(mapel);
                 $('#edit-kelas').val(kelas);
                 $('#edit-kkm').val(kkm);
+                $('#edit-capaian-kompetensi').val(capaian_kompetensi);
 
                 $('#editKkmModal').modal('show');
+            });
+
+            // Handle view competency button click
+            $(document).on('click', '.view-kompetensi-btn', function() {
+                const mapel = $(this).data('mapel');
+                const kelas = $(this).data('kelas');
+                const kompetensi = $(this).data('kompetensi');
+
+                $('#view-mapel-title').text(mapel);
+                $('#view-kelas-title').text('Kelas: ' + kelas);
+                $('#view-kompetensi-content').text(kompetensi);
+                $('#viewKompetensiModal').modal('show');
             });
 
             // Handle form submission
@@ -177,6 +232,7 @@
                 e.preventDefault();
                 const id = $('#edit-id').val();
                 const kkm = $('#edit-kkm').val();
+                const capaian_kompetensi = $('#edit-capaian-kompetensi').val();
                 const url = `{{ route('teacher.update-kkm', ':id') }}`.replace(':id', id);
 
                 $.ajax({
@@ -184,19 +240,26 @@
                     type: 'POST',
                     data: {
                         _token: '{{ csrf_token() }}',
-                        kkm: kkm
+                        kkm: kkm,
+                        capaian_kompetensi: capaian_kompetensi
                     },
                     success: function(response) {
                         if (response.success) {
                             $(`#kkm-display-${id}`).text(response.kkm);
-                            // Update the data-kkm attribute on the button too
-                            $(`.edit-kkm-btn[data-id="${id}"]`).data('kkm', response.kkm);
+                            $(`#capaian-kompetensi-display-${id}`).text(response.capaian_kompetensi).attr('title', response.capaian_kompetensi);
+                            // Update attributes on the button too
+                            const btn = $(`.edit-kkm-btn[data-id="${id}"]`);
+                            btn.data('kkm', response.kkm);
+                            btn.data('capaian_kompetensi', response.capaian_kompetensi);
+                            btn.attr('data-capaian_kompetensi', response.capaian_kompetensi);
 
                             $('#editKkmModal').modal('hide');
 
                             // Show success message (using simple alert if no sweetalert available)
                             if (typeof Swal !== 'undefined') {
-                                Swal.fire('Berhasil', response.message, 'success');
+                                Swal.fire('Berhasil', response.message, 'success').then(() => {
+                                    location.reload();
+                                });
                             } else {
                                 alert(response.message);
                             }

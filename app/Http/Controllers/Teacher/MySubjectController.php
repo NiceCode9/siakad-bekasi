@@ -55,6 +55,7 @@ class MySubjectController extends Controller
     {
         $validated = $request->validate([
             'kkm' => 'required|numeric|min:0|max:100',
+            'capaian_kompetensi' => 'nullable|string',
         ]);
 
         $mpk = MataPelajaranKelas::findOrFail($id);
@@ -65,12 +66,13 @@ class MySubjectController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $mpk->update(['kkm' => $validated['kkm']]);
+        $mpk->update(['kkm' => $validated['kkm'], 'capaian_kompetensi' => $validated['capaian_kompetensi']]);
 
         return response()->json([
             'success' => true,
             'message' => 'KKM berhasil diperbarui',
-            'kkm' => $mpk->kkm
+            'kkm' => $mpk->kkm,
+            'capaian_kompetensi' => $mpk->capaian_kompetensi
         ]);
     }
 }
