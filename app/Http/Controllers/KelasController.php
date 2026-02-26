@@ -191,6 +191,12 @@ class KelasController extends Controller
             'wali_kelas_id' => 'required|exists:guru,id',
         ]);
 
+        $cek = Kelas::where('semester_id', Semester::active()->first()->id)->first();
+
+        if($cek){
+            return redirect()->route('kelas.show', $kelas)->with('error', 'Guru Sudah didaftarkan sebagai wali kelas di semester ini.');
+        }
+
         $kelas->update($validated);
 
         return redirect()->route('kelas.show', $kelas)

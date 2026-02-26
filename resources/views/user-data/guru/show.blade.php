@@ -74,7 +74,7 @@
             <!-- Biodata -->
             <div class="col-md-4">
                 <!-- Foto -->
-                <div class="card text-center">
+                <div class="card text-center mb-3">
                     <div class="card-body">
                         @if ($guru->foto)
                             <img src="{{ asset('storage/' . $guru->foto) }}" alt="Foto"
@@ -97,11 +97,9 @@
                 </div>
 
                 <!-- Info Pribadi -->
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-id-card"></i> Informasi Pribadi</h6>
-                    </div>
+                <div class="card mb-3">
                     <div class="card-body">
+                        <h6 class="mb-0 card-title"><i class="fas fa-id-card"></i> Informasi Pribadi</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
                                 <td width="45%"><strong>NIP</strong></td>
@@ -132,11 +130,9 @@
                 </div>
 
                 <!-- Info Kontak -->
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-phone"></i> Informasi Kontak</h6>
-                    </div>
+                <div class="card mb-3">
                     <div class="card-body">
+                        <h6 class="mb-0 card-title"><i class="fas fa-phone"></i> Informasi Kontak</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
                                 <td width="45%"><strong>Email</strong></td>
@@ -155,11 +151,9 @@
                 </div>
 
                 <!-- Info Kepegawaian -->
-                <div class="card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="fas fa-briefcase"></i> Informasi Kepegawaian</h6>
-                    </div>
+                <div class="card mb-3">
                     <div class="card-body">
+                        <h6 class="mb-0 card-title"><i class="fas fa-briefcase"></i> Informasi Kepegawaian</h6>
                         <table class="table table-sm table-borderless">
                             <tr>
                                 <td width="45%"><strong>Status</strong></td>

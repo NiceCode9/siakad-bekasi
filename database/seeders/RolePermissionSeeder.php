@@ -141,6 +141,7 @@ class RolePermissionSeeder extends Seeder
             'create-legger',
             'edit-legger',
             'delete-legger',
+
             // Guru Piket & BK & Kesiswaan
             'manage-absensi-harian',
             'view-pelanggaran',
@@ -222,6 +223,7 @@ class RolePermissionSeeder extends Seeder
             'view-jurnal-pkl', 'approve-jurnal-pkl',
             'view-pkl-nilai', 'edit-pkl-nilai',
             'view-raport',
+            'view-jurnal-mengajar',
             'manage-raport',
         ]);
 

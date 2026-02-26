@@ -110,7 +110,7 @@
                     </div>
                     <div class="form-group">
                         <label>File CSV <span class="text-danger">*</span></label>
-                        <input type="file" name="file_import" class="form-control-file" required accept=".csv,.txt">
+                        <input type="file" name="file_import" class="form-control-file" required accept=".csv,.txt,.xlsx,.xls">
                     </div>
                     <div class="alert alert-info small">
                         Gunakan template ini: <a href="{{ route('bank-soal.template') }}" class="font-weight-bold">Download Template CSV</a>

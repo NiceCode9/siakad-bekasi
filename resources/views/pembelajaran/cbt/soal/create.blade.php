@@ -73,7 +73,7 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <input type="text" name="opsi_{{ $k }}" class="form-control border-left-0 pl-0" placeholder="Ketikkan teks jawaban untuk opsi {{ strtoupper($k) }}...">
+                                        <input type="text" name="opsi_{{ $k }}" class="form-control border-left-0 pl-0 form-control-lg" placeholder="Ketikkan teks jawaban untuk opsi {{ strtoupper($k) }}...">
                                     </div>
                                 @endforeach
                                 <div class="alert alert-light border mt-3 mb-0">

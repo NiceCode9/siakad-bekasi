@@ -132,8 +132,8 @@
                         name: 'jenis_kelamin'
                     },
                     {
-                        data: 'email',
-                        name: 'email'
+                        data: 'user.email',
+                        name: 'user.email'
                     },
                     {
                         data: 'telepon',

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\JadwalUjian;
 use App\Models\Kelas;
-use App\Models\MataPelajaranKelas;
 use App\Models\BankSoal;
 use App\Models\Semester;
 use App\Models\Soal;
@@ -320,13 +319,23 @@ class JadwalUjianController extends Controller
 
     public function manageSoal(JadwalUjian $jadwalUjian)
     {
-        $jadwalUjian->load(['soalUjian.soal', 'bankSoal']);
+        $jadwalUjian->load(['soalUjian.soal', 'bankSoal', 'mataPelajaranKelas']);
 
         $bankSoals = collect([]);
         if (!$jadwalUjian->bank_soal_id) {
-            // Load available bank soals for the same subject if possible
-            // Or just all active bank soals
-            $bankSoals = BankSoal::active()->with('mataPelajaran')->get();
+            $query = BankSoal::active()->with('mataPelajaran');
+
+            // Filter by Mata Pelajaran
+            if ($jadwalUjian->mataPelajaranKelas) {
+                $query->where('mata_pelajaran_id', $jadwalUjian->mataPelajaranKelas->mata_pelajaran_id);
+            }
+
+            // Filter by Guru (Pembuat)
+            if (auth()->user()->hasRole('guru')) {
+                $query->where('pembuat_id', auth()->user()->guru->id ?? 0);
+            }
+
+            $bankSoals = $query->get();
         }
 
         return view('pembelajaran.cbt.jadwal-ujian.manage-soal', compact('jadwalUjian', 'bankSoals'));
@@ -380,19 +389,37 @@ class JadwalUjianController extends Controller
         // Count existing to determine order
         $maxOrder = $jadwalUjian->soalUjian()->max('urutan') ?? 0;
 
-        SoalUjian::create([
+        $soalUjian = SoalUjian::create([
             'jadwal_ujian_id' => $jadwalUjian->id,
             'soal_id' => $request->soal_id,
             'urutan' => $maxOrder + 1
         ]);
 
+        if ($request->ajax()) {
+            // Load necessary relations to render the new row
+            $soalUjian->load('soal');
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Soal berhasil ditambahkan.',
+                'data' => $soalUjian
+            ]);
+        }
+
         return back()->with('success', 'Soal berhasil ditambahkan.');
     }
 
-    public function removeSoal($id)
+    public function removeSoal(Request $request, $id)
     {
         $soalUjian = SoalUjian::findOrFail($id);
         $soalUjian->delete();
+
+        if ($request->ajax()) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Soal dihapus dari jadwal.'
+            ]);
+        }
+
         return back()->with('success', 'Soal dihapus dari jadwal.');
     }
 
@@ -405,6 +432,67 @@ class JadwalUjianController extends Controller
         }
 
         return response()->json(['status' => 'success']);
+    }
+
+    public function getAvailableSoal(Request $request, JadwalUjian $jadwalUjian)
+    {
+        if (!$jadwalUjian->bank_soal_id) {
+            return response()->json(['data' => [], 'links' => '']);
+        }
+
+        $existingIds = $jadwalUjian->soalUjian->pluck('soal_id')->toArray();
+        $query = $jadwalUjian->bankSoal->soal()->whereNotIn('id', $existingIds);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('pertanyaan', 'like', "%{$search}%")
+                  ->orWhere('tingkat_kesulitan', 'like', "%{$search}%")
+                  ->orWhere('tipe_soal', 'like', "%{$search}%");
+            });
+        }
+
+        $available = $query->paginate(10); // 10 items per page
+
+        // Generate HTML for items
+        $html = '';
+        foreach ($available as $s) {
+            $badgeColorInfo = $s->tingkat_kesulitan == 'mudah' ? 'success' : ($s->tingkat_kesulitan == 'sedang' ? 'warning' : 'danger');
+
+            $tipeLabel = 'Uraian';
+            if ($s->tipe_soal == 'pilihan_ganda') $tipeLabel = 'PG';
+            if ($s->tipe_soal == 'isian_singkat') $tipeLabel = 'Isian';
+
+            $pertanyaan = Str::limit(strip_tags($s->pertanyaan), 150);
+            $addRoute = route('jadwal-ujian.add-soal', $jadwalUjian->id);
+            $csrf = csrf_field();
+
+            $html .= <<<HTML
+            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-4 py-3">
+                <div class="pr-3">
+                    <div class="mb-1">
+                        <span class="badge badge-{$badgeColorInfo} mr-1 text-capitalize">{$s->tingkat_kesulitan}</span>
+                        <span class="badge badge-light border">{$tipeLabel}</span>
+                    </div>
+                    <div class="text-dark line-height-normal">{$pertanyaan}</div>
+                </div>
+                <form action="{$addRoute}" method="POST" class="add-soal-form">
+                    {$csrf}
+                    <input type="hidden" name="soal_id" value="{$s->id}">
+                    <button type="submit" class="btn btn-outline-primary shadow-sm rounded-pill px-4">Pilih</button>
+                </form>
+            </div>
+HTML;
+        }
+
+        if ($available->count() == 0) {
+            $html = '<div class="p-5 text-center"><h5 class="text-muted"><i class="fas fa-search-minus fa-2x d-block mb-3"></i>Tidak ada soal yang ditemukan atau semua soal sudah dipilih.</h5></div>';
+        }
+
+        return response()->json([
+            'html' => $html,
+            'pagination' => (string) $available->appends($request->all())->links('pagination::bootstrap-4')
+        ]);
     }
 
     public function regenerateSoalByDifficulty(Request $request, JadwalUjian $jadwalUjian)
