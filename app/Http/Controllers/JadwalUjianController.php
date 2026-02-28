@@ -8,6 +8,7 @@ use App\Models\BankSoal;
 use App\Models\Semester;
 use App\Models\Soal;
 use App\Models\SoalUjian;
+use App\Models\UjianSiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
@@ -297,6 +298,7 @@ class JadwalUjianController extends Controller
                 'nilai' => $exam ? $exam->nilai : '-',
                 'pelanggaran' => $exam ? $exam->violation_count : 0,
                 'last_seen' => $exam ? $exam->updated_at->diffForHumans() : '-',
+                'is_blocked' => $exam ? (bool)$exam->is_blocked : false,
             ];
         });
 
@@ -563,5 +565,32 @@ HTML;
             return back()->with('success', 'Status ujian diperbarui');
         }
         return back()->with('error', 'Status tidak valid');
+    }
+
+    /**
+     * Manual Block/Unblock student from an exam
+     */
+    public function toggleBlockStudent(Request $request, $id)
+    {
+        $request->validate([
+            'siswa_id' => 'required|exists:siswa,id'
+        ]);
+
+        $ujSiswa = SoalUjian::where('jadwal_ujian_id', $id)->first(); // Just to check if exam exists? No, should check JadwalUjian
+        $jadwal = JadwalUjian::findOrFail($id);
+
+        $ujianSiswa = UjianSiswa::firstOrCreate(
+            ['jadwal_ujian_id' => $id, 'siswa_id' => $request->siswa_id],
+            ['status' => 'belum_mulai']
+        );
+
+        $ujianSiswa->is_blocked = !$ujianSiswa->is_blocked;
+        $ujianSiswa->save();
+
+        return response()->json([
+            'status' => 'success',
+            'is_blocked' => $ujianSiswa->is_blocked,
+            'message' => $ujianSiswa->is_blocked ? 'Siswa berhasil diblokir.' : 'Blokir siswa dibuka.'
+        ]);
     }
 }

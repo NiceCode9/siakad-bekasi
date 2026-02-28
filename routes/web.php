@@ -254,6 +254,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('jadwal-ujian')->name('jadwal-ujian.')->group(function () {
         Route::get('/{jadwal_ujian}/manage-soal', [JadwalUjianController::class, 'manageSoal'])->name('manage-soal');
         Route::get('/{jadwal_ujian}/available-soal', [JadwalUjianController::class, 'getAvailableSoal'])->name('available-soal');
+        Route::post('/{jadwal_ujian}/toggle-block-student', [JadwalUjianController::class, 'toggleBlockStudent'])->name('jadwal-ujian.toggle-block-student');
         Route::get('/{jadwal_ujian}/monitor', [JadwalUjianController::class, 'monitor'])->name('monitor');
         Route::post('/{jadwal_ujian}/add-soal', [JadwalUjianController::class, 'addSoal'])->name('add-soal');
         Route::delete('/remove-soal/{id}', [JadwalUjianController::class, 'removeSoal'])->name('remove-soal');

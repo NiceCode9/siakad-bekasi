@@ -31,7 +31,7 @@
                         </tr>
                         <tr>
                             <td>Status Anda</td>
-                            <td>: 
+                            <td>:
                                 @if($ujianSiswa)
                                     @if($ujianSiswa->status == 'selesai')
                                         <span class="badge badge-success">SELESAI</span>
@@ -55,21 +55,44 @@
                             <a href="{{ route('ujian-siswa.index') }}" class="btn btn-secondary">Kembali ke Daftar</a>
                         </div>
                     @elseif($ujianSiswa && $ujianSiswa->status == 'sedang_mengerjakan')
-                         <div class="text-center">
-                            <a href="{{ route('ujian-siswa.take', $jadwal->id) }}" class="btn btn-primary btn-lg pulse-button">Lanjutkan Mengerjakan</a>
-                        </div>
+                        @if($blocking['is_blocked'])
+                            <div class="alert alert-danger text-center shadow-sm border-left-danger">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                                <h5 class="font-weight-bold">Akses Anda Terblokir</h5>
+                                <p class="mb-0">{{ $blocking['message'] }} Silakan hubungi pengawas ujian.</p>
+                            </div>
+                            <div class="text-center mt-3">
+                                <a href="{{ route('ujian-siswa.index') }}" class="btn btn-secondary">Kembali</a>
+                            </div>
+                        @else
+                            <div class="text-center">
+                                <a href="{{ route('ujian-siswa.take', $jadwal->id) }}" class="btn btn-primary btn-lg pulse-button">Lanjutkan Mengerjakan</a>
+                            </div>
+                        @endif
                     @else
                         {{-- New Session --}}
-                        <form action="{{ route('ujian-siswa.start', $jadwal->id) }}" method="POST" class="text-center">
-                            @csrf
-                            <div class="form-group row justify-content-center">
-                                <div class="col-md-6">
-                                    <label class="sr-only">Token Ujian</label>
-                                    <input type="text" name="token" class="form-control text-center text-uppercase font-weight-bold" placeholder="Masukkan Token Ujian" required autocomplete="off" style="letter-spacing: 3px;">
-                                </div>
+                        @if($blocking['is_blocked'] || !$blocking['has_attendance'] || $blocking['attendance_status'] === 'A')
+                            <div class="alert alert-danger text-center shadow-sm border-left-danger">
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
+                                <h5 class="font-weight-bold">Akses Ujian Dibatasi</h5>
+                                <p class="mb-0">{{ $blocking['message'] }}</p>
+                                <small class="d-block mt-2 text-dark">Hubungi wali kelas atau pengawas untuk mengaktifkan akses Anda.</small>
                             </div>
-                            <button type="submit" class="btn btn-success btn-lg px-5">Mulai Ujian</button>
-                        </form>
+                            <div class="text-center mt-3">
+                                <a href="{{ route('ujian-siswa.index') }}" class="btn btn-secondary">Kembali ke Daftar</a>
+                            </div>
+                        @else
+                            <form action="{{ route('ujian-siswa.start', $jadwal->id) }}" method="POST" class="text-center">
+                                @csrf
+                                <div class="form-group row justify-content-center">
+                                    <div class="col-md-6">
+                                        <label class="sr-only">Token Ujian</label>
+                                        <input type="text" name="token" class="form-control text-center text-uppercase font-weight-bold" placeholder="Masukkan Token Ujian" required autocomplete="off" style="letter-spacing: 3px;">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-lg px-5">Mulai Ujian</button>
+                            </form>
+                        @endif
                     @endif
 
                 </div>

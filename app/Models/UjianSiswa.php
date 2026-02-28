@@ -25,6 +25,7 @@ class UjianSiswa extends Model
         'user_agent',
         'session_id',
         'violation_count',
+        'is_blocked',
     ];
 
     protected $casts = [
@@ -32,6 +33,7 @@ class UjianSiswa extends Model
         'waktu_selesai' => 'datetime',
         'waktu_submit' => 'datetime',
         'nilai' => 'decimal:2',
+        'is_blocked' => 'boolean',
     ];
 
     // Relationships

@@ -66,6 +66,7 @@
                             <th>Selesai</th>
                             <th>Pelanggaran</th>
                             <th>Nilai</th>
+                            <th>Blokir</th>
                             <th class="text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -75,7 +76,7 @@
                                 <td>{{ $s['nis'] }}</td>
                                 <td><strong>{{ $s['nama'] }}</strong></td>
                                 <td class="status-cell">
-                                    {!! getStatusBadge($s['status']) !!}
+                                    {!! getStatusBadge($s['status'], $s['is_blocked']) !!}
                                 </td>
                                 <td>{{ $s['waktu_mulai'] }}</td>
                                 <td>{{ $s['waktu_submit'] }}</td>
@@ -87,12 +88,20 @@
                                     @endif
                                 </td>
                                 <td class="font-weight-bold text-primary">{{ $s['nilai'] }}</td>
+                                <td class="text-center">
+                                    <div class="custom-control custom-switch">
+                                        <input type="checkbox" class="custom-control-input btn-toggle-block" id="block-{{ $s['id'] }}" data-siswa-id="{{ $s['id'] }}" {{ $s['is_blocked'] ? 'checked' : '' }}>
+                                        <label class="custom-control-label" for="block-{{ $s['id'] }}"></label>
+                                    </div>
+                                </td>
                                 <td class="text-right">
-                                    @if($s['ujian_siswa_id'])
-                                        <a href="{{ route('ujian-siswa.review', $s['ujian_siswa_id']) }}" class="btn btn-outline-info btn-xs">Detail</a>
-                                    @else
-                                        <button class="btn btn-outline-secondary btn-xs" disabled>Detail</button>
-                                    @endif
+                                    <div class="btn-group">
+                                        @if($s['ujian_siswa_id'])
+                                            <a href="{{ route('ujian-siswa.review', $s['ujian_siswa_id']) }}" class="btn btn-outline-info btn-xs">Detail</a>
+                                        @else
+                                            <button class="btn btn-outline-secondary btn-xs" disabled>Detail</button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -104,7 +113,10 @@
 </div>
 
 @php
-function getStatusBadge($status) {
+function getStatusBadge($status, $isBlocked = false) {
+    if ($isBlocked) {
+        return '<span class="badge badge-danger"><i class="fas fa-ban mr-1"></i> Diblokir</span>';
+    }
     $badges = [
         'belum_mulai' => '<span class="badge badge-secondary">Belum Mulai</span>',
         'sedang_mengerjakan' => '<span class="badge badge-warning">Mengerjakan</span>',
@@ -138,18 +150,28 @@ function getStatusBadge($status) {
                     else if(s.status == 'selesai') statusBadge = '<span class="badge badge-success">Selesai</span>';
 
                     let violationBadge = s.pelanggaran > 0 ? `<span class="badge badge-danger">${s.pelanggaran}</span>` : '0';
+                    let blockChecked = s.is_blocked ? 'checked' : '';
+                    let statusBadgeFinal = s.is_blocked ? `<span class="badge badge-danger"><i class="fas fa-ban mr-1"></i> Diblokir</span>` : statusBadge;
 
                     html += `
                         <tr id="row-${s.id}">
                             <td>${s.nis}</td>
                             <td><strong>${s.nama}</strong></td>
-                            <td class="status-cell">${statusBadge}</td>
+                            <td class="status-cell">${statusBadgeFinal}</td>
                             <td>${s.waktu_mulai}</td>
                             <td>${s.waktu_submit}</td>
                             <td>${violationBadge}</td>
                             <td class="font-weight-bold text-primary">${s.nilai}</td>
+                            <td class="text-center">
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input btn-toggle-block" id="block-${s.id}" data-siswa-id="${s.id}" ${blockChecked}>
+                                    <label class="custom-control-label" for="block-${s.id}"></label>
+                                </div>
+                            </td>
                             <td class="text-right">
-                                ${s.ujian_siswa_id ? `<a href="{{ url('ujian-siswa/review') }}/${s.ujian_siswa_id}" class="btn btn-outline-info btn-xs">Detail</a>` : `<button class="btn btn-outline-secondary btn-xs" disabled>Detail</button>`}
+                                <div class="btn-group">
+                                    ${s.ujian_siswa_id ? `<a href="{{ url('ujian-siswa/review') }}/${s.ujian_siswa_id}" class="btn btn-outline-info btn-xs">Detail</a>` : `<button class="btn btn-outline-secondary btn-xs" disabled>Detail</button>`}
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -158,6 +180,37 @@ function getStatusBadge($status) {
             }
         });
     }
+
+    // Toggle Block
+    $(document).on('change', '.btn-toggle-block', function() {
+        let checkbox = $(this);
+        let siswaId = checkbox.data('siswa-id');
+        let isChecked = checkbox.is(':checked');
+
+        checkbox.prop('disabled', true);
+
+        $.ajax({
+            url: "{{ route('jadwal-ujian.toggle-block-student', $jadwalUjian->id) }}",
+            type: 'POST',
+            data: {
+                _token: "{{ csrf_token() }}",
+                siswa_id: siswaId
+            },
+            success: function(response) {
+                if(response.status === 'success') {
+                    toastr.success(response.message);
+                    refreshData();
+                }
+            },
+            error: function() {
+                toastr.error('Gagal memperbarui status blokir.');
+                checkbox.prop('checked', !isChecked);
+            },
+            complete: function() {
+                checkbox.prop('disabled', false);
+            }
+        });
+    });
 
     // Refresh every 10 seconds
     setInterval(refreshData, 10000);
