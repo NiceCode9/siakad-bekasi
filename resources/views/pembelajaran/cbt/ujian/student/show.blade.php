@@ -59,7 +59,8 @@
                             <div class="alert alert-danger text-center shadow-sm border-left-danger">
                                 <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
                                 <h5 class="font-weight-bold">Akses Anda Terblokir</h5>
-                                <p class="mb-0">{{ $blocking['message'] }} Silakan hubungi pengawas ujian.</p>
+                                <p class="mb-0">{{ $blocking['message'] }}</p>
+                                <small class="d-block mt-2 text-dark">Silakan hubungi pengawas ujian untuk informasi lebih lanjut.</small>
                             </div>
                             <div class="text-center mt-3">
                                 <a href="{{ route('ujian-siswa.index') }}" class="btn btn-secondary">Kembali</a>
@@ -71,7 +72,7 @@
                         @endif
                     @else
                         {{-- New Session --}}
-                        @if($blocking['is_blocked'] || !$blocking['has_attendance'] || $blocking['attendance_status'] === 'A')
+                        @if($blocking['is_blocked'])
                             <div class="alert alert-danger text-center shadow-sm border-left-danger">
                                 <i class="fas fa-exclamation-triangle fa-2x mb-3 d-block"></i>
                                 <h5 class="font-weight-bold">Akses Ujian Dibatasi</h5>

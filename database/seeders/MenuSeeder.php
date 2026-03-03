@@ -316,6 +316,19 @@ class MenuSeeder extends Seeder
         );
         $elearningMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-elearning'])->id]);
 
+        // Komponen Nilai
+        $komponenNilaiMenu = Menu::firstOrCreate(
+            ['slug' => 'komponen-nilai'],
+            [
+                'name' => 'Komponen Nilai',
+                'icon' => 'simple-icon-screen-desktop',
+                'url' => '/komponen-nilai',
+                'parent_id' => $cbtMenu->id,
+                'order' => 1,
+            ]
+        );
+        $komponenNilaiMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-komponen-nilai'])->id]);
+
         // Bank Soal
         $bankSoalMenu = Menu::firstOrCreate(
             ['slug' => 'bank-soal'],

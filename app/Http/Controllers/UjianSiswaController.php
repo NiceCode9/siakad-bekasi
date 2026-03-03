@@ -102,38 +102,7 @@ class UjianSiswaController extends Controller
             ->where('siswa_id', $user->siswa->id)
             ->first();
 
-        // Blocking Info for View
-        $blocking = [
-            'is_blocked' => $ujianSiswa ? (bool)$ujianSiswa->is_blocked : false,
-            'has_attendance' => true,
-            'attendance_status' => 'H',
-            'message' => ''
-        ];
-
-        // Only check attendance if not already finished
-        if (!$ujianSiswa || $ujianSiswa->status != 'selesai') {
-            $siswaKelas = SiswaKelas::where('siswa_id', $user->siswa->id)->where('status', 'aktif')->latest()->first();
-            if ($siswaKelas) {
-                $presensiToday = PresensiSiswa::where('siswa_id', $user->siswa->id)
-                    ->where('kelas_id', $siswaKelas->kelas_id)
-                    ->whereDate('tanggal', Carbon::today())
-                    ->first();
-
-                if (!$presensiToday) {
-                    $blocking['has_attendance'] = false;
-                    $blocking['message'] = 'Presensi hari ini belum diinput oleh wali kelas/pengajar.';
-                } else {
-                    $blocking['attendance_status'] = $presensiToday->status;
-                    if ($presensiToday->status === 'A') {
-                        $blocking['message'] = 'Anda ditandai tidak hadir (Alpha) hari ini.';
-                    }
-                }
-            }
-        }
-
-        if ($blocking['is_blocked']) {
-            $blocking['message'] = 'Akses ujian Anda telah diblokir oleh pengawas.';
-        }
+        $blocking = $this->getBlockingStatus($jadwal, $user);
 
         return view('pembelajaran.cbt.ujian.student.show', compact('jadwal', 'ujianSiswa', 'blocking'));
     }
@@ -157,34 +126,15 @@ class UjianSiswaController extends Controller
 
         $user = Auth::user();
 
-        // 1. Check Manual Block status
+        // Enforce Blocking
+        $blocking = $this->getBlockingStatus($jadwal, $user);
+        if ($blocking['is_blocked']) {
+            return back()->with('error', $blocking['message']);
+        }
+
         $existing = UjianSiswa::where('jadwal_ujian_id', $jadwal->id)
             ->where('siswa_id', $user->siswa->id)
             ->first();
-
-        if ($existing && $existing->is_blocked) {
-            return back()->with('error', 'Akses ujian Anda telah diblokir oleh pengawas.');
-        }
-
-        // 2. Check Attendance (Presensi Siswa) for Today
-        // We check the attendance in the student's class for today
-        $siswaKelas = SiswaKelas::where('siswa_id', $user->siswa->id)->where('status', 'aktif')->latest()->first();
-        if (!$siswaKelas) {
-            return back()->with('error', 'Data kelas Anda tidak ditemukan atau tidak aktif.');
-        }
-
-        $presensiToday = PresensiSiswa::where('siswa_id', $user->siswa->id)
-            ->where('kelas_id', $siswaKelas->kelas_id)
-            ->whereDate('tanggal', Carbon::today())
-            ->first();
-
-        if (!$presensiToday) {
-            return back()->with('error', 'Akses diblokir: Presensi hari ini belum diinput oleh wali kelas/pengajar.');
-        }
-
-        if ($presensiToday->status === 'A') {
-            return back()->with('error', 'Akses diblokir: Anda ditandai tidak hadir (Alpha) hari ini.');
-        }
 
         // Check if already started elsewhere?
 
@@ -224,6 +174,12 @@ class UjianSiswaController extends Controller
         $ujianSiswa = UjianSiswa::where('jadwal_ujian_id', $jadwal->id)
             ->where('siswa_id', $user->siswa->id)
             ->firstOrFail();
+
+        // Check Blocking
+        $blocking = $this->getBlockingStatus($jadwal, $user);
+        if ($blocking['is_blocked']) {
+            return redirect()->route('ujian-siswa.show', $id)->with('error', $blocking['message']);
+        }
 
         // 1. Session Security Check
         if ($ujianSiswa->session_id !== session()->getId()) {
@@ -274,7 +230,12 @@ class UjianSiswaController extends Controller
 
         $ujianSiswa = UjianSiswa::findOrFail($request->ujian_siswa_id);
 
-        // Security Check
+        // Security & Blocking Check
+        $blocking = $this->getBlockingStatus($ujianSiswa->jadwalUjian, Auth::user());
+        if ($blocking['is_blocked']) {
+            return response()->json(['status' => 'error', 'message' => $blocking['message']], 403);
+        }
+
         if ($ujianSiswa->session_id !== session()->getId()) {
             return response()->json(['status' => 'error', 'message' => 'Sesi tidak valid'], 403);
         }
@@ -436,6 +397,57 @@ class UjianSiswaController extends Controller
             ->get();
 
         return view('pembelajaran.cbt.ujian.review', compact('ujianSiswa', 'jadwal', 'soalList', 'jawabans'));
+    }
+
+    /**
+     * Check if student is blocked from an exam
+     */
+    private function getBlockingStatus($jadwal, $user)
+    {
+        // 1. Check Manual Block first (stored in UjianSiswa)
+        $ujianSiswa = UjianSiswa::where('jadwal_ujian_id', $jadwal->id)
+            ->where('siswa_id', $user->siswa->id)
+            ->first();
+
+        if ($ujianSiswa && $ujianSiswa->is_blocked) {
+            return [
+                'is_blocked' => true,
+                'message' => 'Akses ujian Anda telah diblokir oleh pengawas.'
+            ];
+        }
+
+        // 2. Check Daily Attendance (PresensiSiswa)
+        // Must match the class assigned to this exam
+        $presensiToday = PresensiSiswa::where('siswa_id', $user->siswa->id)
+            ->where('kelas_id', $jadwal->mataPelajaranKelas->kelas_id)
+            ->whereDate('tanggal', Carbon::today())
+            ->first();
+
+        if (!$presensiToday) {
+            return [
+                'is_blocked' => true,
+                'message' => 'Akses diblokir: Presensi hari ini belum diinput oleh wali kelas/pengajar.'
+            ];
+        }
+
+        // Block if status is not 'H' (Hadir)
+        if (in_array($presensiToday->status, ['A', 'I', 'S'])) {
+            $statusLabels = [
+                'A' => 'Tanpa Keterangan (Alpha)',
+                'I' => 'Izin',
+                'S' => 'Sakit'
+            ];
+            $label = $statusLabels[$presensiToday->status] ?? 'Tidak Hadir';
+            return [
+                'is_blocked' => true,
+                'message' => "Anda ditandai $label hari ini, sehingga tidak diperbolehkan mengikuti ujian."
+            ];
+        }
+
+        return [
+            'is_blocked' => false,
+            'message' => ''
+        ];
     }
 }
 
