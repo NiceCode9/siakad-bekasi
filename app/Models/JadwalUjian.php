@@ -15,6 +15,7 @@ class JadwalUjian extends Model
         'semester_id',
         'mata_pelajaran_kelas_id',
         'bank_soal_id',
+        'komponen_nilai_id',
         'jenis_ujian',
         'nama_ujian',
         'keterangan',
@@ -51,6 +52,11 @@ class JadwalUjian extends Model
     public function bankSoal()
     {
         return $this->belongsTo(BankSoal::class);
+    }
+
+    public function komponenNilai()
+    {
+        return $this->belongsTo(KomponenNilai::class);
     }
 
     public function soalUjian()

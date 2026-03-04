@@ -8,6 +8,7 @@ use App\Models\BankSoal;
 use App\Models\Semester;
 use App\Models\Soal;
 use App\Models\SoalUjian;
+use App\Models\KomponenNilai;
 use App\Models\UjianSiswa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -84,7 +85,9 @@ class JadwalUjianController extends Controller
         // Bank Soal loaded via AJAX based on selected Subject usually, but for simple MVP let's load all active
         $bankSoal = BankSoal::active()->with('mataPelajaran')->get();
 
-        return view('pembelajaran.cbt.jadwal-ujian.create', compact('kelas', 'bankSoal'));
+        $components = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
+
+        return view('pembelajaran.cbt.jadwal-ujian.create', compact('kelas', 'bankSoal', 'components'));
     }
 
     public function store(Request $request)
@@ -93,6 +96,7 @@ class JadwalUjianController extends Controller
             'mata_pelajaran_kelas_id' => 'required|array',
             'mata_pelajaran_kelas_id.*' => 'exists:mata_pelajaran_kelas,id',
             'bank_soal_id' => 'nullable|exists:bank_soal,id',
+            'komponen_nilai_id' => 'nullable|exists:komponen_nilai,id',
             'jenis_ujian' => 'required|in:ulangan_harian,uts,uas,ujian_praktik,ujian_sekolah',
             'nama_ujian' => 'required|string|max:100',
             'tanggal_mulai' => 'required|date',
@@ -106,6 +110,7 @@ class JadwalUjianController extends Controller
             'semester_id' => Semester::active()->first()->id,
             'status' => 'draft',
             'bank_soal_id' => $validated['bank_soal_id'] ?? null,
+            'komponen_nilai_id' => $validated['komponen_nilai_id'] ?? null,
             'jenis_ujian' => $validated['jenis_ujian'],
             'nama_ujian' => $validated['nama_ujian'],
             'tanggal_mulai' => $validated['tanggal_mulai'],
@@ -182,7 +187,9 @@ class JadwalUjianController extends Controller
 
         $bankSoal = BankSoal::active()->with('mataPelajaran')->get();
 
-        return view('pembelajaran.cbt.jadwal-ujian.edit', compact('jadwalUjian', 'kelas', 'bankSoal'));
+        $components = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
+
+        return view('pembelajaran.cbt.jadwal-ujian.edit', compact('jadwalUjian', 'kelas', 'bankSoal', 'components'));
     }
 
     public function update(Request $request, JadwalUjian $jadwalUjian)
@@ -194,6 +201,7 @@ class JadwalUjianController extends Controller
         $validated = $request->validate([
             'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
             'bank_soal_id' => 'nullable|exists:bank_soal,id',
+            'komponen_nilai_id' => 'nullable|exists:komponen_nilai,id',
             'jenis_ujian' => 'required|in:ulangan_harian,uts,uas,ujian_praktik,ujian_sekolah',
             'nama_ujian' => 'required|string|max:100',
             'tanggal_mulai' => 'required|date',
@@ -216,6 +224,7 @@ class JadwalUjianController extends Controller
             $jadwalUjian->update([
                 'mata_pelajaran_kelas_id' => $validated['mata_pelajaran_kelas_id'],
                 'bank_soal_id' => $validated['bank_soal_id'],
+                'komponen_nilai_id' => $validated['komponen_nilai_id'] ?? null,
                 'jenis_ujian' => $validated['jenis_ujian'],
                 'nama_ujian' => $validated['nama_ujian'],
                 'tanggal_mulai' => $validated['tanggal_mulai'],

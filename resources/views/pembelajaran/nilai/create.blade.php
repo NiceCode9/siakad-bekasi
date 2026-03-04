@@ -20,6 +20,25 @@
         </a>
     </div>
 
+    @if($cbtSchedule)
+        <div class="alert alert-warning shadow-sm border-left-warning mb-3">
+            <div class="d-flex align-items-center">
+                <div class="mr-3">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                </div>
+                <div>
+                    <h6 class="alert-heading mb-1 font-weight-bold">Peringatan: Terintegrasi dengan CBT</h6>
+                    <span>Komponen <strong>{{ $komponen->nama }}</strong> sudah terhubung dengan jadwal ujian <strong>"{{ $cbtSchedule->nama_ujian }}"</strong>. Nilai siswa akan otomatis terisi saat mereka menyelesaikan ujian tersebut. Input manual di sini akan menimpa nilai otomatis dari CBT.</span>
+                    <div class="mt-2">
+                        <a href="{{ route('jadwal-ujian.show', $cbtSchedule->id) }}" class="btn btn-warning btn-sm border-dark">
+                            <i class="fas fa-eye"></i> Lihat Detail Ujian
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <form action="{{ route('nilai.store') }}" method="POST" id="formNilai">
         @csrf
         <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">

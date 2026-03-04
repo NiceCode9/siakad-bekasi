@@ -62,12 +62,18 @@
                                                 <td>{{ $mpk->mataPelajaran->nama }}</td>
                                                 <td>
                                                     @foreach($components as $comp)
+                                                        @php
+                                                            $hasCbt = isset($cbtSchedules[$mpk->id]) && $cbtSchedules[$mpk->id]->contains('komponen_nilai_id', $comp->id);
+                                                        @endphp
                                                         <a href="{{ route('nilai.create', [
                                                             'kelas_id' => request('kelas_id'),
                                                             'mata_pelajaran_kelas_id' => $mpk->id,
                                                             'komponen_nilai_id' => $comp->id
-                                                        ]) }}" class="btn btn-outline-primary btn-sm mb-1 mr-1">
+                                                        ]) }}" class="btn btn-outline-primary btn-sm mb-1 mr-1 position-relative">
                                                             {{ $comp->nama }}
+                                                            @if($hasCbt)
+                                                                <span class="badge badge-success ml-1 shadow-sm" title="Terintegrasi dengan CBT" style="font-size: 70%;">CBT</span>
+                                                            @endif
                                                         </a>
                                                     @endforeach
                                                     <a href="{{ route('nilai.rekap', [
@@ -84,7 +90,7 @@
                             </div>
                         @else
                             <div class="alert alert-warning">
-                                Belum ada mata pelajaran yang diatur untuk kelas ini. 
+                                Belum ada mata pelajaran yang diatur untuk kelas ini.
                                 Silakan atur di menu <strong>Data Kelas -> Detail -> Kelola Mata Pelajaran</strong>.
                             </div>
                         @endif

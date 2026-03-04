@@ -337,23 +337,29 @@ class UjianSiswaController extends Controller
             ];
             $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
 
-            // Find matching KomponenNilai in student's curriculum
-            $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id)
-                ->where(function($q) use ($jadwal) {
-                    $q->where('nama', 'like', '%' . $jadwal->jenis_ujian . '%')
-                      ->orWhere('kode', 'like', '%' . $jadwal->jenis_ujian . '%');
+            // 1. Priority: Explicit Component Mapping
+            $komponen = null;
+            if ($jadwal->komponen_nilai_id) {
+                $komponen = KomponenNilai::find($jadwal->komponen_nilai_id);
+            }
 
-                    // Fallback search strings
-                    if ($jadwal->jenis_ujian == 'uts') $q->orWhere('nama', 'like', '%tengah%');
-                    if ($jadwal->jenis_ujian == 'uas') $q->orWhere('nama', 'like', '%akhir%');
-                })->first();
-
+            // 2. Fallback: Fuzzy Search (for backward compatibility / unmapped exams)
             if (!$komponen) {
-                // Secondary fallback: search by mapped jenisNilai
-                $searchLabel = str_replace('_', ' ', $jenisNilai);
-                $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id)
-                    ->where('nama', 'like', '%' . $searchLabel . '%')
-                    ->first();
+                $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)
+                    ->where(function($q) use ($jadwal) {
+                        $q->where('nama', 'like', '%' . $jadwal->jenis_ujian . '%')
+                          ->orWhere('kode', 'like', '%' . $jadwal->jenis_ujian . '%');
+
+                        if ($jadwal->jenis_ujian == 'uts') $q->orWhere('nama', 'like', '%tengah%');
+                        if ($jadwal->jenis_ujian == 'uas') $q->orWhere('nama', 'like', '%akhir%');
+                    })->first();
+
+                if (!$komponen) {
+                    $searchLabel = str_replace('_', ' ', $jenisNilai);
+                    $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)
+                        ->where('nama', 'like', '%' . $searchLabel . '%')
+                        ->first();
+                }
             }
 
             if ($komponen) {
@@ -368,7 +374,7 @@ class UjianSiswaController extends Controller
                         'jenis_nilai' => $jenisNilai,
                         'nilai' => $finalScore,
                         'ujian_siswa_id' => $ujianSiswa->id,
-                        'penginput_id' => $jadwal->mataPelajaranKelas->guru_id ?? Auth::user()->id, // Fallback if no teacher assigned?
+                        'penginput_id' => $jadwal->mataPelajaranKelas->guru_id ?? Auth::user()->id,
                         'tanggal_input' => now(),
                         'keterangan' => 'Nilai otomatis dari CBT: ' . $jadwal->nama_ujian
                     ]

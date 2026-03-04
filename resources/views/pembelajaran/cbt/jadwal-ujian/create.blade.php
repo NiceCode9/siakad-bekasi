@@ -26,7 +26,7 @@
                 <div class="card-body">
                     <form action="{{ route('jadwal-ujian.store') }}" method="POST">
                         @csrf
-                        
+
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
@@ -49,6 +49,18 @@
                         </div>
 
                         <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Hubungkan ke Komponen Nilai <span class="text-muted">(Pilih untuk Sinkronisasi Otomatis)</span></label>
+                                    <select name="komponen_nilai_id" class="form-control select2-single">
+                                        <option value="">-- Tidak Disinkronkan --</option>
+                                        @foreach($components as $comp)
+                                            <option value="{{ $comp->id }}">{{ $comp->nama }} (Bobot: {{ (int)$comp->bobot }}%)</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-info"><i class="fas fa-info-circle"></i> Jika dipilih, nilai ujian akan otomatis masuk ke Rapor pada komponen ini.</small>
+                                </div>
+                            </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label>Pilih Kelas & Mapel (Bisa Banyak) <span class="text-danger">*</span></label>

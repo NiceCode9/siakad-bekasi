@@ -65,7 +65,16 @@ class NilaiController extends Controller
         // If subject selected, load components
         $components = KomponenNilai::where('kurikulum_id', $semesterAktif->tahunAkademik->kurikulum_id ?? 0)->get();
 
-        return view('pembelajaran.nilai.index', compact('kelas', 'subjects', 'components'));
+        // Load CBT schedules to show integration badges
+        $cbtSchedules = collect();
+        if ($request->filled('kelas_id') && $subjects->count() > 0) {
+            $cbtSchedules = \App\Models\JadwalUjian::whereIn('mata_pelajaran_kelas_id', $subjects->pluck('id'))
+                ->whereIn('status', ['aktif', 'selesai'])
+                ->get()
+                ->groupBy('mata_pelajaran_kelas_id');
+        }
+
+        return view('pembelajaran.nilai.index', compact('kelas', 'subjects', 'components', 'cbtSchedules'));
     }
 
     /**
@@ -106,10 +115,17 @@ class NilaiController extends Controller
         // Get existing grades
         $existing = Nilai::where('mata_pelajaran_kelas_id', $mpk->id)
             ->where('komponen_nilai_id', $komponen->id)
+            ->where('semester_id', $semester->id)
             ->get()
             ->keyBy('siswa_id');
 
-        return view('pembelajaran.nilai.create', compact('kelas', 'mpk', 'komponen', 'siswa', 'existing', 'semester'));
+        // Check for CBT schedules for this specific component
+        $cbtSchedule = \App\Models\JadwalUjian::where('mata_pelajaran_kelas_id', $mpk->id)
+            ->where('komponen_nilai_id', $komponen->id)
+            ->whereIn('status', ['aktif', 'selesai'])
+            ->first();
+
+        return view('pembelajaran.nilai.create', compact('kelas', 'mpk', 'komponen', 'semester', 'siswa', 'existing', 'cbtSchedule'));
     }
 
     /**
