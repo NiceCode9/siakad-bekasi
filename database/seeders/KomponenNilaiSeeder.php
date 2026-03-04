@@ -36,7 +36,7 @@ class KomponenNilaiSeeder extends Seeder
             [
                 'kurikulum_id' => $merdeka->id,
                 'kode' => 'UTS',
-                'nama' => 'Ujian Tengah Semester',
+                'nama' => 'Ujian Tengah Semester (UTS)',
                 'kategori' => 'pengetahuan',
                 'bobot' => 20.00,
                 'keterangan' => 'Nilai ujian tengah semester',
@@ -44,7 +44,7 @@ class KomponenNilaiSeeder extends Seeder
             [
                 'kurikulum_id' => $merdeka->id,
                 'kode' => 'UAS',
-                'nama' => 'Ujian Akhir Semester',
+                'nama' => 'Ujian Akhir Semester (UAS)',
                 'kategori' => 'pengetahuan',
                 'bobot' => 30.00,
                 'keterangan' => 'Nilai ujian akhir semester',

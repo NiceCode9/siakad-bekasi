@@ -325,61 +325,8 @@ class UjianSiswaController extends Controller
             ]);
 
             // --- SYNC TO NILAI MODULE ---
-            $semester = $jadwal->semester;
-
-            // Map jenis_ujian to Nilai category (enum in 'nilai' table)
-            $mapJenis = [
-                'ulangan_harian' => 'ulangan_harian',
-                'uts' => 'uts',
-                'uas' => 'uas',
-                'ujian_praktik' => 'praktik',
-                'ujian_sekolah' => 'uas',
-            ];
-            $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
-
-            // 1. Priority: Explicit Component Mapping
-            $komponen = null;
-            if ($jadwal->komponen_nilai_id) {
-                $komponen = KomponenNilai::find($jadwal->komponen_nilai_id);
-            }
-
-            // 2. Fallback: Fuzzy Search (for backward compatibility / unmapped exams)
-            if (!$komponen) {
-                $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)
-                    ->where(function($q) use ($jadwal) {
-                        $q->where('nama', 'like', '%' . $jadwal->jenis_ujian . '%')
-                          ->orWhere('kode', 'like', '%' . $jadwal->jenis_ujian . '%');
-
-                        if ($jadwal->jenis_ujian == 'uts') $q->orWhere('nama', 'like', '%tengah%');
-                        if ($jadwal->jenis_ujian == 'uas') $q->orWhere('nama', 'like', '%akhir%');
-                    })->first();
-
-                if (!$komponen) {
-                    $searchLabel = str_replace('_', ' ', $jenisNilai);
-                    $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)
-                        ->where('nama', 'like', '%' . $searchLabel . '%')
-                        ->first();
-                }
-            }
-
-            if ($komponen) {
-                Nilai::updateOrCreate(
-                    [
-                        'siswa_id' => $ujianSiswa->siswa_id,
-                        'mata_pelajaran_kelas_id' => $jadwal->mata_pelajaran_kelas_id,
-                        'komponen_nilai_id' => $komponen->id,
-                        'semester_id' => $jadwal->semester_id,
-                    ],
-                    [
-                        'jenis_nilai' => $jenisNilai,
-                        'nilai' => $finalScore,
-                        'ujian_siswa_id' => $ujianSiswa->id,
-                        'penginput_id' => $jadwal->mataPelajaranKelas->guru_id ?? Auth::user()->id,
-                        'tanggal_input' => now(),
-                        'keterangan' => 'Nilai otomatis dari CBT: ' . $jadwal->nama_ujian
-                    ]
-                );
-            }
+            $syncService = app(\App\Services\GradeSyncService::class);
+            $syncService->syncExamScore($ujianSiswa);
 
             DB::commit();
         } catch (\Exception $e) {

@@ -38,6 +38,11 @@ class NilaiSeeder extends Seeder
             foreach ($siswas as $siswa) {
                 foreach ($mpks as $mpk) {
                     foreach ($components as $comp) {
+                        // Skip UTS and UAS to allow for CBT sync testing
+                        if (in_array($comp->kode, ['UTS', 'UAS'])) {
+                            continue;
+                        }
+
                         $jenis = Str::slug($comp->nama, '_');
                         if (!in_array($jenis, $validJenisNilai)) {
                             $jenis = 'lainnya';

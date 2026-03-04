@@ -33,6 +33,37 @@ class SiswaSeeder extends Seeder
 
         $siswaIndex = 1;
 
+        // Create Testing Siswa
+        $userSiswaTes = User::where('username', 'siswa_tes')->first();
+        if ($userSiswaTes && $kelasList->isNotEmpty()) {
+            $kelasFirst = $kelasList->first();
+            
+            $ortuTes = OrangTua::create([
+                'nama_ayah' => 'Ayah Siswa Tes',
+                'nama_ibu' => 'Ibu Siswa Tes',
+            ]);
+
+            $siswaTes = Siswa::create([
+                'user_id' => $userSiswaTes->id,
+                'orang_tua_id' => $ortuTes->id,
+                'nisn' => '9999999999',
+                'nis' => '999999',
+                'nik' => '9999999999999999',
+                'nama_lengkap' => 'Siswa Testing',
+                'jenis_kelamin' => 'L',
+                'email' => $userSiswaTes->email,
+                'status' => 'aktif',
+                'tanggal_masuk' => now(),
+            ]);
+
+            SiswaKelas::create([
+                'siswa_id' => $siswaTes->id,
+                'kelas_id' => $kelasFirst->id,
+                'status' => 'aktif',
+                'tanggal_masuk' => now(),
+            ]);
+        }
+
         foreach ($kelasList as $kelas) {
             $jumlahSiswa = 5;
 

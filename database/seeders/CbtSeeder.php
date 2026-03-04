@@ -53,26 +53,83 @@ class CbtSeeder extends Seeder
                 ]);
             }
 
-            // 3. Create Jadwal Ujian if there's a MataPelajaranKelas linked to this mapel
+            // 3. Create Jadwal Ujian
             $mpk = MataPelajaranKelas::where('mata_pelajaran_id', $mapel->id)->first();
             if ($mpk) {
-                JadwalUjian::create([
-                    'semester_id' => $semester->id,
-                    'mata_pelajaran_kelas_id' => $mpk->id,
-                    'bank_soal_id' => $bankSoal->id,
-                    'jenis_ujian' => 'ulangan_harian',
-                    'nama_ujian' => 'Ulangan Harian ' . $mapel->nama,
-                    'keterangan' => 'Ujian bab 1',
-                    'tanggal_mulai' => now(),
-                    'tanggal_selesai' => now()->addDays(2),
-                    'durasi' => 60,
-                    'jumlah_soal' => 10,
-                    'acak_soal' => true,
-                    'acak_opsi' => true,
-                    'tampilkan_nilai' => true,
-                    'token' => strtoupper(Str::random(6)),
-                    'status' => 'aktif',
-                ]);
+                $komponenUTS = \App\Models\KomponenNilai::where('kode', 'UTS')->first();
+
+                $jadwals = [
+                    [
+                        'jenis_ujian' => 'ulangan_harian',
+                        'nama_ujian' => 'UH 1 ' . $mapel->nama,
+                        'komponen_nilai_id' => null, // Test Fuzzy Match
+                    ],
+                    [
+                        'jenis_ujian' => 'uts',
+                        'nama_ujian' => 'UTS Ganjil ' . $mapel->nama,
+                        'komponen_nilai_id' => $komponenUTS->id ?? null, // Test Explicit Match
+                    ],
+                    [
+                        'jenis_ujian' => 'uas',
+                        'nama_ujian' => 'UAS Ganjil ' . $mapel->nama,
+                        'komponen_nilai_id' => null, // Test Fuzzy Match
+                    ]
+                ];
+
+                foreach($jadwals as $jData) {
+                    $jadwal = JadwalUjian::create(array_merge([
+                        'semester_id' => $semester->id,
+                        'mata_pelajaran_kelas_id' => $mpk->id,
+                        'bank_soal_id' => $bankSoal->id,
+                        'keterangan' => 'Ujian simulasi seeder',
+                        'tanggal_mulai' => now()->subDay(),
+                        'tanggal_selesai' => now()->addDays(2),
+                        'durasi' => 60,
+                        'jumlah_soal' => 10,
+                        'acak_soal' => true,
+                        'acak_opsi' => true,
+                        'tampilkan_nilai' => true,
+                        'token' => strtoupper(Str::random(6)),
+                        'status' => 'aktif',
+                    ], $jData));
+
+                    // --- NEW: Populate SoalUjian (Fix empty questions) ---
+                    $soals = Soal::where('bank_soal_id', $bankSoal->id)->limit(10)->get();
+                    foreach ($soals as $index => $soal) {
+                        \App\Models\SoalUjian::create([
+                            'jadwal_ujian_id' => $jadwal->id,
+                            'soal_id' => $soal->id,
+                            'urutan' => $index + 1,
+                        ]);
+                    }
+
+                    // 4. Create sample UjianSiswa for testing
+                    $students = \App\Models\SiswaKelas::where('kelas_id', $mpk->kelas_id)->limit(3)->get();
+                    foreach($students as $sk) {
+                        \App\Models\UjianSiswa::create([
+                            'jadwal_ujian_id' => $jadwal->id,
+                            'siswa_id' => $sk->siswa_id,
+                            'status' => 'belum_mulai',
+                            'token_siswa' => $jadwal->token,
+                            'session_id' => null,
+                            'ip_address' => null,
+                        ]);
+
+                        // --- NEW: Create Today's Attendance (Fix Blocked Access) ---
+                        // \App\Models\PresensiSiswa::updateOrCreate(
+                        //     [
+                        //         'siswa_id' => $sk->siswa_id,
+                        //         'kelas_id' => $mpk->kelas_id,
+                        //         'tanggal' => \Carbon\Carbon::today(),
+                        //     ],
+                        //     [
+                        //         'status' => 'H', // Hadir
+                        //         'keterangan' => 'Hadir (Seeded for Testing)',
+                        //         'user_id' => 1,
+                        //     ]
+                        // );
+                    }
+                }
             }
         }
     }

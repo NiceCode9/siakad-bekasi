@@ -18,6 +18,7 @@ class MataPelajaranKelasSeeder extends Seeder
     {
         $kelas = Kelas::all();
         $gurus = Guru::all();
+        $guruTes = Guru::where('nip', 'GURU-TES-001')->first();
 
         // Mapping guru berdasarkan spesialisasi (simplified)
         $guruBySubject = [
@@ -56,11 +57,18 @@ class MataPelajaranKelasSeeder extends Seeder
 
             // Mata Pelajaran Umum (Kelompok A & B) - untuk semua kelas
             $umum = MataPelajaran::whereIn('kelompok_mapel_id', [1, 2])->get();
-            foreach ($umum as $mapel) {
+            foreach ($umum as $idx => $mapel) {
+                $assignedGuru = $guruBySubject[$mapel->kode] ?? $gurus->random();
+                
+                // For the very first class, assign our Testing Guru to the first subject
+                if ($k->id === $kelas->first()->id && $idx === 0 && $guruTes) {
+                    $assignedGuru = $guruTes;
+                }
+
                 MataPelajaranKelas::create([
                     'mata_pelajaran_id' => $mapel->id,
                     'kelas_id' => $k->id,
-                    'guru_id' => $guruBySubject[$mapel->kode]->id ?? $gurus->random()->id,
+                    'guru_id' => $assignedGuru->id,
                     'jam_per_minggu' => $this->getJamPerMinggu($mapel->kode),
                 ]);
             }

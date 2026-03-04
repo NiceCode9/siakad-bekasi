@@ -39,6 +39,14 @@ class UserSeeder extends Seeder
         ]);
         $guru->assignRole('guru');
 
+        // Testing Guru
+        $guruTes = User::create([
+            'username' => 'guru_tes',
+            'email' => 'guru.tes@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $guruTes->assignRole('guru');
+
         // Siswa
         $siswa = User::create([
             'username' => 'siswa',
@@ -46,6 +54,14 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $siswa->assignRole('siswa');
+
+        // Testing Siswa
+        $siswaTes = User::create([
+            'username' => 'siswa_tes',
+            'email' => 'siswa.tes@example.com',
+            'password' => Hash::make('password'),
+        ]);
+        $siswaTes->assignRole('siswa');
 
         // User dengan multiple roles
         // $multiRole = User::create([

@@ -200,6 +200,22 @@ class GuruSeeder extends Seeder
             ],
         ];
 
+        // Create Testing Guru
+        $userTes = User::where('username', 'guru_tes')->first();
+        if ($userTes) {
+            Guru::create([
+                'user_id' => $userTes->id,
+                'nip' => 'GURU-TES-001',
+                'nuptk' => '9998887776665554',
+                'nama_lengkap' => 'Guru Testing',
+                'gelar_belakang' => 'S.Kom',
+                'email' => $userTes->email,
+                'status_kepegawaian' => 'GTY',
+                'is_active' => true,
+                'tanggal_masuk' => now(),
+            ]);
+        }
+
         foreach ($gurus as $guruData) {
             // Create user account
             $user = User::create([
