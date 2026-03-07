@@ -296,7 +296,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('raport')->name('raport.')->group(function () {
         Route::get('/', [RaportController::class, 'index'])->name('index');
         Route::get('/get-semesters/{tahun_id}', [RaportController::class, 'getSemestersByTahun'])->name('get-semesters');
-        Route::post('/generate/{siswa_id}/{semester_id}', [RaportController::class, 'generate'])->name('generate');
+        Route::post('/generate/{siswa_id}/{semester_id}/{komponen_nilai_id}', [RaportController::class, 'generate'])->name('generate');
         Route::get('/{id}', [RaportController::class, 'show'])->name('show');
         Route::post('/{id}', [RaportController::class, 'update'])->name('update');
         Route::post('/{id}/approve', [RaportController::class, 'approve'])->name('approve');

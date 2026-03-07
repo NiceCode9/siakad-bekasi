@@ -18,7 +18,6 @@ class Nilai extends Model
         'mata_pelajaran_kelas_id',
         'komponen_nilai_id',
         'semester_id',
-        'jenis_nilai',
         'nilai',
         'keterangan',
         'ujian_siswa_id',
@@ -62,19 +61,5 @@ class Nilai extends Model
         return $this->belongsTo(Guru::class, 'penginput_id');
     }
 
-    // Scopes
-    public function scopeUlanganHarian($query)
-    {
-        return $query->where('jenis_nilai', 'ulangan_harian');
-    }
-
-    public function scopeUts($query)
-    {
-        return $query->where('jenis_nilai', 'uts');
-    }
-
-    public function scopeUas($query)
-    {
-        return $query->where('jenis_nilai', 'uas');
-    }
+    // Scopes (Dihapus karena jenis_nilai dihilangkan)
 }

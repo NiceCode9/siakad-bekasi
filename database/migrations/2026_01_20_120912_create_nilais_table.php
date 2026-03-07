@@ -14,7 +14,6 @@ return new class extends Migration
             $table->foreignId('mata_pelajaran_kelas_id')->constrained('mata_pelajaran_kelas')->onDelete('cascade');
             $table->foreignId('komponen_nilai_id')->constrained('komponen_nilai')->onDelete('restrict');
             $table->foreignId('semester_id')->constrained('semester')->onDelete('cascade');
-            $table->enum('jenis_nilai', ['tugas', 'ulangan_harian', 'uts', 'uas', 'praktik', 'proyek', 'lainnya']);
             $table->decimal('nilai', 5, 2);
             $table->text('keterangan')->nullable();
             $table->foreignId('ujian_siswa_id')->nullable()->constrained('ujian_siswa')->onDelete('set null')->comment('jika nilai dari CBT');

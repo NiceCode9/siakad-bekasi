@@ -6,10 +6,9 @@
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="mb-0">Input Nilai: {{ $komponen->nama }}</h4>
+            <h4 class="mb-0">Input Nilai: Semua Komponen</h4>
             <div class="text-muted">
                 {{ $mpk->mataPelajaran->nama }} | {{ $kelas->nama }}
-                <span class="badge badge-info ml-2">{{ ucfirst($komponen->kategori) }} (Bobot: {{ $komponen->bobot }}%)</span>
                 @if($mpk->kkm)
                     <span class="badge badge-success ml-2">KKM: {{ $mpk->kkm }}</span>
                 @endif
@@ -20,7 +19,7 @@
         </a>
     </div>
 
-    @if($cbtSchedule)
+    @if(isset($cbtSchedules) && $cbtSchedules->isNotEmpty())
         <div class="alert alert-warning shadow-sm border-left-warning mb-3">
             <div class="d-flex align-items-center">
                 <div class="mr-3">
@@ -28,12 +27,7 @@
                 </div>
                 <div>
                     <h6 class="alert-heading mb-1 font-weight-bold">Peringatan: Terintegrasi dengan CBT</h6>
-                    <span>Komponen <strong>{{ $komponen->nama }}</strong> sudah terhubung dengan jadwal ujian <strong>"{{ $cbtSchedule->nama_ujian }}"</strong>. Nilai siswa akan otomatis terisi saat mereka menyelesaikan ujian tersebut. Input manual di sini akan menimpa nilai otomatis dari CBT.</span>
-                    <div class="mt-2">
-                        <a href="{{ route('jadwal-ujian.show', $cbtSchedule->id) }}" class="btn btn-warning btn-sm border-dark">
-                            <i class="fas fa-eye"></i> Lihat Detail Ujian
-                        </a>
-                    </div>
+                    <span>Beberapa komponen nilai sudah terhubung dengan jadwal ujian CBT. Nilai siswa akan otomatis terisi saat mereka menyelesaikan ujian tersebut. Kolom dengan tanda <i class="fas fa-desktop text-warning"></i> CBT tidak bisa diubah secara manual.</span>
                 </div>
             </div>
         </div>
@@ -43,47 +37,57 @@
         @csrf
         <input type="hidden" name="kelas_id" value="{{ $kelas->id }}">
         <input type="hidden" name="mata_pelajaran_kelas_id" value="{{ $mpk->id }}">
-        <input type="hidden" name="komponen_nilai_id" value="{{ $komponen->id }}">
         <input type="hidden" name="semester_id" value="{{ $semester->id }}">
 
         <div class="card shadow-sm">
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover table-bordered mb-0">
                         <thead class="thead-light">
                             <tr>
-                                <th width="5%" class="text-center">No</th>
-                                <th width="35%">Nama Siswa</th>
-                                <th width="20%">Nilai (0-100)</th>
-                                <th width="40%">Keterangan</th>
+                                <th width="5%" class="text-center align-middle">No</th>
+                                <th width="20%" class="align-middle">Nama Siswa</th>
+                                @foreach($komponen as $comp)
+                                    <th class="text-center align-middle" style="min-width: 150px;">
+                                        {{ $comp->nama }}
+                                        <br>
+                                        <small class="text-muted">{{ $comp->bobot }}%</small>
+                                        @if(isset($cbtSchedules[$comp->id]))
+                                            <i class="fas fa-desktop text-warning ml-1" title="Terintegrasi CBT"></i>
+                                        @endif
+                                    </th>
+                                @endforeach
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($siswa as $sk)
-                                @php
-                                    $val = $existing[$sk->siswa->id] ?? null;
-                                    $nilai = $val ? $val->nilai : '';
-                                    $ket = $val ? $val->keterangan : '';
-                                @endphp
                                 <tr>
-                                    <td class="text-center active-row">{{ $loop->iteration }}</td>
-                                    <td>
+                                    <td class="text-center active-row align-middle">{{ $loop->iteration }}</td>
+                                    <td class="align-middle">
                                         <strong>{{ $sk->siswa->nama_lengkap }}</strong><br>
                                         <small class="text-muted">{{ $sk->siswa->nis }}</small>
                                     </td>
-                                    <td>
-                                        <input type="number" name="nilai[{{ $sk->siswa->id }}][angka]"
-                                               class="form-control"
-                                               value="{{ $nilai }}"
-                                               min="0" max="100" step="0.01"
-                                               placeholder="0">
-                                    </td>
-                                    <td>
-                                        <input type="text" name="nilai[{{ $sk->siswa->id }}][keterangan]"
-                                               class="form-control"
-                                               value="{{ $ket }}"
-                                               placeholder="Catatan...">
-                                    </td>
+                                    @foreach($komponen as $comp)
+                                        @php
+                                            $val = $existing->has($sk->siswa->id) ? $existing[$sk->siswa->id]->firstWhere('komponen_nilai_id', $comp->id) : null;
+                                            $nilai = $val ? $val->nilai : '';
+                                            $ket = $val ? $val->keterangan : '';
+                                            $isCbt = isset($cbtSchedules[$comp->id]);
+                                        @endphp
+                                        <td>
+                                            <input type="number" name="nilai[{{ $sk->siswa->id }}][{{ $comp->id }}][angka]"
+                                                   class="form-control text-center input-nilai"
+                                                   value="{{ $nilai }}"
+                                                   min="0" max="100" step="0.01"
+                                                   placeholder="0"
+                                                   {{ $isCbt ? 'readonly title=CBT' : '' }}>
+                                            <input type="text" name="nilai[{{ $sk->siswa->id }}][{{ $comp->id }}][keterangan]"
+                                                   class="form-control text-center mt-1 form-control-sm"
+                                                   value="{{ $ket }}"
+                                                   placeholder="Catatan..."
+                                                   {{ $isCbt ? 'readonly' : '' }}>
+                                        </td>
+                                    @endforeach
                                 </tr>
                             @endforeach
                         </tbody>

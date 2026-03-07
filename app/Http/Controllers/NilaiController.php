@@ -85,14 +85,13 @@ class NilaiController extends Controller
         $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
             'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
-            'komponen_nilai_id' => 'required|exists:komponen_nilai,id',
         ]);
 
         $user = Auth::user();
         $kelas = Kelas::findOrFail($request->kelas_id);
         $mpk = MataPelajaranKelas::with('mataPelajaran')->findOrFail($request->mata_pelajaran_kelas_id);
-        $komponen = KomponenNilai::findOrFail($request->komponen_nilai_id);
         $semester = Semester::active()->first();
+        $komponen = KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
 
         // Authorization check
         if (!$user->hasRole(['admin', 'super-admin'])) {
@@ -112,20 +111,19 @@ class NilaiController extends Controller
             ->get()
             ->sortBy(fn($sk) => $sk->siswa->nama_lengkap);
 
-        // Get existing grades
+        // Get existing grades (grouped by siswa and then komponen)
         $existing = Nilai::where('mata_pelajaran_kelas_id', $mpk->id)
-            ->where('komponen_nilai_id', $komponen->id)
             ->where('semester_id', $semester->id)
             ->get()
-            ->keyBy('siswa_id');
+            ->groupBy('siswa_id');
 
-        // Check for CBT schedules for this specific component
-        $cbtSchedule = \App\Models\JadwalUjian::where('mata_pelajaran_kelas_id', $mpk->id)
-            ->where('komponen_nilai_id', $komponen->id)
+        // Check for CBT schedules for any component
+        $cbtSchedules = \App\Models\JadwalUjian::where('mata_pelajaran_kelas_id', $mpk->id)
             ->whereIn('status', ['aktif', 'selesai'])
-            ->first();
+            ->get()
+            ->keyBy('komponen_nilai_id');
 
-        return view('pembelajaran.nilai.create', compact('kelas', 'mpk', 'komponen', 'semester', 'siswa', 'existing', 'cbtSchedule'));
+        return view('pembelajaran.nilai.create', compact('kelas', 'mpk', 'komponen', 'semester', 'siswa', 'existing', 'cbtSchedules'));
     }
 
     /**
@@ -136,16 +134,12 @@ class NilaiController extends Controller
         $validated = $request->validate([
             'kelas_id' => 'required|exists:kelas,id',
             'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
-            'komponen_nilai_id' => 'required|exists:komponen_nilai,id',
             'semester_id' => 'required|exists:semester,id',
             'nilai' => 'required|array',
-            'nilai.*.angka' => 'nullable|numeric|min:0|max:100',
-            'nilai.*.keterangan' => 'nullable|string|max:255',
         ]);
 
         $user = Auth::user();
         $mpkId = $validated['mata_pelajaran_kelas_id'];
-        $komponenId = $validated['komponen_nilai_id'];
         $semesterId = $validated['semester_id'];
         $kelasId = $validated['kelas_id'];
 
@@ -165,33 +159,36 @@ class NilaiController extends Controller
 
         $userId = $user->id;
 
-        // Determine jenis_nilai based on Component mapping or default to component name slug
-        $komponen = KomponenNilai::find($komponenId);
-        $jenisNilai = \Illuminate\Support\Str::slug($komponen->nama, '_');
-
         DB::beginTransaction();
         try {
-            foreach ($validated['nilai'] as $siswaId => $data) {
-                // If value is null/empty, we might want to skip or delete?
-                // Let's assume we updateOrCreate. If empty, maybe set to 0 or null?
-                // Standard behavior: if empty, do nothing or delete? PROPOSAL: Update if provided.
+            foreach ($validated['nilai'] as $siswaId => $komponenData) {
+                if (!is_array($komponenData)) continue;
 
-                if (isset($data['angka']) && $data['angka'] !== null) {
-                    Nilai::updateOrCreate(
-                        [
+                foreach ($komponenData as $komponenId => $data) {
+                    if (isset($data['angka']) && $data['angka'] !== null) {
+                        Nilai::updateOrCreate(
+                            [
+                                'siswa_id' => $siswaId,
+                                'mata_pelajaran_kelas_id' => $mpkId,
+                                'komponen_nilai_id' => $komponenId,
+                                'semester_id' => $semesterId,
+                            ],
+                            [
+                                'nilai' => $data['angka'],
+                                'keterangan' => $data['keterangan'] ?? null,
+                                'penginput_id' => $userId,
+                                'tanggal_input' => now(),
+                            ]
+                        );
+                    } else if (isset($data['angka']) && $data['angka'] === null) {
+                        // Jika dihapus valuenya / dikosongkan formnya
+                        Nilai::where([
                             'siswa_id' => $siswaId,
                             'mata_pelajaran_kelas_id' => $mpkId,
                             'komponen_nilai_id' => $komponenId,
                             'semester_id' => $semesterId,
-                        ],
-                        [
-                            'jenis_nilai' => $jenisNilai,
-                            'nilai' => $data['angka'],
-                            'keterangan' => $data['keterangan'] ?? null,
-                            'penginput_id' => $userId,
-                            'tanggal_input' => now(),
-                        ]
-                    );
+                        ])->delete();
+                    }
                 }
             }
             DB::commit();
@@ -199,7 +196,7 @@ class NilaiController extends Controller
             return redirect()->route('nilai.index', [
                 'kelas_id' => $validated['kelas_id'],
                 'mata_pelajaran_kelas_id' => $mpkId
-            ])->with('success', 'Nilai berhasil disimpan.');
+            ])->with('success', 'Semua nilai berhasil disimpan.');
 
         } catch (\Exception $e) {
             DB::rollBack();

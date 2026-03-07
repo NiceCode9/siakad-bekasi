@@ -87,8 +87,7 @@
                                     <th>No</th>
                                     <th>NISN</th>
                                     <th>Nama Siswa</th>
-                                    <th>Status Raport</th>
-                                    <th>Aksi</th>
+                                    <th>Aksi & Status per Komponen</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -97,38 +96,42 @@
                                     <td>{{ $idx + 1 }}</td>
                                     <td>{{ $siswa->nisn }}</td>
                                     <td>{{ $siswa->nama_lengkap }}</td>
-                                    <td>
-                                        @if($siswa->raports->first())
-                                            <span class="badge badge-{{ $siswa->raports->first()->status == 'published' ? 'success' : ($siswa->raports->first()->status == 'approved' ? 'info' : 'secondary') }}">
-                                                {{ strtoupper($siswa->raports->first()->status) }}
-                                            </span>
-                                        @else
-                                            <span class="badge badge-warning">BELUM GENERATE</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <div class="btn-group">
-                                            @if($siswa->raports->first())
-                                                <a href="{{ route('raport.show', $siswa->raports->first()->id) }}" class="btn btn-info btn-sm">
-                                                    <i class="simple-icon-eye"></i> Detail
-                                                </a>
-                                                <form action="{{ route('raport.generate', [$siswa->id, $semester->id]) }}" method="POST" class="d-inline">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-warning btn-sm" onclick="return confirm('Generate ulang raport akan memperbarui nilai. Lanjutkan?')">
-                                                        <i class="simple-icon-refresh"></i> Re-generate
-                                                    </button>
-                                                </form>
-                                                <a href="{{ route('raport.print', $siswa->raports->first()->id) }}" class="btn btn-primary btn-sm">
-                                                    <i class="simple-icon-printer"></i> Cetak
-                                                </a>
-                                            @else
-                                                <form action="{{ route('raport.generate', [$siswa->id, $semester->id]) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-success btn-sm">
-                                                        <i class="simple-icon-plus"></i> Generate Raport
-                                                    </button>
-                                                </form>
-                                            @endif
+                                    <td colspan="2">
+                                        <div class="row">
+                                            @foreach($komponens as $comp)
+                                                @php
+                                                    $raportComp = $siswa->raports->where('komponen_nilai_id', $comp->id)->first();
+                                                @endphp
+                                                <div class="col-md-6 mb-3">
+                                                    <div class="border p-2 rounded shadow-sm bg-white">
+                                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                                            <strong>{{ $comp->nama }}</strong>
+                                                            @if($raportComp)
+                                                                <span class="badge badge-{{ $raportComp->status == 'published' ? 'success' : ($raportComp->status == 'approved' ? 'info' : 'secondary') }}">
+                                                                    {{ strtoupper($raportComp->status) }}
+                                                                </span>
+                                                            @else
+                                                                <span class="badge badge-warning">BELUM GENERATE</span>
+                                                            @endif
+                                                        </div>
+                                                        <div class="btn-group w-100">
+                                                            @if($raportComp)
+                                                                <a href="{{ route('raport.show', $raportComp->id) }}" class="btn btn-info btn-xs" title="Lihat Detail"><i class="simple-icon-eye"></i></a>
+                                                                <form action="{{ route('raport.generate', [$siswa->id, $semester->id, $comp->id]) }}" method="POST" class="d-inline w-50" style="margin: 0;">
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-warning btn-xs w-100" style="border-radius: 0;" onclick="return confirm('Generate ulang raport akan memperbarui nilai. Lanjutkan?')" title="Generate Ulang"><i class="simple-icon-refresh"></i> Re-gen</button>
+                                                                </form>
+                                                                <a href="{{ route('raport.print', $raportComp->id) }}" class="btn btn-primary btn-xs w-50" title="Cetak Raport" style="border-top-left-radius: 0; border-bottom-left-radius: 0;"><i class="simple-icon-printer"></i> Cetak</a>
+                                                            @else
+                                                                <form action="{{ route('raport.generate', [$siswa->id, $semester->id, $comp->id]) }}" method="POST" class="w-100 mb-0">
+                                                                    @csrf
+                                                                    <button type="submit" class="btn btn-success btn-xs btn-block"><i class="simple-icon-plus"></i> Generate Raport</button>
+                                                                </form>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
                                         </div>
                                     </td>
                                 </tr>

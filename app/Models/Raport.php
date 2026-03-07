@@ -15,6 +15,7 @@ class Raport extends Model
         'siswa_id',
         'semester_id',
         'kelas_id',
+        'komponen_nilai_id',
         'jumlah_sakit',
         'jumlah_izin',
         'jumlah_alpha',
@@ -44,6 +45,11 @@ class Raport extends Model
     public function kelas()
     {
         return $this->belongsTo(Kelas::class);
+    }
+
+    public function komponenNilai()
+    {
+        return $this->belongsTo(KomponenNilai::class);
     }
 
     public function approvedBy()

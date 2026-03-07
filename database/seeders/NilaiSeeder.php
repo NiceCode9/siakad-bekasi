@@ -43,17 +43,11 @@ class NilaiSeeder extends Seeder
                             continue;
                         }
 
-                        $jenis = Str::slug($comp->nama, '_');
-                        if (!in_array($jenis, $validJenisNilai)) {
-                            $jenis = 'lainnya';
-                        }
-
                         Nilai::create([
                             'siswa_id' => $siswa->id,
                             'mata_pelajaran_kelas_id' => $mpk->id,
                             'komponen_nilai_id' => $comp->id,
                             'semester_id' => $semester->id,
-                            'jenis_nilai' => $jenis,
                             'nilai' => rand(75, 95),
                             'penginput_id' => $mpk->guru_id,
                             'tanggal_input' => now(),

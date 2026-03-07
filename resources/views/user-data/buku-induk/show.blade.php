@@ -250,7 +250,7 @@
                                             <th>Kelas</th>
                                             <th>Semester</th>
                                             <th>Mata Pelajaran</th>
-                                            <th>Jenis Nilai</th>
+                                            <th>Komponen Nilai</th>
                                             <th>Nilai</th>
                                             <th>Keterangan</th>
                                         </tr>
@@ -261,7 +261,7 @@
                                                 <td>{{ $nilai->mataPelajaranKelas->kelas->nama ?? '-' }}</td>
                                                 <td>{{ $nilai->semester->nama ?? '-' }}</td>
                                                 <td>{{ $nilai->mataPelajaranKelas->mataPelajaran->nama ?? '-' }}</td>
-                                                <td>{{ ucfirst(str_replace('_', ' ', $nilai->jenis_nilai)) }}</td>
+                                                <td>{{ $nilai->komponenNilai->nama ?? '-' }}</td>
                                                 <td class="font-weight-bold text-center">{{ $nilai->nilai }}</td>
                                                 <td>{{ $nilai->keterangan }}</td>
                                             </tr>

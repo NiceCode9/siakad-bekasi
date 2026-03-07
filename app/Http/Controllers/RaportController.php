@@ -82,9 +82,10 @@ class RaportController extends Controller
             $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
             $allSiswa = Siswa::orderBy('nama_lengkap')->get();
 
+            $komponens = \App\Models\KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
             // For Admin, we allow selecting any semester
             $semester = $currentSemester;
-            return view('raport.index', compact('siswas', 'kelas', 'semester', 'tahunAkademiks', 'allSiswa', 'filterTahun', 'filterSemester', 'filterSiswa'));
+            return view('raport.index', compact('siswas', 'kelas', 'semester', 'tahunAkademiks', 'allSiswa', 'filterTahun', 'filterSemester', 'filterSiswa', 'komponens'));
         }
 
         // Wali Kelas logic
@@ -99,7 +100,9 @@ class RaportController extends Controller
             $siswas = [];
         }
 
-        return view('raport.index', compact('siswas', 'kelas', 'semester'));
+        $komponens = \App\Models\KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
+
+        return view('raport.index', compact('siswas', 'kelas', 'semester', 'komponens'));
     }
 
     public function getSemestersByTahun($tahun_id)
@@ -111,7 +114,7 @@ class RaportController extends Controller
         return response()->json($semesters);
     }
 
-    public function generate($siswa_id, $semester_id)
+    public function generate($siswa_id, $semester_id, $komponen_nilai_id)
     {
         $siswa = Siswa::findOrFail($siswa_id);
         $semester = Semester::findOrFail($semester_id);
@@ -124,7 +127,7 @@ class RaportController extends Controller
         DB::beginTransaction();
         try {
             $raport = Raport::updateOrCreate(
-                ['siswa_id' => $siswa_id, 'semester_id' => $semester_id],
+                ['siswa_id' => $siswa_id, 'semester_id' => $semester_id, 'komponen_nilai_id' => $komponen_nilai_id],
                 [
                     'kelas_id' => $kelas->id,
                     'tanggal_generate' => now(),
@@ -155,16 +158,13 @@ class RaportController extends Controller
                 $scores = Nilai::where('siswa_id', $siswa_id)
                     ->where('mata_pelajaran_kelas_id', $mk->id)
                     ->where('semester_id', $semester_id)
+                    ->where('komponen_nilai_id', $komponen_nilai_id)
                     ->get();
 
                 if ($scores->count() > 0) {
-                    $nilaiPengetahuan = $scores->whereIn('jenis_nilai', ['tugas', 'ulangan_harian', 'uts', 'uas'])->avg('nilai');
-                    $nilaiKeterampilan = $scores->whereIn('jenis_nilai', ['praktik', 'proyek'])->avg('nilai');
-
-                    // Fallback if no skills assessment
-                    if (is_null($nilaiKeterampilan)) $nilaiKeterampilan = $nilaiPengetahuan;
-
-                    $nilaiAkhir = ($nilaiPengetahuan + $nilaiKeterampilan) / 2;
+                    $nilaiAkhir = $scores->avg('nilai');
+                    $nilaiPengetahuan = $nilaiAkhir; // Diadaptasi, jika butuh breakdown bisa ditambah kolom
+                    $nilaiKeterampilan = $nilaiAkhir;
 
                     // Calculate subject-specific attendance from presensi_mapel
                     $journalIds = \App\Models\JurnalMengajar::whereHas('jadwalPelajaran', function($q) use ($mk) {
@@ -195,6 +195,8 @@ class RaportController extends Controller
                     );
                 }
             }
+
+            // dd($scores);
 
             DB::commit();
             return redirect()->route('raport.show', $raport->id)->with('success', 'Raport berhasil di-generate.');

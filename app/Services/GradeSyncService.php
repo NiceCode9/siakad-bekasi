@@ -29,16 +29,6 @@ class GradeSyncService
             return false;
         }
 
-        // 2. Map jenis_nilai (Sync with Nilai table enum)
-        $mapJenis = [
-            'ulangan_harian' => 'ulangan_harian',
-            'uts' => 'uts',
-            'uas' => 'uas',
-            'ujian_praktik' => 'praktik',
-            'ujian_sekolah' => 'uas',
-        ];
-        $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
-
         // 3. Manual Entry Protection
         // Check if a record exists that was NOT created by CBT (ujian_siswa_id is null)
         $existingManual = Nilai::where([
@@ -62,7 +52,6 @@ class GradeSyncService
                 'semester_id' => $jadwal->semester_id,
             ],
             [
-                'jenis_nilai' => $jenisNilai,
                 'nilai' => $finalScore,
                 'ujian_siswa_id' => $ujianSiswa->id,
                 'penginput_id' => $jadwal->mataPelajaranKelas->guru_id ?? 1, // Fallback to ID 1 if guru not found

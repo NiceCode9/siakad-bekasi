@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('siswa_id')->constrained('siswa')->onDelete('cascade');
             $table->foreignId('semester_id')->constrained('semester')->onDelete('cascade');
             $table->foreignId('kelas_id')->constrained('kelas')->onDelete('cascade');
+            $table->foreignId('komponen_nilai_id')->constrained('komponen_nilai')->onDelete('restrict');
             $table->integer('jumlah_sakit')->default(0);
             $table->integer('jumlah_izin')->default(0);
             $table->integer('jumlah_alpha')->default(0);
@@ -23,7 +24,7 @@ return new class extends Migration
             $table->dateTime('approved_at')->nullable();
             $table->timestamps();
 
-            $table->unique(['siswa_id', 'semester_id']);
+            $table->unique(['siswa_id', 'semester_id', 'komponen_nilai_id'], 'raport_siswa_semester_komponen_unique');
             $table->index('status');
         });
     }
