@@ -43,7 +43,7 @@ class ELearningController extends Controller
     public function course($id)
     {
         $subject = MataPelajaranKelas::with([
-            'kelas', 
+            'kelas.semester.tahunAkademik', 
             'mataPelajaran', 
             'guru',
             'materiAjar' => fn($q) => $q->orderBy('urutan'),
@@ -51,6 +51,9 @@ class ELearningController extends Controller
             'forumDiskusi' => fn($q) => $q->latest()
         ])->findOrFail($id);
 
-        return view('elearning.course', compact('subject'));
+        $kurikulumId = $subject->kelas->semester->tahunAkademik->kurikulum_id ?? 0;
+        $components = \App\Models\KomponenNilai::where('kurikulum_id', $kurikulumId)->get();
+
+        return view('elearning.course', compact('subject', 'components'));
     }
 }

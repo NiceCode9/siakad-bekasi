@@ -6,6 +6,7 @@ use App\Models\UjianSiswa;
 use App\Models\JadwalUjian;
 use App\Models\Nilai;
 use App\Models\KomponenNilai;
+use App\Models\MataPelajaranKelas;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -29,15 +30,8 @@ class GradeSyncService
             return false;
         }
 
-        // 2. Map jenis_nilai (Sync with Nilai table enum)
-        $mapJenis = [
-            'ulangan_harian' => 'ulangan_harian',
-            'uts' => 'uts',
-            'uas' => 'uas',
-            'ujian_praktik' => 'praktik',
-            'ujian_sekolah' => 'uas',
-        ];
-        $jenisNilai = $mapJenis[$jadwal->jenis_ujian] ?? 'lainnya';
+        // 2. Map jenis_nilai (Use component code as requested)
+        $jenisNilai = strtolower($komponen->kode);
 
         // 3. Manual Entry Protection
         // Check if a record exists that was NOT created by CBT (ujian_siswa_id is null)
@@ -107,5 +101,61 @@ class GradeSyncService
         }
 
         return $komponen;
+    }
+
+    /**
+     * Aggregation: Sync all assignment (Tugas) grades for a student.
+     */
+    public function syncTaskGrades($siswaId, MataPelajaranKelas $mpk)
+    {
+        // 1. Get all graded submissions for this student and MPK
+        $submissions = \App\Models\PengumpulanTugas::where('siswa_id', $siswaId)
+            ->whereHas('tugas', function($q) use ($mpk) {
+                $q->where('mata_pelajaran_kelas_id', $mpk->id);
+            })
+            ->where('status', 'dinilai')
+            ->with('tugas')
+            ->get();
+
+        if ($submissions->isEmpty()) return false;
+
+        // 2. Calculate Weighted Average
+        $totalWeightedScore = 0;
+        $totalWeight = 0;
+
+        foreach ($submissions as $sub) {
+            $weight = (float)($sub->tugas->bobot > 0 ? $sub->tugas->bobot : 1);
+            $totalWeightedScore += ((float)$sub->nilai * $weight);
+            $totalWeight += $weight;
+        }
+
+        $averageScore = $totalWeight > 0 ? ($totalWeightedScore / $totalWeight) : 0;
+
+        // 3. Resolve Component from the first task (They should ideally all share the same component if aggregated)
+        // Note: For now we assume consistent component selection across tasks for same MPK
+        $komponen = $submissions->first()->tugas->komponenNilai;
+
+        if (!$komponen) return false;
+
+        $semesterId = $mpk->kelas?->semester_id;
+
+        // 4. Update Nilai record
+        Nilai::updateOrCreate(
+            [
+                'siswa_id' => $siswaId,
+                'mata_pelajaran_kelas_id' => $mpk->id,
+                'komponen_nilai_id' => $komponen->id,
+                'semester_id' => $semesterId,
+            ],
+            [
+                'jenis_nilai' => strtolower($komponen->kode),
+                'nilai' => $averageScore,
+                'penginput_id' => $mpk->guru_id ?? 1,
+                'tanggal_input' => now(),
+                'keterangan' => 'Akumulasi nilai tugas E-Learning (' . $submissions->count() . ' tugas)'
+            ]
+        );
+
+        return true;
     }
 }

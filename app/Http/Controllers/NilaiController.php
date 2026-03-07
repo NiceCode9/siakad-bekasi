@@ -74,7 +74,16 @@ class NilaiController extends Controller
                 ->groupBy('mata_pelajaran_kelas_id');
         }
 
-        return view('pembelajaran.nilai.index', compact('kelas', 'subjects', 'components', 'cbtSchedules'));
+        // Load E-Learning Tasks integration
+        $taskCounts = collect();
+        if ($request->filled('kelas_id') && $subjects->count() > 0) {
+            $taskCounts = \App\Models\Tugas::whereIn('mata_pelajaran_kelas_id', $subjects->pluck('id'))
+                ->where('is_published', true)
+                ->get()
+                ->groupBy('mata_pelajaran_kelas_id');
+        }
+
+        return view('pembelajaran.nilai.index', compact('kelas', 'subjects', 'components', 'cbtSchedules', 'taskCounts'));
     }
 
     /**
@@ -167,7 +176,7 @@ class NilaiController extends Controller
 
         // Determine jenis_nilai based on Component mapping or default to component name slug
         $komponen = KomponenNilai::find($komponenId);
-        $jenisNilai = \Illuminate\Support\Str::slug($komponen->nama, '_');
+        $jenisNilai = strtolower($komponen->kode);
 
         DB::beginTransaction();
         try {
@@ -203,6 +212,7 @@ class NilaiController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            dd($e);
             return redirect()->back()->with('error', 'Gagal menyimpan nilai: ' . $e->getMessage());
         }
     }

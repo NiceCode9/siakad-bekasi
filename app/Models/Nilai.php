@@ -62,19 +62,4 @@ class Nilai extends Model
         return $this->belongsTo(Guru::class, 'penginput_id');
     }
 
-    // Scopes
-    public function scopeUlanganHarian($query)
-    {
-        return $query->where('jenis_nilai', 'ulangan_harian');
-    }
-
-    public function scopeUts($query)
-    {
-        return $query->where('jenis_nilai', 'uts');
-    }
-
-    public function scopeUas($query)
-    {
-        return $query->where('jenis_nilai', 'uas');
-    }
 }

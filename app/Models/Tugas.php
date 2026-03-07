@@ -13,6 +13,7 @@ class Tugas extends Model
 
     protected $fillable = [
         'mata_pelajaran_kelas_id',
+        'komponen_nilai_id',
         'judul',
         'deskripsi',
         'file_lampiran',
@@ -27,12 +28,18 @@ class Tugas extends Model
         'tanggal_deadline' => 'datetime',
         'bobot' => 'decimal:2',
         'is_published' => 'boolean',
+        'komponen_nilai_id' => 'integer',
     ];
 
     // Relationships
     public function mataPelajaranKelas()
     {
         return $this->belongsTo(MataPelajaranKelas::class);
+    }
+
+    public function komponenNilai()
+    {
+        return $this->belongsTo(KomponenNilai::class);
     }
 
 

@@ -30,6 +30,7 @@ class TugasController extends Controller
     {
         $request->validate([
             'mata_pelajaran_kelas_id' => 'required|exists:mata_pelajaran_kelas,id',
+            'komponen_nilai_id' => 'required|exists:komponen_nilai,id',
             'judul' => 'required|string|max:255',
             'tanggal_deadline' => 'required|date',
             'file_lampiran' => 'nullable|file|max:5120',
@@ -102,15 +103,10 @@ class TugasController extends Controller
             'tanggal_dinilai' => now(),
         ]);
 
-        // Notify Student
-        $this->notifyUser(
-            $submission->siswa->user_id,
-            'Tugas Dinilai: ' . $submission->tugas->judul,
-            'Tugas Anda telah dinilaioleh guru dengan skor: ' . $request->nilai,
-            'success',
-            route('tugas.show', $submission->tugas_id)
-        );
+        // Sync to Penilaian (Nilai) table
+        $service = app(\App\Services\GradeSyncService::class);
+        $service->syncTaskGrades($submission->siswa_id, $submission->tugas->mataPelajaranKelas);
 
-        return back()->with('success', 'Nilai berhasil disimpan.');
+        return back()->with('success', 'Nilai berhasil disimpan dan disinkronkan ke Penilaian.');
     }
 }

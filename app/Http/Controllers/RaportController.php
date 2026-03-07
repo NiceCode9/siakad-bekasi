@@ -158,8 +158,9 @@ class RaportController extends Controller
                     ->get();
 
                 if ($scores->count() > 0) {
-                    $nilaiPengetahuan = $scores->whereIn('jenis_nilai', ['tugas', 'ulangan_harian', 'uts', 'uas'])->avg('nilai');
-                    $nilaiKeterampilan = $scores->whereIn('jenis_nilai', ['praktik', 'proyek'])->avg('nilai');
+                    $scores->load('komponenNilai');
+                    $nilaiPengetahuan = $scores->filter(fn($s) => $s->komponenNilai?->kategori === 'pengetahuan')->avg('nilai');
+                    $nilaiKeterampilan = $scores->filter(fn($s) => $s->komponenNilai?->kategori === 'keterampilan')->avg('nilai');
 
                     // Fallback if no skills assessment
                     if (is_null($nilaiKeterampilan)) $nilaiKeterampilan = $nilaiPengetahuan;

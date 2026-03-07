@@ -43,10 +43,7 @@ class NilaiSeeder extends Seeder
                             continue;
                         }
 
-                        $jenis = Str::slug($comp->nama, '_');
-                        if (!in_array($jenis, $validJenisNilai)) {
-                            $jenis = 'lainnya';
-                        }
+                        $jenis = strtolower($comp->kode);
 
                         Nilai::create([
                             'siswa_id' => $siswa->id,

@@ -64,6 +64,7 @@
                                                     @foreach($components as $comp)
                                                         @php
                                                             $hasCbt = isset($cbtSchedules[$mpk->id]) && $cbtSchedules[$mpk->id]->contains('komponen_nilai_id', $comp->id);
+                                                            $hasTasks = (strtolower($comp->kode) === 'tugas') && isset($taskCounts[$mpk->id]) && $taskCounts[$mpk->id]->count() > 0;
                                                         @endphp
                                                         <a href="{{ route('nilai.create', [
                                                             'kelas_id' => request('kelas_id'),
@@ -73,6 +74,9 @@
                                                             {{ $comp->nama }}
                                                             @if($hasCbt)
                                                                 <span class="badge badge-success ml-1 shadow-sm" title="Terintegrasi dengan CBT" style="font-size: 70%;">CBT</span>
+                                                            @endif
+                                                            @if($hasTasks)
+                                                                <span class="badge badge-primary ml-1 shadow-sm" title="Terintegrasi dengan E-Learning (Tugas)" style="font-size: 70%;">Tugas</span>
                                                             @endif
                                                         </a>
                                                     @endforeach

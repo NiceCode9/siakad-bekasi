@@ -185,6 +185,15 @@
                 <div class="modal-header"><h5 class="modal-title">Buat Tugas Baru</h5></div>
                 <div class="modal-body">
                     <div class="form-group"><label>Judul Tugas</label><input type="text" name="judul" class="form-control" required></div>
+                    <div class="form-group"><label>Komponen Nilai</label>
+                        <select name="komponen_nilai_id" class="form-control" required>
+                            <option value="">-- Pilih Komponen Nilai --</option>
+                            @foreach($components as $comp)
+                                <option value="{{ $comp->id }}">{{ $comp->nama }} ({{ $comp->kode }})</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Tentukan kategori nilai untuk tugas ini</small>
+                    </div>
                     <div class="form-group"><label>Deadline</label><input type="datetime-local" name="tanggal_deadline" class="form-control" required></div>
                     <div class="form-group"><label>Lampiran</label><input type="file" name="file_lampiran" class="form-control"></div>
                     <div class="form-group"><label>Instruksi</label><textarea name="deskripsi" class="form-control" rows="5"></textarea></div>
