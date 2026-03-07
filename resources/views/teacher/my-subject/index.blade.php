@@ -88,7 +88,10 @@
                                                 data-id="{{ $item->id }}"
                                                 data-mapel="{{ $item->mataPelajaran->nama }}"
                                                 data-kelas="{{ $item->kelas->nama }}"
-                                                data-kompetensi="{{ $item->capaian_kompetensi }}"
+                                                data-ca="{{ $item->capaian_kompetensi_a }}"
+                                                data-cb="{{ $item->capaian_kompetensi_b }}"
+                                                data-cc="{{ $item->capaian_kompetensi_c }}"
+                                                data-cd="{{ $item->capaian_kompetensi_d }}"
                                                 title="Lihat Capaian Kompetensi">
                                                 <i class="fas fa-eye"></i>
                                             </button>
@@ -100,7 +103,10 @@
                                                     data-mapel="{{ $item->mataPelajaran->nama }}"
                                                     data-kelas="{{ $item->kelas->nama }}"
                                                     data-kkm="{{ $item->kkm }}"
-                                                    data-capaian_kompetensi="{{ $item->capaian_kompetensi }}"
+                                                    data-ca="{{ $item->capaian_kompetensi_a }}"
+                                                    data-cb="{{ $item->capaian_kompetensi_b }}"
+                                                    data-cc="{{ $item->capaian_kompetensi_c }}"
+                                                    data-cd="{{ $item->capaian_kompetensi_d }}"
                                                     title="Edit Data Mapel">
                                                     <i class="fas fa-edit"></i>
                                                 </button>
@@ -156,8 +162,24 @@
                             <input type="number" name="kkm" id="edit-kkm" class="form-control" min="0" max="100" step="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label>Capaian Kompetensi <span class="text-danger">*</span></label>
-                            <textarea name="capaian_kompetensi" id="edit-capaian-kompetensi" class="form-control" rows="3" required></textarea>
+                            <label>Capaian - Sangat Baik (Predikat A) <span class="text-danger">*</span></label>
+                            <textarea name="capaian_kompetensi_a" id="edit-ca" class="form-control" rows="2" 
+                                placeholder="Contoh: Sangat mampu memahami materi..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Capaian - Baik (Predikat B) <span class="text-danger">*</span></label>
+                            <textarea name="capaian_kompetensi_b" id="edit-cb" class="form-control" rows="2" 
+                                placeholder="Contoh: Mampu memahami materi..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Capaian - Cukup (Predikat C) <span class="text-danger">*</span></label>
+                            <textarea name="capaian_kompetensi_c" id="edit-cc" class="form-control" rows="2" 
+                                placeholder="Contoh: Cukup mampu memahami materi..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Capaian - Kurang (Predikat D) <span class="text-danger">*</span></label>
+                            <textarea name="capaian_kompetensi_d" id="edit-cd" class="form-control" rows="2" 
+                                placeholder="Contoh: Kurang mampu memahami materi..." required></textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -204,13 +226,15 @@
                 const mapel = $(this).data('mapel');
                 const kelas = $(this).data('kelas');
                 const kkm = $(this).data('kkm');
-                const capaian_kompetensi = $(this).data('capaian_kompetensi');
 
                 $('#edit-id').val(id);
                 $('#edit-mapel').val(mapel);
                 $('#edit-kelas').val(kelas);
                 $('#edit-kkm').val(kkm);
-                $('#edit-capaian-kompetensi').val(capaian_kompetensi);
+                $('#edit-ca').val($(this).data('ca'));
+                $('#edit-cb').val($(this).data('cb'));
+                $('#edit-cc').val($(this).data('cc'));
+                $('#edit-cd').val($(this).data('cd'));
 
                 $('#editKkmModal').modal('show');
             });
@@ -219,11 +243,18 @@
             $(document).on('click', '.view-kompetensi-btn', function() {
                 const mapel = $(this).data('mapel');
                 const kelas = $(this).data('kelas');
-                const kompetensi = $(this).data('kompetensi');
 
                 $('#view-mapel-title').text(mapel);
                 $('#view-kelas-title').text('Kelas: ' + kelas);
-                $('#view-kompetensi-content').text(kompetensi);
+                
+                let contentHTML = `
+                    <div class="mb-2"><strong>Sangat Baik (A):</strong><br>${$(this).data('ca') || '<em class="text-muted">Kosong</em>'}</div>
+                    <div class="mb-2"><strong>Baik (B):</strong><br>${$(this).data('cb') || '<em class="text-muted">Kosong</em>'}</div>
+                    <div class="mb-2"><strong>Cukup (C):</strong><br>${$(this).data('cc') || '<em class="text-muted">Kosong</em>'}</div>
+                    <div class="mb-0"><strong>Kurang (D):</strong><br>${$(this).data('cd') || '<em class="text-muted">Kosong</em>'}</div>
+                `;
+                
+                $('#view-kompetensi-content').html(contentHTML);
                 $('#viewKompetensiModal').modal('show');
             });
 
@@ -232,7 +263,6 @@
                 e.preventDefault();
                 const id = $('#edit-id').val();
                 const kkm = $('#edit-kkm').val();
-                const capaian_kompetensi = $('#edit-capaian-kompetensi').val();
                 const url = `{{ route('teacher.update-kkm', ':id') }}`.replace(':id', id);
 
                 $.ajax({
@@ -241,17 +271,28 @@
                     data: {
                         _token: '{{ csrf_token() }}',
                         kkm: kkm,
-                        capaian_kompetensi: capaian_kompetensi
+                        capaian_kompetensi_a: $('#edit-ca').val(),
+                        capaian_kompetensi_b: $('#edit-cb').val(),
+                        capaian_kompetensi_c: $('#edit-cc').val(),
+                        capaian_kompetensi_d: $('#edit-cd').val()
                     },
                     success: function(response) {
                         if (response.success) {
                             $(`#kkm-display-${id}`).text(response.kkm);
-                            $(`#capaian-kompetensi-display-${id}`).text(response.capaian_kompetensi).attr('title', response.capaian_kompetensi);
+                            
                             // Update attributes on the button too
-                            const btn = $(`.edit-kkm-btn[data-id="${id}"]`);
-                            btn.data('kkm', response.kkm);
-                            btn.data('capaian_kompetensi', response.capaian_kompetensi);
-                            btn.attr('data-capaian_kompetensi', response.capaian_kompetensi);
+                            const btnEdit = $(`.edit-kkm-btn[data-id="${id}"]`);
+                            btnEdit.data('kkm', response.kkm);
+                            btnEdit.data('ca', response.capaian_kompetensi_a);
+                            btnEdit.data('cb', response.capaian_kompetensi_b);
+                            btnEdit.data('cc', response.capaian_kompetensi_c);
+                            btnEdit.data('cd', response.capaian_kompetensi_d);
+                            
+                            const btnView = $(`.view-kompetensi-btn[data-id="${id}"]`);
+                            btnView.data('ca', response.capaian_kompetensi_a);
+                            btnView.data('cb', response.capaian_kompetensi_b);
+                            btnView.data('cc', response.capaian_kompetensi_c);
+                            btnView.data('cd', response.capaian_kompetensi_d);
 
                             $('#editKkmModal').modal('hide');
 

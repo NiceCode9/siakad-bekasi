@@ -55,7 +55,10 @@ class MySubjectController extends Controller
     {
         $validated = $request->validate([
             'kkm' => 'required|numeric|min:0|max:100',
-            'capaian_kompetensi' => 'nullable|string',
+            'capaian_kompetensi_a' => 'nullable|string',
+            'capaian_kompetensi_b' => 'nullable|string',
+            'capaian_kompetensi_c' => 'nullable|string',
+            'capaian_kompetensi_d' => 'nullable|string',
         ]);
 
         $mpk = MataPelajaranKelas::findOrFail($id);
@@ -66,13 +69,22 @@ class MySubjectController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
         }
 
-        $mpk->update(['kkm' => $validated['kkm'], 'capaian_kompetensi' => $validated['capaian_kompetensi']]);
+        $mpk->update([
+            'kkm' => $validated['kkm'],
+            'capaian_kompetensi_a' => $validated['capaian_kompetensi_a'],
+            'capaian_kompetensi_b' => $validated['capaian_kompetensi_b'],
+            'capaian_kompetensi_c' => $validated['capaian_kompetensi_c'],
+            'capaian_kompetensi_d' => $validated['capaian_kompetensi_d'],
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'KKM berhasil diperbarui',
+            'message' => 'KKM dan Capaian Kompetensi berhasil diperbarui',
             'kkm' => $mpk->kkm,
-            'capaian_kompetensi' => $mpk->capaian_kompetensi
+            'capaian_kompetensi_a' => $mpk->capaian_kompetensi_a,
+            'capaian_kompetensi_b' => $mpk->capaian_kompetensi_b,
+            'capaian_kompetensi_c' => $mpk->capaian_kompetensi_c,
+            'capaian_kompetensi_d' => $mpk->capaian_kompetensi_d,
         ]);
     }
 }

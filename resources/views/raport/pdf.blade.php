@@ -1,22 +1,78 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>RAPORT - {{ $raport->siswa->nama_lengkap }}</title>
     <style>
-        body { font-family: sans-serif; font-size: 11pt; color: #333; line-height: 1.4; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .info-table { width: 100%; margin-bottom: 20px; }
-        .info-table td { padding: 3px 5px; }
-        .main-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .main-table th, .main-table td { border: 1px solid #000; padding: 8px; text-align: left; }
-        .main-table th { background-color: #f2f2f2; text-align: center; }
-        .text-center { text-align: center; }
-        .section-title { font-weight: bold; margin-bottom: 10px; background: #eee; padding: 5px; border: 1px solid #000; }
-        .footer { margin-top: 50px; width: 100%; }
-        .footer td { width: 33%; text-align: center; }
-        .page-break { page-break-after: always; }
+        body {
+            font-family: sans-serif;
+            font-size: 11pt;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+        }
+
+        .info-table {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .info-table td {
+            padding: 3px 5px;
+        }
+
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .main-table th,
+        .main-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .main-table th {
+            background-color: #f2f2f2;
+            text-align: center;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: #eee;
+            padding: 5px;
+            border: 1px solid #000;
+        }
+
+        .footer {
+            margin-top: 50px;
+            width: 100%;
+        }
+
+        .footer td {
+            width: 33%;
+            text-align: center;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
     </style>
 </head>
+
 <body>
     <div class="header">
         <h2 style="margin:0">LAPORAN HASIL BELAJAR</h2>
@@ -55,27 +111,23 @@
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="25%">Mata Pelajaran</th>
-                <th width="7%">PNS</th>
-                <th width="7%">KTR</th>
+                <th width="30%">Mata Pelajaran</th>
                 <th width="7%">NA</th>
                 <th width="7%">PRD</th>
-                <th width="42%">Capaian Kompetensi</th>
+                <th width="51%">Capaian Kompetensi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($raport->raportDetail as $idx => $detail)
-            <tr>
-                <td class="text-center">{{ $idx + 1 }}</td>
-                <td>{{ $detail->mataPelajaran->nama }}</td>
-                <td class="text-center">{{ round($detail->nilai_pengetahuan) }}</td>
-                <td class="text-center">{{ round($detail->nilai_keterampilan) }}</td>
-                <td class="text-center"><strong>{{ round($detail->nilai_akhir) }}</strong></td>
-                <td class="text-center">{{ $detail->predikat }}</td>
-                <td style="font-size: 9pt; line-height: 1.1; vertical-align: top;">
-                    {{ $detail->deskripsi }}
-                </td>
-            </tr>
+            @foreach ($raport->raportDetail as $idx => $detail)
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td>{{ $detail->mataPelajaran->nama }}</td>
+                    <td class="text-center"><strong>{{ round($detail->nilai_akhir) }}</strong></td>
+                    <td class="text-center">{{ $detail->predikat }}</td>
+                    <td style="font-size: 9pt; line-height: 1.1; vertical-align: top;">
+                        {{ $detail->deskripsi }}
+                    </td>
+                </tr>
             @endforeach
         </tbody>
     </table>
@@ -91,17 +143,17 @@
             </tr>
         </thead>
         <tbody>
-            @if($nilaiPkl)
-            <tr>
-                <td>{{ $nilaiPkl->pkl->perusahaanPkl->nama }}</td>
-                <td>{{ $nilaiPkl->pkl->perusahaanPkl->alamat ?? '-' }}</td>
-                <td class="text-center">3 Bulan</td>
-                <td>{{ $nilaiPkl->catatan_industri ?? 'Sangat Baik' }}</td>
-            </tr>
+            @if ($nilaiPkl)
+                <tr>
+                    <td>{{ $nilaiPkl->pkl->perusahaanPkl->nama }}</td>
+                    <td>{{ $nilaiPkl->pkl->perusahaanPkl->alamat ?? '-' }}</td>
+                    <td class="text-center">3 Bulan</td>
+                    <td>{{ $nilaiPkl->catatan_industri ?? 'Sangat Baik' }}</td>
+                </tr>
             @else
-            <tr>
-                <td colspan="4" class="text-center">Belum Melaksanakan PKL</td>
-            </tr>
+                <tr>
+                    <td colspan="4" class="text-center">Belum Melaksanakan PKL</td>
+                </tr>
             @endif
         </tbody>
     </table>
@@ -118,16 +170,16 @@
         </thead>
         <tbody>
             @forelse($nilaiEkskul as $idx => $ekskul)
-            <tr>
-                <td class="text-center">{{ $idx + 1 }}</td>
-                <td>{{ $ekskul->ekstrakurikuler->nama }}</td>
-                <td class="text-center">{{ $ekskul->predikat }}</td>
-                <td>{{ $ekskul->keterangan ?? 'Aktif mengikuti kegiatan' }}</td>
-            </tr>
+                <tr>
+                    <td class="text-center">{{ $idx + 1 }}</td>
+                    <td>{{ $ekskul->ekstrakurikuler->nama }}</td>
+                    <td class="text-center">{{ $ekskul->predikat }}</td>
+                    <td>{{ $ekskul->keterangan ?? 'Aktif mengikuti kegiatan' }}</td>
+                </tr>
             @empty
-            <tr>
-                <td colspan="4" class="text-center">-</td>
-            </tr>
+                <tr>
+                    <td colspan="4" class="text-center">-</td>
+                </tr>
             @endforelse
         </tbody>
     </table>
@@ -151,10 +203,10 @@
             </table>
         </div>
         <div style="width: 40%; float: left;">
-             <div class="section-title">E. Catatan Wali Kelas</div>
-             <div style="border: 1px solid #000; padding: 10px; height: 80px;">
+            <div class="section-title">E. Catatan Wali Kelas</div>
+            <div style="border: 1px solid #000; padding: 10px; height: 80px;">
                 {{ $raport->catatan_wali_kelas }}
-             </div>
+            </div>
         </div>
         <div style="clear: both;"></div>
     </div>
@@ -163,20 +215,26 @@
         <tr>
             <td>
                 Mengetahui,<br>Orang Tua/Wali
-                <br><br><br><br>
+                <br><br><br><br><br><br>
                 (................................)
             </td>
-            <td>
-                Mengetahui,<br>Kepala Sekolah
-                <br><br><br><br>
-                <strong>{{ $raport->approvedBy->name ?? '................................' }}</strong>
-            </td>
+            <td></td>
             <td>
                 Bogor, {{ date('d F Y') }}<br>Wali Kelas
-                <br><br><br><br>
+                <br><br><br><br><br><br>
                 <strong>{{ $raport->kelas->waliKelas->nama ?? '................................' }}</strong>
             </td>
         </tr>
+        <tr>
+            <td></td>
+            <td>
+                Mengetahui,<br>Kepala Sekolah
+                <br><br><br><br><br><br>
+                <strong>{{ $raport->approvedBy->name ?? '................................' }}</strong>
+            </td>
+            <td></td>
+        </tr>
     </table>
 </body>
+
 </html>

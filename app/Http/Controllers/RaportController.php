@@ -180,14 +180,30 @@ class RaportController extends Controller
 
                     $persentaseKehadiran = $totalPertemuan > 0 ? ($jumlahHadir / $totalPertemuan) * 100 : 0;
 
+                    $predikatHuruf = $this->calculatePredikat($nilaiAkhir, $mk->kkm);
+                    
+                    $predikatField = 'capaian_kompetensi_' . strtolower($predikatHuruf);
+                    $deskripsiAkhir = $mk->$predikatField;
+                    
+                    if (empty(trim($deskripsiAkhir))) {
+                        $predikatWords = [
+                            'A' => 'SANGAT BAIK',
+                            'B' => 'BAIK',
+                            'C' => 'CUKUP',
+                            'D' => 'KURANG'
+                        ];
+                        $predikatDeskripsi = $predikatWords[$predikatHuruf] ?? 'CUKUP';
+                        $deskripsiAkhir = "Menunjukkan capaian kompetensi dalam mata pelajaran " . $mk->mataPelajaran->nama . " dengan predikat " . $predikatDeskripsi . ".";
+                    }
+
                     RaportDetail::updateOrCreate(
                         ['raport_id' => $raport->id, 'mata_pelajaran_id' => $mk->mata_pelajaran_id],
                         [
                             'nilai_pengetahuan' => $nilaiPengetahuan,
                             'nilai_keterampilan' => $nilaiKeterampilan,
                             'nilai_akhir' => $nilaiAkhir,
-                            'predikat' => $this->calculatePredikat($nilaiAkhir, $mk->kkm),
-                            'deskripsi' => $mk->capaian_kompetensi ?? ("Menunjukkan pemahaman yang baik dalam mata pelajaran " . $mk->mataPelajaran->nama),
+                            'predikat' => $predikatHuruf,
+                            'deskripsi' => $deskripsiAkhir,
                             'jumlah_pertemuan' => $totalPertemuan,
                             'jumlah_hadir' => $jumlahHadir,
                             'persentase_kehadiran' => round($persentaseKehadiran, 2)
