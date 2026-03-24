@@ -207,6 +207,7 @@ Route::middleware('auth')->group(function () {
     Route::get('siswa/search/autocomplete', [SiswaController::class, 'search'])->name('siswa.search');
     Route::get('siswa/export/excel', [SiswaController::class, 'export'])->name('siswa.export');
     Route::post('siswa/import/excel', [SiswaController::class, 'import'])->name('siswa.import');
+    Route::get('siswa/template/excel', [SiswaController::class, 'template'])->name('siswa.template');
 
     Route::resource('orang-tua', OrangTuaController::class);
     Route::post('orang-tua/{orangTua}/create-account', [OrangTuaController::class, 'createAccount'])->name('orang-tua.create-account');

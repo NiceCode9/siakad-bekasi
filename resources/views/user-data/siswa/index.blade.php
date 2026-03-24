@@ -179,6 +179,10 @@
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> Download template Excel terlebih dahulu untuk memudahkan
                             import data.
+                            <br><br>
+                            <a href="{{ route('siswa.template') }}" class="btn btn-sm btn-info">
+                                <i class="fas fa-download"></i> Download Template
+                            </a>
                         </div>
                     </div>
                     <div class="modal-footer">

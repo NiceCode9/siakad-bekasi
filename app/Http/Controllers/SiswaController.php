@@ -13,6 +13,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
+use App\Exports\SiswaTemplateExport;
+use App\Imports\SiswaImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SiswaController extends Controller
 {
@@ -530,5 +533,45 @@ class SiswaController extends Controller
             });
 
         return response()->json($siswa);
+    }
+
+    /**
+     * Download Template Import Excel
+     */
+    public function template()
+    {
+        return Excel::download(new SiswaTemplateExport, 'template_siswa.xlsx');
+    }
+
+    /**
+     * Export to Excel
+     */
+    public function export()
+    {
+        // TODO: Implement Excel export
+    }
+
+    /**
+     * Import from Excel
+     */
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls|max:2048',
+        ]);
+
+        try {
+            Excel::import(new SiswaImport, $request->file('file'));
+            return redirect()->route('siswa.index')->with('success', 'Data siswa berhasil diimport');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+             $failures = $e->failures();
+             $msg = 'Gagal import. ';
+             foreach ($failures as $failure) {
+                 $msg .= 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors()) . '. ';
+             }
+             return redirect()->route('siswa.index')->with('error', $msg);
+        } catch (\Exception $e) {
+            return redirect()->route('siswa.index')->with('error', 'Gagal import: ' . $e->getMessage());
+        }
     }
 }
