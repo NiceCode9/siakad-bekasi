@@ -57,6 +57,84 @@
                 </div>
             </div>
         </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content Area -->
+        <div class="col-lg-8 mb-4">
+            <div class="card mb-4 bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title text-white">Tahun Akademik Aktif</h5>
+                    @if($semesterAktif)
+                        <h3 class="text-white">{{ $semesterAktif->tahunAkademik->nama ?? '' }}</h3>
+                        <p class="lead mb-0">Semester {{ ucfirst($semesterAktif->nama) }}</p>
+                    @else
+                        <p class="mb-0">Belum ada semester aktif yang diatur.</p>
+                    @endif
+                </div>
+            </div>
+
+            <h5 class="mb-3">Statistik E-Learning Semester Ini</h5>
+            <div class="row">
+                <div class="col-lg-4 col-sm-6 mb-4">
+                    <div class="card bg-info text-white text-center h-100">
+                        <div class="card-body py-4">
+                            <h2 class="text-white mb-0">{{ $totalMapel }}</h2>
+                            <p class="card-text mt-1 mb-0">Total Mapel</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-sm-6 mb-4">
+                    <div class="card bg-success text-white text-center h-100">
+                        <div class="card-body py-4">
+                            <h2 class="text-white mb-0">{{ $totalMateri }}</h2>
+                            <p class="card-text mt-1 mb-0">Total Materi</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-sm-6 mb-4">
+                    <div class="card bg-warning text-white text-center h-100">
+                        <div class="card-body py-4">
+                            <h2 class="text-white mb-0">{{ $totalTugas }}</h2>
+                            <p class="card-text mt-1 mb-0">Total Tugas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-sm-6 mb-4">
+                    <div class="card bg-secondary text-white text-center h-100">
+                        <div class="card-body py-4">
+                            <h2 class="text-white mb-0">{{ $totalJurusan }}</h2>
+                            <p class="card-text mt-1 mb-0">Total Jurusan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Area -->
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Aktivitas Terbaru</h5>
+                    <div class="scroll" style="height: 350px;">
+                        @forelse($recentLogs as $log)
+                        <div class="d-flex flex-row mb-2 pb-2 border-bottom">
+                            <div class="pl-2 w-100">
+                                <p class="font-weight-medium mb-0" style="font-size: 0.9rem;">{{ $log->user->name ?? $log->user->username ?? 'Sistem' }}</p>
+                                <p class="text-muted mb-0" style="font-size: 0.8rem;">
+                                    <span class="badge badge-outline-secondary" style="font-size: 0.7rem;">{{ strtoupper($log->aktivitas) }}</span> 
+                                    tabel {{ $log->tabel }}
+                                </p>
+                            </div>
+                        </div>
+                        @empty
+                        <p class="text-muted text-center py-4 text-small">Belum ada log aktivitas.</p>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     @endrole
 

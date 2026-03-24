@@ -32,11 +32,52 @@ class DashboardController extends Controller
 
     private function getAdminDashboard()
     {
-        $semesterAktif = \App\Models\Semester::active()->first();
+        $semesterAktif = \App\Models\Semester::with('tahunAkademik')->active()->first();
+        
+        $totalSiswa = Siswa::active()->count();
+        $totalKelas = 0;
+        $totalMapel = 0;
+        $totalMateri = 0;
+        $totalTugas = 0;
+        
+        if ($semesterAktif) {
+            $totalSiswa = Siswa::where('status', 'aktif')
+                ->whereHas('kelasAktif', function($q) use ($semesterAktif) {
+                    $q->where('semester_id', $semesterAktif->id);
+                })->count();
+                
+            $totalKelas = Kelas::where('semester_id', $semesterAktif->id)->count();
+            
+            $totalMapel = \App\Models\MataPelajaran::where('is_active', true)
+                ->whereHas('mataPelajaranKelas', function($q) use ($semesterAktif) {
+                    $q->whereHas('kelas', function($q2) use ($semesterAktif) {
+                        $q2->where('semester_id', $semesterAktif->id);
+                    });
+                })->count();
+                
+            $totalMateri = \App\Models\MateriAjar::whereHas('mataPelajaranKelas', function($q) use ($semesterAktif) {
+                $q->whereHas('kelas', function($q2) use ($semesterAktif) {
+                    $q2->where('semester_id', $semesterAktif->id);
+                });
+            })->count();
+            
+            $totalTugas = \App\Models\Tugas::whereHas('mataPelajaranKelas', function($q) use ($semesterAktif) {
+                $q->whereHas('kelas', function($q2) use ($semesterAktif) {
+                    $q2->where('semester_id', $semesterAktif->id);
+                });
+            })->count();
+        }
+
         return [
-            'totalSiswa' => Siswa::active()->count(),
+            'totalSiswa' => $totalSiswa,
             'totalGuru' => Guru::active()->count(),
-            'totalKelas' => $semesterAktif ? Kelas::where('semester_id', $semesterAktif->id)->count() : 0,
+            'totalKelas' => $totalKelas,
+            'totalJurusan' => \App\Models\Jurusan::where('is_active', true)->count(),
+            'totalMapel' => $totalMapel,
+            'totalMateri' => $totalMateri,
+            'totalTugas' => $totalTugas,
+            'semesterAktif' => $semesterAktif,
+            'recentLogs' => \App\Models\LogAktivitas::with('user')->orderBy('id', 'desc')->limit(6)->get(),
             'recentNotifications' => Notifikasi::latest()->limit(5)->get(),
         ];
     }
