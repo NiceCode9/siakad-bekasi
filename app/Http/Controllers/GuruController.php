@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
+use App\Exports\GuruTemplateExport;
+use App\Imports\GuruImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class GuruController extends Controller
 {
@@ -397,6 +400,14 @@ class GuruController extends Controller
     }
 
     /**
+     * Download Template Import Excel
+     */
+    public function template()
+    {
+        return Excel::download(new GuruTemplateExport, 'template_guru.xlsx');
+    }
+
+    /**
      * Export to Excel
      */
     public function export()
@@ -414,9 +425,18 @@ class GuruController extends Controller
             'file' => 'required|mimes:xlsx,xls|max:2048',
         ]);
 
-        // TODO: Implement Excel import
-        // Excel::import(new GuruImport, $request->file('file'));
-
-        return $this->successResponse('Data guru berhasil diimport', 'guru.index');
+        try {
+            Excel::import(new GuruImport, $request->file('file'));
+            return redirect()->route('guru.index')->with('success', 'Data guru berhasil diimport');
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+             $failures = $e->failures();
+             $msg = 'Gagal import. ';
+             foreach ($failures as $failure) {
+                 $msg .= 'Baris ' . $failure->row() . ': ' . implode(', ', $failure->errors()) . '. ';
+             }
+             return redirect()->route('guru.index')->with('error', $msg);
+        } catch (\Exception $e) {
+            return redirect()->route('guru.index')->with('error', 'Gagal import: ' . $e->getMessage());
+        }
     }
 }

@@ -198,6 +198,7 @@ Route::middleware('auth')->group(function () {
     Route::get('guru/{guru}/data', [GuruController::class, 'getById'])->name('guru.get-by-id');
     Route::get('guru/export/excel', [GuruController::class, 'export'])->name('guru.export');
     Route::post('guru/import/excel', [GuruController::class, 'import'])->name('guru.import');
+    Route::get('guru/template/excel', [GuruController::class, 'template'])->name('guru.template');
 
     Route::resource('siswa', SiswaController::class);
     Route::post('siswa/{siswa}/assign-kelas', [SiswaController::class, 'assignKelas'])->name('siswa.assign-kelas');
