@@ -46,11 +46,6 @@ class User extends Authenticatable
         return $this->hasOne(Siswa::class);
     }
 
-    public function orangTua()
-    {
-        return $this->hasOne(OrangTua::class);
-    }
-
     public function notifikasi()
     {
         return $this->hasMany(Notifikasi::class);
@@ -91,11 +86,6 @@ class User extends Authenticatable
     public function isSiswa()
     {
         return $this->role === 'siswa';
-    }
-
-    public function isOrangTua()
-    {
-        return $this->role === 'orang_tua';
     }
 
     public function hasAccessToMenu(Menu $menu): bool

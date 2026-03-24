@@ -243,8 +243,8 @@
                         orderable: false
                     },
                     {
-                        data: 'orang_tua.nama_ayah',
-                        name: 'orangTua.nama_ayah',
+                        data: 'nama_ayah',
+                        name: 'nama_ayah',
                         defaultContent: '-'
                     },
                     {

@@ -33,7 +33,7 @@ class SiswaController extends Controller
 
     public function dataTable(Request $request)
     {
-        $query = Siswa::with(['user', 'orangTua', 'kelasAktif'])
+        $query = Siswa::with(['user', 'kelasAktif'])
             ->select('siswa.*');
 
         // Filter by kelas
@@ -108,18 +108,15 @@ class SiswaController extends Controller
 
     public function create()
     {
-        $orangTua = OrangTua::all();
-
         if (request()->ajax()) {
             return view('user-data.siswa.form', [
                 'siswa' => null,
-                'orangTua' => $orangTua,
                 'action' => route('siswa.store'),
                 'method' => 'POST',
             ]);
         }
 
-        return view('user-data.siswa.create', compact('orangTua'));
+        return view('user-data.siswa.create');
     }
 
     public function store(Request $request)
@@ -128,7 +125,12 @@ class SiswaController extends Controller
             'username' => 'required|string|max:50|unique:users,username',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'orang_tua_id' => 'nullable|exists:orang_tua,id',
+            'nama_ayah' => 'nullable|string|max:100',
+            'pekerjaan_ayah' => 'nullable|string|max:100',
+            'nama_ibu' => 'nullable|string|max:100',
+            'pekerjaan_ibu' => 'nullable|string|max:100',
+            'alamat_ortu' => 'nullable|string',
+            'telepon_ortu' => 'nullable|string|max:20',
             'nisn' => 'required|string|size:10|unique:siswa,nisn',
             'nis' => 'required|string|max:20|unique:siswa,nis',
             'nik' => 'nullable|string|size:16|unique:siswa,nik',
@@ -178,7 +180,12 @@ class SiswaController extends Controller
             // Create Siswa
             $siswa = Siswa::create([
                 'user_id' => $user->id,
-                'orang_tua_id' => $validated['orang_tua_id'],
+                'nama_ayah' => $validated['nama_ayah'],
+                'pekerjaan_ayah' => $validated['pekerjaan_ayah'],
+                'nama_ibu' => $validated['nama_ibu'],
+                'pekerjaan_ibu' => $validated['pekerjaan_ibu'],
+                'alamat_ortu' => $validated['alamat_ortu'],
+                'telepon_ortu' => $validated['telepon_ortu'],
                 'nisn' => $validated['nisn'],
                 'nis' => $validated['nis'],
                 'nik' => $validated['nik'],
@@ -231,7 +238,6 @@ class SiswaController extends Controller
     {
         $siswa->load([
             'user',
-            'orangTua',
             'kelasAktif',
             'siswaKelas.kelas.semester',
             'bukuInduk',
@@ -251,19 +257,17 @@ class SiswaController extends Controller
 
     public function edit(Siswa $siswa)
     {
-        $siswa->load('user', 'orangTua');
-        $orangTua = OrangTua::all();
+        $siswa->load('user');
 
         if (request()->ajax()) {
             return view('user-data.siswa.form', [
                 'siswa' => $siswa,
-                'orangTua' => $orangTua,
                 'action' => route('siswa.update', $siswa),
                 'method' => 'PUT',
             ]);
         }
 
-        return view('user-data.siswa.edit', compact('siswa', 'orangTua'));
+        return view('user-data.siswa.edit', compact('siswa'));
     }
 
     public function update(Request $request, Siswa $siswa)
@@ -272,7 +276,12 @@ class SiswaController extends Controller
             'username' => 'required|string|max:50|unique:users,username,'.$siswa->user_id,
             'email' => 'required|email|unique:users,email,'.$siswa->user_id,
             'password' => 'nullable|string|min:6',
-            'orang_tua_id' => 'nullable|exists:orang_tua,id',
+            'nama_ayah' => 'nullable|string|max:100',
+            'pekerjaan_ayah' => 'nullable|string|max:100',
+            'nama_ibu' => 'nullable|string|max:100',
+            'pekerjaan_ibu' => 'nullable|string|max:100',
+            'alamat_ortu' => 'nullable|string',
+            'telepon_ortu' => 'nullable|string|max:20',
             'nisn' => 'required|string|size:10|unique:siswa,nisn,'.$siswa->id,
             'nis' => 'required|string|max:20|unique:siswa,nis,'.$siswa->id,
             'nik' => 'nullable|string|size:16|unique:siswa,nik,'.$siswa->id,
@@ -327,7 +336,12 @@ class SiswaController extends Controller
 
             // Update Siswa
             $siswa->update([
-                'orang_tua_id' => $validated['orang_tua_id'],
+                'nama_ayah' => $validated['nama_ayah'],
+                'pekerjaan_ayah' => $validated['pekerjaan_ayah'],
+                'nama_ibu' => $validated['nama_ibu'],
+                'pekerjaan_ibu' => $validated['pekerjaan_ibu'],
+                'alamat_ortu' => $validated['alamat_ortu'],
+                'telepon_ortu' => $validated['telepon_ortu'],
                 'nisn' => $validated['nisn'],
                 'nis' => $validated['nis'],
                 'nik' => $validated['nik'],
@@ -362,7 +376,7 @@ class SiswaController extends Controller
             return $this->successResponse(
                 'Siswa berhasil diperbarui',
                 'siswa.index',
-                $siswa->load('user', 'orangTua')
+                $siswa->load('user')
             );
         } catch (\Exception $e) {
             DB::rollBack();

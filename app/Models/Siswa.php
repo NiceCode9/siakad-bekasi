@@ -45,6 +45,12 @@ class Siswa extends Model
         'status',
         'tanggal_masuk',
         'tanggal_keluar',
+        'nama_ayah',
+        'pekerjaan_ayah',
+        'nama_ibu',
+        'pekerjaan_ibu',
+        'alamat_ortu',
+        'telepon_ortu',
     ];
 
     protected $casts = [
@@ -59,11 +65,6 @@ class Siswa extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function orangTua()
-    {
-        return $this->belongsTo(OrangTua::class);
     }
 
     public function siswaKelas()

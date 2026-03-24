@@ -209,20 +209,16 @@
                         <div class="tab-pane fade" id="keluarga">
                             <div class="card">
                                 <div class="card-body">
-                                    @if ($siswa->orangTua)
+                                    @if ($siswa->nama_ayah || $siswa->nama_ibu)
                                         <h6>Data Ayah</h6>
                                         <table class="table table-sm table-borderless">
                                             <tr>
                                                 <td width="30%">Nama</td>
-                                                <td>: {{ $siswa->orangTua->nama_ayah ?? '-' }}</td>
+                                                <td>: {{ $siswa->nama_ayah ?? '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <td>Pekerjaan</td>
-                                                <td>: {{ $siswa->orangTua->pekerjaan_ayah ?? '-' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Telepon</td>
-                                                <td>: {{ $siswa->orangTua->telepon_ayah ?? '-' }}</td>
+                                                <td>: {{ $siswa->pekerjaan_ayah ?? '-' }}</td>
                                             </tr>
                                         </table>
                                         <hr>
@@ -230,15 +226,23 @@
                                         <table class="table table-sm table-borderless">
                                             <tr>
                                                 <td width="30%">Nama</td>
-                                                <td>: {{ $siswa->orangTua->nama_ibu ?? '-' }}</td>
+                                                <td>: {{ $siswa->nama_ibu ?? '-' }}</td>
                                             </tr>
                                             <tr>
                                                 <td>Pekerjaan</td>
-                                                <td>: {{ $siswa->orangTua->pekerjaan_ibu ?? '-' }}</td>
+                                                <td>: {{ $siswa->pekerjaan_ibu ?? '-' }}</td>
+                                            </tr>
+                                        </table>
+                                        <hr>
+                                        <h6>Kontak Orang Tua</h6>
+                                        <table class="table table-sm table-borderless">
+                                            <tr>
+                                                <td width="30%">Telepon</td>
+                                                <td>: {{ $siswa->telepon_ortu ?? '-' }}</td>
                                             </tr>
                                             <tr>
-                                                <td>Telepon</td>
-                                                <td>: {{ $siswa->orangTua->telepon_ibu ?? '-' }}</td>
+                                                <td>Alamat</td>
+                                                <td>: {{ $siswa->alamat_ortu ?? '-' }}</td>
                                             </tr>
                                         </table>
                                     @else

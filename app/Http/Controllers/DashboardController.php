@@ -25,8 +25,6 @@ class DashboardController extends Controller
             $data = $this->getGuruDashboard($user);
         } elseif ($user->hasRole('siswa')) {
             $data = $this->getSiswaDashboard($user);
-        } elseif ($user->hasRole('orang-tua')) {
-            $data = $this->getOrangTuaDashboard($user);
         }
 
         return view('dashboard', $data);
@@ -84,43 +82,7 @@ class DashboardController extends Controller
         ];
     }
 
-    private function getOrangTuaDashboard($user)
-    {
-        $parent = $user->orangTua;
-        $children = $parent->siswa()->with(['kelas' => function($q) {
-            $q->wherePivot('status', 'aktif');
-        }])->get();
 
-        $semesterAktif = \App\Models\Semester::active()->first();
-        $childData = [];
-        foreach ($children as $child) {
-            $childData[] = [
-                'siswa' => $child,
-                'recentGrades' => \App\Models\Nilai::where('siswa_id', $child->id)
-                    ->when($semesterAktif, fn($q) => $q->where('semester_id', $semesterAktif->id))
-                    ->with('mataPelajaranKelas.mataPelajaran')
-                    ->latest()
-                    ->limit(3)
-                    ->get(),
-                'attendanceSummary' => [
-                    'hadir' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)
-                        ->whereHas('kelas', function($q) use ($semesterAktif) {
-                            if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
-                        })
-                        ->where('status', 'H')->count(),
-                    'absen' => \App\Models\PresensiSiswa::where('siswa_id', $child->id)
-                        ->whereHas('kelas', function($q) use ($semesterAktif) {
-                            if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
-                        })
-                        ->whereIn('status', ['I', 'S', 'A'])->count(),
-                ]
-            ];
-        }
-
-        return [
-            'children' => $childData
-        ];
-    }
 
     private function getTodayIndonesian()
     {

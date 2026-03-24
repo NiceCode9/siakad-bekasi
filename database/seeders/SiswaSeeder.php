@@ -5,7 +5,6 @@ namespace Database\Seeders;
 use App\Models\Kelas;
 use App\Models\Siswa;
 use App\Models\SiswaKelas;
-use App\Models\OrangTua;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -38,14 +37,10 @@ class SiswaSeeder extends Seeder
         if ($userSiswaTes && $kelasList->isNotEmpty()) {
             $kelasFirst = $kelasList->first();
             
-            $ortuTes = OrangTua::create([
-                'nama_ayah' => 'Ayah Siswa Tes',
-                'nama_ibu' => 'Ibu Siswa Tes',
-            ]);
-
             $siswaTes = Siswa::create([
                 'user_id' => $userSiswaTes->id,
-                'orang_tua_id' => $ortuTes->id,
+                'nama_ayah' => 'Ayah Siswa Tes',
+                'nama_ibu' => 'Ibu Siswa Tes',
                 'nisn' => '9999999999',
                 'nis' => '999999',
                 'nik' => '9999999999999999',
@@ -76,16 +71,6 @@ class SiswaSeeder extends Seeder
                 $nama .= ' ' . chr(65 + ($siswaIndex % 26)) . $siswaIndex;
                 $email = strtolower(str_replace(' ', '', $nama)) . '@siswa.siakad.com';
 
-                $ortu = OrangTua::create([
-                    'nama_ayah' => 'Bpk. ' . $nama,
-                    'pekerjaan_ayah' => $pekerjaan[array_rand($pekerjaan)],
-                    'pendidikan_ayah' => $pendidikan[array_rand($pendidikan)],
-                    'penghasilan_ayah' => $penghasilan[array_rand($penghasilan)],
-                    'telepon_ayah' => '0812' . rand(10000000, 99999999),
-                    'nama_ibu' => 'Ibu ' . $nama,
-                    'pekerjaan_ibu' => 'IRT',
-                ]);
-
                 $user = User::create([
                     'username' => strtolower(str_replace([' ', '.'], '', $nama)),
                     'email' => $email,
@@ -95,7 +80,11 @@ class SiswaSeeder extends Seeder
 
                 $siswa = Siswa::create([
                     'user_id' => $user->id,
-                    'orang_tua_id' => $ortu->id,
+                    'nama_ayah' => 'Bpk. ' . $nama,
+                    'pekerjaan_ayah' => $pekerjaan[array_rand($pekerjaan)],
+                    'telepon_ortu' => '0812' . rand(10000000, 99999999),
+                    'nama_ibu' => 'Ibu ' . $nama,
+                    'pekerjaan_ibu' => 'IRT',
                     'nisn' => str_pad($siswaIndex, 10, '0', STR_PAD_LEFT),
                     'nis' => str_pad($siswaIndex, 6, '0', STR_PAD_LEFT), // Added NIS
                     'nik' => '3212' . str_pad($siswaIndex, 12, '0', STR_PAD_LEFT), // Added NIK

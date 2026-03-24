@@ -22,6 +22,11 @@
             </a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" id="orangtua-tab" data-toggle="tab" href="#ortu" role="tab">
+                <i class="fas fa-users"></i> Orang Tua
+            </a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" id="pendidikan-tab" data-toggle="tab" href="#pdd" role="tab">
                 <i class="fas fa-graduation-cap"></i> Pendidikan
             </a>
@@ -66,16 +71,11 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label>Orang Tua</label>
-                        <select name="orang_tua_id" class="form-control form-control-sm">
-                            <option value="">-- Pilih Orang Tua --</option>
-                            @foreach ($orangTua as $ot)
-                                <option value="{{ $ot->id }}"
-                                    {{ old('orang_tua_id', $siswa->orang_tua_id ?? '') == $ot->id ? 'selected' : '' }}>
-                                    {{ $ot->nama_ayah }} / {{ $ot->nama_ibu }}
-                                </option>
-                            @endforeach
-                        </select>
+                        <label>Password {{ $siswa ? '' : '<span class="text-danger">*</span>' }}</label>
+                        <input type="password" name="password" class="form-control form-control-sm"
+                            placeholder="{{ $siswa ? 'Kosongkan jika tidak diubah' : '' }}"
+                            {{ $siswa ? '' : 'required' }}>
+                        <small class="form-text text-muted">Minimal 6 karakter</small>
                     </div>
                 </div>
             </div>
@@ -281,6 +281,57 @@
                             value="{{ old('kode_pos', $siswa->kode_pos ?? '') }}" maxlength="10">
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Tab Orang Tua -->
+        <div class="tab-pane fade" id="ortu" role="tabpanel">
+            <div class="row">
+                <!-- Ayah -->
+                <div class="col-md-6">
+                    <h6 class="mb-3">Data Ayah</h6>
+                    <div class="form-group">
+                        <label>Nama Ayah</label>
+                        <input type="text" name="nama_ayah" class="form-control form-control-sm"
+                            value="{{ old('nama_ayah', $siswa->nama_ayah ?? '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Pekerjaan Ayah</label>
+                        <input type="text" name="pekerjaan_ayah" class="form-control form-control-sm"
+                            value="{{ old('pekerjaan_ayah', $siswa->pekerjaan_ayah ?? '') }}">
+                    </div>
+                </div>
+
+                <!-- Ibu -->
+                <div class="col-md-6">
+                    <h6 class="mb-3">Data Ibu</h6>
+                    <div class="form-group">
+                        <label>Nama Ibu</label>
+                        <input type="text" name="nama_ibu" class="form-control form-control-sm"
+                            value="{{ old('nama_ibu', $siswa->nama_ibu ?? '') }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Pekerjaan Ibu</label>
+                        <input type="text" name="pekerjaan_ibu" class="form-control form-control-sm"
+                            value="{{ old('pekerjaan_ibu', $siswa->pekerjaan_ibu ?? '') }}">
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <h6 class="mb-3">Kontak Orang Tua</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Telepon Orang Tua</label>
+                        <input type="text" name="telepon_ortu" class="form-control form-control-sm"
+                            value="{{ old('telepon_ortu', $siswa->telepon_ortu ?? '') }}">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Alamat Orang Tua</label>
+                <textarea name="alamat_ortu" class="form-control form-control-sm" rows="3">{{ old('alamat_ortu', $siswa->alamat_ortu ?? '') }}</textarea>
             </div>
         </div>
 
