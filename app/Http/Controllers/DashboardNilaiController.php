@@ -45,28 +45,63 @@ class DashboardNilaiController extends Controller
 
         $allKelas = $user->hasRole(['admin', 'super-admin']) ? Kelas::where('semester_id', $semesterAktif->id)->get() : collect([$kelas]);
 
-        $siswas = SiswaKelas::with(['siswa.raports' => function ($q) use ($semesterAktif) {
-            $q->where('semester_id', $semesterAktif->id);
-        }])
-            ->where('kelas_id', $kelas->id)
+        $siswas = SiswaKelas::where('kelas_id', $kelas->id)
             ->where('status', 'aktif')
+            ->with(['siswa' => function($q) use ($semesterAktif) {
+                $q->with(['raports' => function($rq) use ($semesterAktif) {
+                    $rq->where('semester_id', $semesterAktif->id)->with('raportDetail');
+                }]);
+            }])
             ->get();
+
+        // Get all components for curriculum of this semester
+        $komponens = \App\Models\KomponenNilai::where('kurikulum_id', $semesterAktif->tahunAkademik->kurikulum_id ?? 0)->get();
+        $komponenIds = $komponens->pluck('id');
+        $komponenCount = $komponens->count();
 
         // Count academic subjects for completion calculation
         $subjectCount = MataPelajaranKelas::where('kelas_id', $kelas->id)->count();
 
         foreach ($siswas as $sk) {
-            $raport = $sk->siswa->raports->first();
+            $raports = $sk->siswa->raports;
+            
+            // Calculate unique subjects with grades across all components
+            $uniqueMapelIds = collect();
+            $anyDraft = false;
+            $anyApproved = false;
+            $allPublished = $komponenCount > 0;
+            $anyGenerated = $raports->count() > 0;
+
+            foreach ($raports as $r) {
+                foreach ($r->raportDetail as $rd) {
+                    $uniqueMapelIds->push($rd->mata_pelajaran_id);
+                }
+                
+                if ($r->status == 'draft') $anyDraft = true;
+                if ($r->status == 'approved') $anyApproved = true;
+                if ($r->status != 'published') $allPublished = false;
+            }
+
+            if ($raports->count() < $komponenCount) $allPublished = false;
+
+            $statusText = 'belum_generate';
+            if ($allPublished && $komponenCount > 0) {
+                $statusText = 'published';
+            } elseif ($anyApproved) {
+                $statusText = 'approved';
+            } elseif ($anyGenerated || $anyDraft) {
+                $statusText = 'draft';
+            }
 
             // Completion stats
             $sk->stats = [
-                'akademik_count' => $raport ? $raport->raportDetail()->count() : 0,
-                'akademik_percent' => $subjectCount > 0 ? (($raport ? $raport->raportDetail()->count() : 0) / $subjectCount) * 100 : 0,
+                'akademik_count' => $uniqueMapelIds->unique()->count(),
+                'akademik_percent' => $subjectCount > 0 ? ($uniqueMapelIds->unique()->count() / $subjectCount) * 100 : 0,
                 'sikap_spiritual' => NilaiSikap::where('siswa_id', $sk->siswa_id)->where('semester_id', $semesterAktif->id)->where('aspek', 'spiritual')->exists(),
                 'sikap_sosial' => NilaiSikap::where('siswa_id', $sk->siswa_id)->where('semester_id', $semesterAktif->id)->where('aspek', 'sosial')->exists(),
                 'ekskul' => NilaiEkstrakurikuler::where('siswa_id', $sk->siswa_id)->where('semester_id', $semesterAktif->id)->exists(),
-                'raport_status' => $raport->status ?? 'belum_generate',
-                'raport_id' => $raport->id ?? null,
+                'raport_status' => $statusText,
+                'raport_id' => $raports->first()?->id ?? null, // Default link to first component
             ];
         }
 
@@ -102,9 +137,19 @@ class DashboardNilaiController extends Controller
             }
         }
 
-        // Get Academic Grades (from RaportDetail)
-        $raport = Raport::where('siswa_id', $siswa_id)->where('semester_id', $semesterAktif->id)->first();
-        $grades = $raport ? RaportDetail::with('mataPelajaran')->where('raport_id', $raport->id)->get() : collect();
+        // Get Academic Grades (from all Raport components for this semester)
+        $raports = Raport::where('siswa_id', $siswa_id)->where('semester_id', $semesterAktif->id)->with('raportDetail.mataPelajaran')->get();
+        
+        $grades = collect();
+        foreach ($raports as $r) {
+            foreach ($r->raportDetail as $rd) {
+                // Add component name to each grade for clarity in view if needed
+                $rd->komponen_nama = $r->komponenNilai->nama ?? 'N/A';
+                $grades->push($rd);
+            }
+        }
+
+        $gradesGrouped = $grades->groupBy('mata_pelajaran_id');
 
         // Get Attitude Grades
         $sikap = NilaiSikap::where('siswa_id', $siswa_id)->where('semester_id', $semesterAktif->id)->get();
@@ -122,6 +167,6 @@ class DashboardNilaiController extends Controller
             ->selectRaw("SUM(CASE WHEN status='A' THEN 1 ELSE 0 END) as alpha")
             ->first();
 
-        return view('pembelajaran.dashboard-nilai.show', compact('siswa', 'kelas', 'grades', 'sikap', 'ekskul', 'attendance', 'semesterAktif', 'raport'));
+        return view('pembelajaran.dashboard-nilai.show', compact('siswa', 'kelas', 'gradesGrouped', 'sikap', 'ekskul', 'attendance', 'semesterAktif', 'raports'));
     }
 }

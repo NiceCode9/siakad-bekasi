@@ -210,6 +210,8 @@ class GuruSeeder extends Seeder
                 'nama_lengkap' => 'Guru Testing',
                 'gelar_belakang' => 'S.Kom',
                 'email' => $userTes->email,
+                'jenis_kelamin' => 'L',
+                'agama' => 'Islam',
                 'status_kepegawaian' => 'GTY',
                 'is_active' => true,
                 'tanggal_masuk' => now(),

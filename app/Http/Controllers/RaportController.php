@@ -77,7 +77,7 @@ class RaportController extends Controller
                 if ($filterSemester) {
                     $q->where('semester_id', $filterSemester);
                 }
-            }])->get();
+            }])->paginate(12);
 
             $tahunAkademiks = TahunAkademik::orderBy('nama', 'desc')->get();
             $allSiswa = Siswa::orderBy('nama_lengkap')->get();
@@ -95,9 +95,10 @@ class RaportController extends Controller
                 $q->where('kelas_id', $kelas->id);
             })->with(['raports' => function($q) use ($semester) {
                 $q->where('semester_id', $semester->id);
-            }])->get();
+            }])->paginate(12);
         } else {
-            $siswas = [];
+            // Return an empty paginator instance
+            $siswas = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12, 1, ['path' => $request->url(), 'query' => $request->query()]);
         }
 
         $komponens = \App\Models\KomponenNilai::where('kurikulum_id', $semester->tahunAkademik->kurikulum_id ?? 0)->get();
@@ -181,10 +182,10 @@ class RaportController extends Controller
                     $persentaseKehadiran = $totalPertemuan > 0 ? ($jumlahHadir / $totalPertemuan) * 100 : 0;
 
                     $predikatHuruf = $this->calculatePredikat($nilaiAkhir, $mk->kkm);
-                    
+
                     $predikatField = 'capaian_kompetensi_' . strtolower($predikatHuruf);
                     $deskripsiAkhir = $mk->$predikatField;
-                    
+
                     if (empty(trim($deskripsiAkhir))) {
                         $predikatWords = [
                             'A' => 'SANGAT BAIK',

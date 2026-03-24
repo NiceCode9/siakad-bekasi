@@ -84,23 +84,12 @@
                     <td class="text-center">{{ $raport->siswa->nis }}</td>
                     <td class="text-left">{{ $raport->siswa->nama_lengkap }}</td>
 
-                    @php
-                        $totalNilai = 0;
-                        $countNilai = 0;
-                    @endphp
-
                     @foreach ($subjects as $mps)
                         @php
-                            $detail = $raport->raportDetail
-                                ->where('mata_pelajaran_id', $mps->mata_pelajaran_id)
-                                ->first();
-                            $nilai = $detail ? round($detail->nilai_akhir) : 0;
-                            if ($nilai > 0) {
-                                $totalNilai += $nilai;
-                                $countNilai++;
-                            }
+                            $grade = $raport->grades[$mps->mata_pelajaran_id] ?? ['nilai' => '-', 'predikat' => '-'];
+                            $nilai = $grade['nilai'];
                         @endphp
-                        <td class="text-center">{{ $nilai > 0 ? $nilai : '-' }}</td>
+                        <td class="text-center">{{ $nilai }}</td>
                     @endforeach
 
                     <td class="text-center"><strong>{{ round($raport->average_score, 2) }}</strong></td>
@@ -137,7 +126,7 @@
             </td>
             <td></td>
             <td>
-                Bogor, {{ date('d F Y') }}<br>Wali Kelas
+                Bekasi, {{ date('d F Y') }}<br>Wali Kelas
                 <br><br><br><br>
                 <strong>{{ $legger->kelas->waliKelas->nama_lengkap ?? '................................' }}</strong>
             </td>

@@ -6,7 +6,7 @@
     <style>
         body {
             font-family: sans-serif;
-            font-size: 11pt;
+            font-size: 9pt;
             color: #333;
             line-height: 1.4;
         }
@@ -36,7 +36,7 @@
         .main-table th,
         .main-table td {
             border: 1px solid #000;
-            padding: 8px;
+            padding: 4px 6px;
             text-align: left;
         }
 
@@ -102,7 +102,7 @@
             <td>SMK NEGERI CIARUTEUN ILIR</td>
             <td>Tahun Pelajaran</td>
             <td>:</td>
-            <td>{{ $raport->semester->tahunAkademik->tahun }}</td>
+            <td>{{ $raport->semester->tahunAkademik->kode }}</td>
         </tr>
     </table>
 
@@ -111,10 +111,10 @@
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="30%">Mata Pelajaran</th>
-                <th width="7%">NA</th>
-                <th width="7%">PRD</th>
-                <th width="51%">Capaian Kompetensi</th>
+                <th width="25%">Mata Pelajaran</th>
+                <th width="10%">Nilai</th>
+                <th width="10%">Predikat</th>
+                <th width="50%">Capaian Kompetensi</th>
             </tr>
         </thead>
         <tbody>
@@ -124,7 +124,7 @@
                     <td>{{ $detail->mataPelajaran->nama }}</td>
                     <td class="text-center"><strong>{{ round($detail->nilai_akhir) }}</strong></td>
                     <td class="text-center">{{ $detail->predikat }}</td>
-                    <td style="font-size: 9pt; line-height: 1.1; vertical-align: top;">
+                    <td style="font-size: 8pt; line-height: 1.1; vertical-align: top;">
                         {{ $detail->deskripsi }}
                     </td>
                 </tr>
@@ -220,7 +220,7 @@
             </td>
             <td></td>
             <td>
-                Bogor, {{ date('d F Y') }}<br>Wali Kelas
+                Bekasi, {{ date('d F Y') }}<br>Wali Kelas
                 <br><br><br><br><br><br>
                 <strong>{{ $raport->kelas->waliKelas->nama ?? '................................' }}</strong>
             </td>

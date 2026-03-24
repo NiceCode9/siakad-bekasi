@@ -85,37 +85,65 @@ class LeggerController extends Controller
     {
         $legger = Legger::with(['kelas.mataPelajaranKelas.mataPelajaran', 'semester.tahunAkademik'])->findOrFail($id);
 
-        $raports = Raport::with(['siswa', 'raportDetail.mataPelajaran'])
+        $allRaports = Raport::with(['siswa', 'raportDetail'])
             ->where('kelas_id', $legger->kelas_id)
             ->where('semester_id', $legger->semester_id)
             ->get();
 
         $subjects = $legger->kelas->mataPelajaranKelas->sortBy('id');
 
-        // Calculate averages
-        foreach ($raports as $raport) {
-            $totalNilai = 0;
-            $countNilai = 0;
+        // Group by student to merge components
+        $groupedBySiswa = $allRaports->groupBy('siswa_id');
+        $aggregatedData = collect();
+
+        foreach ($groupedBySiswa as $siswaId => $siswaRaports) {
+            $firstRaport = $siswaRaports->first();
+            $siswa = $firstRaport->siswa;
+
+            // Merge details across all components for this student
+            $allDetails = $siswaRaports->pluck('raportDetail')->flatten();
+
+            $mappedGrades = [];
+            $totalNilaiSiswa = 0;
+            $countMapelSiswa = 0;
+
             foreach ($subjects as $mps) {
-                $detail = $raport->raportDetail->where('mata_pelajaran_id', $mps->mata_pelajaran_id)->first();
-                if ($detail && is_numeric($detail->nilai_akhir)) {
-                    $totalNilai += $detail->nilai_akhir;
-                    $countNilai++;
+                // Average scores for the same subject across different components
+                $subjectDetails = $allDetails->where('mata_pelajaran_id', $mps->mata_pelajaran_id);
+                $avgNilai = $subjectDetails->count() > 0 ? $subjectDetails->avg('nilai_akhir') : 0;
+
+                $mappedGrades[$mps->mata_pelajaran_id] = [
+                    'nilai' => $avgNilai > 0 ? round($avgNilai) : '-',
+                    'predikat' => $subjectDetails->first()?->predikat ?? '-',
+                ];
+
+                if ($avgNilai > 0) {
+                    $totalNilaiSiswa += $avgNilai;
+                    $countMapelSiswa++;
                 }
             }
-            $raport->average_score = $countNilai > 0 ? $totalNilai / $countNilai : 0;
+
+            // Consolidate attendance (taking max/latest available)
+            $aggregatedData->push((object)[
+                'id' => $siswaId, // Use student ID as surrogate for uniqueness
+                'siswa' => $siswa,
+                'grades' => $mappedGrades,
+                'average_score' => $countMapelSiswa > 0 ? $totalNilaiSiswa / $countMapelSiswa : 0,
+                'jumlah_sakit' => $siswaRaports->max('jumlah_sakit'),
+                'jumlah_izin' => $siswaRaports->max('jumlah_izin'),
+                'jumlah_alpha' => $siswaRaports->max('jumlah_alpha'),
+            ]);
         }
 
-        // Assign rankings based on average_score
-        $sortedRaports = $raports->sortByDesc('average_score')->values();
-
-        foreach ($raports as $raport) {
-            $raport->ranking = $sortedRaports->search(fn ($item) => $item->id === $raport->id) + 1;
+        // Assign rankings
+        $sorted = $aggregatedData->sortByDesc('average_score')->values();
+        foreach ($aggregatedData as $item) {
+            $item->ranking = $sorted->search(fn ($s) => $s->id === $item->id) + 1;
         }
 
         return [
             'legger' => $legger,
-            'raports' => $raports,
+            'raports' => $aggregatedData,
             'subjects' => $subjects,
         ];
     }

@@ -82,7 +82,7 @@
                                     </td>
                                     <td class="text-center align-middle">
                                         <div class="progress progress-sm mb-1" style="height: 6px;">
-                                            <div class="progress-bar {{ $sk->stats['akademik_percent'] == 100 ? 'bg-success' : 'bg-warning' }}" 
+                                            <div class="progress-bar {{ $sk->stats['akademik_percent'] == 100 ? 'bg-success' : 'bg-warning' }}"
                                                  role="progressbar" style="width: {{ $sk->stats['akademik_percent'] }}%"></div>
                                         </div>
                                         <small class="text-muted">{{ $sk->stats['akademik_count'] }} / {{ $subjectCount }} Mapel</small>
@@ -117,6 +117,9 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-right shadow border-0">
                                                 <h6 class="dropdown-header">Input Penilaian</h6>
+                                                <a class="dropdown-item" href="{{ route('nilai.index', ['kelas_id' => $kelas->id]) }}">
+                                                    <i class="fas fa-book mr-2 text-warning"></i> Nilai Akademik
+                                                </a>
                                                 <a class="dropdown-item" href="{{ route('nilai-sikap.create', ['kelas_id' => $kelas->id, 'aspek' => 'spiritual']) }}">
                                                     <i class="fas fa-praying-hands mr-2 text-warning"></i> Nilai Spiritual
                                                 </a>

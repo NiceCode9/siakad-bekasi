@@ -15,10 +15,19 @@
             </div>
         </div>
         <div>
-            @if($raport)
-                <a href="{{ route('raport.show', $raport->id) }}" class="btn btn-info shadow-sm">
-                    <i class="fas fa-file-pdf mr-1"></i> Lihat Raport
-                </a>
+            @if($raports->count() > 0)
+                <div class="dropdown d-inline-block">
+                    <button class="btn btn-info shadow-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="fas fa-file-pdf mr-1"></i> Lihat Raport
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-right">
+                        @foreach($raports as $r)
+                            <a class="dropdown-item" href="{{ route('raport.show', $r->id) }}">
+                                {{ $r->komponenNilai->nama ?? 'Komponen' }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
             @endif
         </div>
     </div>
@@ -26,52 +35,72 @@
     <div class="row">
         <!-- Academic Grades -->
         <div class="col-md-8">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-book mr-2"></i> Nilai Akademik</h6>
-                    <span class="badge badge-primary">{{ $grades->count() }} Mata Pelajaran</span>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th>Mata Pelajaran</th>
-                                    <th class="text-center" width="100">Nilai Akhir</th>
-                                    <th class="text-center" width="100">Predikat</th>
-                                    <th class="text-center" width="120">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($grades as $g)
-                                    <tr>
-                                        <td>
-                                            <span class="font-weight-bold d-block">{{ $g->mataPelajaran->nama }}</span>
-                                            <small class="text-muted">{{ $g->mataPelajaran->kode }}</small>
-                                        </td>
-                                        <td class="text-center align-middle h5 mb-0">
-                                            <span class="{{ $g->nilai_akhir < 75 ? 'text-danger' : 'text-success' }}">
-                                                {{ number_format($g->nilai_akhir, 1) }}
-                                            </span>
-                                        </td>
-                                        <td class="text-center align-middle font-weight-bold">{{ $g->predikat }}</td>
-                                        <td class="text-center align-middle">
-                                            @if($g->is_manual_override)
-                                                <span class="badge badge-warning" title="Override: {{ $g->override_reason }}">Manual</span>
-                                            @else
-                                                <span class="badge badge-light">Sistem</span>
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">Belum ada data nilai akademik.</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0 font-weight-bold text-primary"><i class="fas fa-book mr-2"></i> Nilai Akademik per Mata Pelajaran</h6>
+                <span class="badge badge-primary">{{ $gradesGrouped->count() }} Mata Pelajaran</span>
+            </div>
+
+            <div class="row">
+                @forelse($gradesGrouped as $mapelId => $mapelGrades)
+                    @php $firstGrade = $mapelGrades->first(); @endphp
+                    <div class="col-md-6 mb-4">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="card-header bg-white border-bottom-0 pt-3 pb-0">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="font-weight-bold mb-0 text-dark">{{ $firstGrade->mataPelajaran->nama }}</h6>
+                                        <small class="text-muted">{{ $firstGrade->mataPelajaran->kode }}</small>
+                                    </div>
+                                    <div class="text-right">
+                                        @php 
+                                            $avgNilai = $mapelGrades->avg('nilai_akhir');
+                                        @endphp
+                                        <div class="h4 mb-0 font-weight-bold {{ $avgNilai < 75 ? 'text-danger' : 'text-success' }}">
+                                            {{ round($avgNilai) }}
+                                        </div>
+                                        <small class="text-muted text-uppercase" style="font-size: 0.6rem;">Rata-rata</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body py-2">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-borderless mb-0" style="font-size: 0.85rem;">
+                                        <thead>
+                                            <tr class="text-muted">
+                                                <th>Komponen</th>
+                                                <th class="text-center">Nilai</th>
+                                                <th class="text-center">PRD</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach($mapelGrades as $g)
+                                                <tr>
+                                                    <td class="py-1">
+                                                        <span class="text-secondary">{{ $g->komponen_nama }}</span>
+                                                        @if($g->is_manual_override)
+                                                            <i class="fas fa-info-circle text-warning ml-1" title="Manual Override"></i>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center py-1 font-weight-bold text-dark">{{ round($g->nilai_akhir) }}</td>
+                                                    <td class="text-center py-1"><span class="badge badge-light border">{{ $g->predikat }}</span></td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                @empty
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center py-5">
+                                <i class="fas fa-folder-open fa-3x text-muted mb-3 opacity-20"></i>
+                                <p class="text-muted mb-0">Belum ada data nilai akademik yang terdeteksi.</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforelse
             </div>
         </div>
 
