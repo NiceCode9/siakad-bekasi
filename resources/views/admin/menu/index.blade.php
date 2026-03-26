@@ -212,6 +212,7 @@
 
                         <div class="form-group">
                             <label>Pilih Permission <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control mb-3" id="searchPermission" placeholder="Cari permission...">
                             <div class="checkbox-list" id="permissionsList">
                                 <!-- Will be populated via AJAX -->
                             </div>
@@ -603,6 +604,7 @@
                         });
 
                         $('#permissionsList').html(permissionsList);
+                        $('#searchPermission').val(''); // Reset search
                         $('#permissionModal').modal('show');
                     },
                     error: function(xhr) {
@@ -648,6 +650,14 @@
                         Swal.fire('Error!', xhr.responseJSON?.message ||
                             'Gagal assign permission', 'error');
                     }
+                });
+            });
+
+            // Filter Permission Search
+            $('#searchPermission').on('keyup', function() {
+                var value = $(this).val().toLowerCase();
+                $('#permissionsList .checkbox-item').filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
                 });
             });
         });

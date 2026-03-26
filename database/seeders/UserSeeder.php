@@ -2,9 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Menu;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -31,13 +29,13 @@ class UserSeeder extends Seeder
         ]);
         $admin->assignRole('admin');
 
-        // Guru
-        $guru = User::create([
-            'username' => 'guru',
-            'email' => 'guru@example.com',
+        // Kepala Sekolah
+        $kepsek = User::create([
+            'username' => 'kepsek',
+            'email' => 'kepsek@example.com',
             'password' => Hash::make('password'),
         ]);
-        $guru->assignRole('guru');
+        $kepsek->assignRole('kepala-sekolah');
 
         // Testing Guru
         $guruTes = User::create([
@@ -46,14 +44,6 @@ class UserSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
         $guruTes->assignRole('guru');
-
-        // Siswa
-        $siswa = User::create([
-            'username' => 'siswa',
-            'email' => 'siswa@example.com',
-            'password' => Hash::make('password'),
-        ]);
-        $siswa->assignRole('siswa');
 
         // Testing Siswa
         $siswaTes = User::create([

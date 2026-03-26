@@ -40,26 +40,28 @@
 
     <!-- Structured Data (JSON-LD) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "School",
-      "name": "{{ $namaSekolah }}",
-      "url": "{{ url('/') }}",
-      "logo": "{{ asset('img/logophi.png') }}",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "{{ $alamatSekolah }}",
-        "addressLocality": "Bekasi",
-        "addressRegion": "Jawa Barat",
-        "addressCountry": "ID"
-      },
-      "contactPoint": {
-        "@type": "ContactPoint",
-        "telephone": "{{ $teleponSekolah }}",
-        "contactType": "customer service",
-        "email": "{{ $emailSekolah }}"
-      }
-    }
+    @php
+    echo json_encode([
+        "@context" => "https://schema.org",
+        "@type" => "School",
+        "name" => $namaSekolah,
+        "url" => url('/'),
+        "logo" => asset('img/logophi.png'),
+        "address" => [
+            "@type" => "PostalAddress",
+            "streetAddress" => $alamatSekolah,
+            "addressLocality" => "Bekasi",
+            "addressRegion" => "Jawa Barat",
+            "addressCountry" => "ID"
+        ],
+        "contactPoint" => [
+            "@type" => "ContactPoint",
+            "telephone" => $teleponSekolah,
+            "contactType" => "customer service",
+            "email" => $emailSekolah
+        ]
+    ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+    @endphp
     </script>
 
     <!-- Fonts -->
@@ -386,19 +388,11 @@
     <header>
         <div class="logo">
             <img src="{{ asset('img/logophi.png') }}" alt="Logo Sekolah">
-            {{-- <img src="{{ asset('img/SMK Bisa V2.png') }}" alt="SMK Bisa" style="height: 45px; opacity: 0.9;"> --}}
             <span>{{ $namaSekolah }}</span>
         </div>
         <nav>
             @if (Route::has('login'))
-            <a href="{{ route('login') }}" class="btn-accent">Masuk</a>
-                {{-- @auth
-                    <a href="{{ url('/dashboard') }}" class="btn-outline">Dashboard</a>
-                @else
-                    @if (Route::has('register'))
-                        <a href="{{ route('register') }}" class="btn-accent">Daftar</a>
-                    @endif
-                @endauth --}}
+                <a href="{{ route('login') }}" class="btn-accent">Masuk</a>
             @endif
         </nav>
     </header>
@@ -440,7 +434,7 @@
                     <img src="{{ asset('bg/school-img2.jpeg') }}" alt="Gedung {{ $namaSekolah }}" class="about-image">
                 </div>
                 <div class="flex-item">
-                    <h2 class="section-title">Profil & Informasi Sekolah</h2>
+                    <h2 class="section-title">Profil &amp; Informasi Sekolah</h2>
                     <p class="section-text">
                         {{ $namaSekolah }} berkomitmen untuk menghadirkan layanan pendidikan terbaik dengan dukungan teknologi informasi terkini. Melalui SIAKAD, kami mempermudah kolaborasi antara guru, siswa, dan orang tua.
                     </p>
@@ -494,7 +488,7 @@
 
     <footer>
         <p class="footer-text">&copy; {{ date('Y') }} {{ $namaSekolah }}. All rights reserved.</p>
-        <p class="footer-text mt-2" style="margin-top: 10px;">Dikembangkan untuk keunggulan manajemen pendidikan digital.</p>
+        <p class="footer-text" style="margin-top: 10px;">Dikembangkan untuk keunggulan manajemen pendidikan digital.</p>
     </footer>
 
 </body>

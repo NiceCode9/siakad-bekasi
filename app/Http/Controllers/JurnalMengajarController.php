@@ -12,22 +12,55 @@ class JurnalMengajarController extends Controller
 {
     use \App\Traits\SendsNotifications;
 
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
         $semesterAktif = \App\Models\Semester::active()->first();
+        
+        $query = JurnalMengajar::query()
+            ->with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru', 'jadwalPelajaran.mataPelajaranKelas.kelas'])
+            ->whereHas('jadwalPelajaran.mataPelajaranKelas.kelas', function ($q) use ($semesterAktif) {
+                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
+            });
+
+        // Filter for Teacher
         if ($user->hasRole('guru')) {
-            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas.kelas', function ($q) use ($user, $semesterAktif) {
+            $query->whereHas('jadwalPelajaran.mataPelajaranKelas', function ($q) use ($user) {
                 $q->where('guru_id', $user->guru->id);
-                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
-            })->with('jadwalPelajaran.mataPelajaranKelas.mataPelajaran')->latest()->get();
-        } else {
-            $journals = JurnalMengajar::whereHas('jadwalPelajaran.mataPelajaranKelas.kelas', function ($q) use ($semesterAktif) {
-                if ($semesterAktif) $q->where('semester_id', $semesterAktif->id);
-            })->with(['jadwalPelajaran.mataPelajaranKelas.mataPelajaran', 'jadwalPelajaran.mataPelajaranKelas.guru'])->latest()->get();
+            });
+        } 
+        
+        // Advanced Filters for Admin/Kepala Sekolah
+        if (!$user->hasRole('guru')) {
+            if ($request->filled('guru_id')) {
+                $query->whereHas('jadwalPelajaran.mataPelajaranKelas', function($q) use ($request) {
+                    $q->where('guru_id', $request->guru_id);
+                });
+            }
+            if ($request->filled('kelas_id')) {
+                $query->whereHas('jadwalPelajaran.mataPelajaranKelas', function($q) use ($request) {
+                    $q->where('kelas_id', $request->kelas_id);
+                });
+            }
+            if ($request->filled('start_date')) {
+                $query->where('tanggal', '>=', $request->start_date);
+            }
+            if ($request->filled('end_date')) {
+                $query->where('tanggal', '<=', $request->end_date);
+            }
         }
 
-        return view('jurnal-mengajar.index', compact('journals'));
+        $journals = $query->latest('tanggal')->latest('jam_mulai')->get();
+
+        // Data for Filters
+        $teachers = [];
+        $classes = [];
+        if (!$user->hasRole('guru')) {
+            $teachers = \App\Models\Guru::where('is_active', true)->orderBy('nama')->get();
+            $classes = \App\Models\Kelas::where('is_active', true)->orderBy('nama')->get();
+        }
+
+        return view('jurnal-mengajar.index', compact('journals', 'teachers', 'classes'));
     }
 
     public function create(Request $request)
@@ -117,7 +150,11 @@ class JurnalMengajarController extends Controller
 
     public function approve($id)
     {
-        $journal = JurnalMengajar::findOrFail($id);
+        if (!auth()->user()->hasRole(['admin', 'super-admin', 'kepala-sekolah'])) {
+            abort(403, 'Anda tidak memiliki hak akses untuk menyetujui jurnal ini.');
+        }
+
+        $journal = JurnalMengajar::with('jadwalPelajaran.mataPelajaranKelas.guru.user', 'jadwalPelajaran.mataPelajaranKelas.mataPelajaran')->findOrFail($id);
         $journal->update([
             'is_approved' => true,
             'approved_by' => Auth::id()

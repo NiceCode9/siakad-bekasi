@@ -11,6 +11,7 @@ use App\Http\Controllers\BankSoalController;
 use App\Http\Controllers\BukuIndukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardNilaiController;
+use App\Http\Controllers\KepalaSekolah\AcademicStatisticController;
 use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\ELearningController;
 use App\Http\Controllers\ForumDiskusiController;
@@ -378,6 +379,11 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['role:guru|admin|super-admin'])->prefix('teacher')->name('teacher.')->group(function () {
         Route::get('/my-subjects', [MySubjectController::class, 'index'])->name('my-subjects');
         Route::post('/my-subjects/{id}/update-kkm', [MySubjectController::class, 'updateKkm'])->name('update-kkm');
+    });
+
+    // 12. Monitoring & Statistics (Admin & Kepala Sekolah)
+    Route::middleware(['role:admin|super-admin|kepala-sekolah'])->group(function () {
+        Route::get('/admin/statistik', [AcademicStatisticController::class, 'index'])->name('admin.statistik');
     });
 
 });

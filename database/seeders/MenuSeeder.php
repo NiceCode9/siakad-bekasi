@@ -192,7 +192,7 @@ class MenuSeeder extends Seeder
             ['slug' => 'ekstrakurikuler'],
             [
                 'name' => 'Ekstrakurikuler',
-                'icon' => 'iconsminds-sports-basket',
+                'icon' => 'iconsminds-physics',
                 'url' => '/ekstrakurikuler',
                 'parent_id' => $masterData->id,
                 'order' => 4,
@@ -433,6 +433,12 @@ class MenuSeeder extends Seeder
         );
         $dashboardNilaiMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-dashboard-nilai'])->id]);
 
+        // Jurnal Mengajar permissions (Ensure Kepala Sekolah and Admin can also view monitoring)
+        $jurnalMengajarMenu->permissions()->syncWithoutDetaching([
+            Permission::firstOrCreate(['name' => 'view-jurnal-mengajar'])->id,
+            Permission::firstOrCreate(['name' => 'approve-jurnal'])->id
+        ]);
+
         // Ujian Saya
         $ujianSiswaMenu = Menu::firstOrCreate(
             ['slug' => 'ujian-siswa'],
@@ -532,6 +538,19 @@ class MenuSeeder extends Seeder
         );
         $raportMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-raport'])->id]);
 
+        // Statistik Akademik (Child of Reports)
+        $statistikMenu = Menu::firstOrCreate(
+            ['slug' => 'statistik-akademik'],
+            [
+                'name' => 'Statistik Akademik',
+                'icon' => 'simple-icon-pie-chart',
+                'url' => '/admin/statistik',
+                'parent_id' => $reports->id,
+                'order' => 3,
+            ]
+        );
+        $statistikMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-statistik-akademik'])->id]);
+
         // 1. Create permissions if not exist
         $permView = Permission::firstOrCreate(['name' => 'view-buku-induk']);
         $permEdit = Permission::firstOrCreate(['name' => 'manage-buku-induk']);
@@ -601,7 +620,10 @@ class MenuSeeder extends Seeder
         $dashboardNilaiMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
         $mySubjects->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru'])->get());
 
-        $reports->roles()->syncWithoutDetaching($academicRoles);
+        $raportMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru', 'kepala-sekolah'])->get());
+        $jurnalMengajarMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah'])->get());
+        $statistikMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'kepala-sekolah'])->get());
+
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);
         $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());
     }

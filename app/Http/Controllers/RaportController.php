@@ -39,7 +39,7 @@ class RaportController extends Controller
 
         $isWaliKelas = $user->hasRole('guru') && $user->guru && $user->guru->kelasWali;
 
-        if (!$isWaliKelas && !$user->hasRole('admin') && !$user->hasRole('super-admin')) {
+        if (!$isWaliKelas && !$user->hasRole('admin') && !$user->hasRole('super-admin') && !$user->hasRole('kepala-sekolah')) {
             abort(403, 'Anda bukan wali kelas atau admin.');
         }
 
@@ -61,7 +61,7 @@ class RaportController extends Controller
         $kelas = null;
         $siswasQuery = Siswa::query();
 
-        if ($user->hasRole('admin') || $user->hasRole('super-admin')) {
+        if ($user->hasRole('admin') || $user->hasRole('super-admin') || $user->hasRole('kepala-sekolah')) {
             // Admin filters
             if ($filterSemester) {
                 $siswasQuery->whereHas('kelas', function($q) use ($filterSemester) {

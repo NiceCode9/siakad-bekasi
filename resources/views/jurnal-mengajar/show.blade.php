@@ -111,8 +111,8 @@
 
                     <div class="text-center mt-5">
                         <a href="{{ route('jurnal-mengajar.index') }}" class="btn btn-outline-secondary">KEMBALI KE LIST</a>
-                        @if(!$journal->is_approved && auth()->user()->hasRole(['admin', 'super-admin']))
-                             <form action="{{ route('jurnal-mengajar.approve', $journal->id) }}" method="POST" class="d-inline ml-2">
+                        @if(!$journal->is_approved && auth()->user()->hasRole(['admin', 'super-admin', 'kepala-sekolah']))
+                             <form action="{{ route('jurnal-mengajar.approve', $journal->id) }}" method="POST" class="d-inline ml-2" onsubmit="return confirm('Apakah Anda yakin ingin menyetujui jurnal ini?')">
                                 @csrf
                                 <button type="submit" class="btn btn-success">APPROVE JURNAL</button>
                             </form>
