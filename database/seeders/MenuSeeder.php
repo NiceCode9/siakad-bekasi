@@ -551,6 +551,32 @@ class MenuSeeder extends Seeder
         );
         $statistikMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-statistik-akademik'])->id]);
 
+        // Pengumuman Resmi (Child of Reports atau di atas)
+        $pengumumanMenu = Menu::firstOrCreate(
+            ['slug' => 'announcement-resmi'],
+            [
+                'name' => 'Pengumuman Resmi',
+                'icon' => 'simple-icon-bubble',
+                'url' => '/admin/announcement',
+                'parent_id' => $reports->id,
+                'order' => 4,
+            ]
+        );
+        $pengumumanMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-reports'])->id]);
+
+        // Audit Trail Kepsek (Child of Reports)
+        $auditTrailMenu = Menu::firstOrCreate(
+            ['slug' => 'audit-trail-kepsek'],
+            [
+                'name' => 'Audit Trail',
+                'icon' => 'simple-icon-eye',
+                'url' => '/admin/logs',
+                'parent_id' => $reports->id,
+                'order' => 5,
+            ]
+        );
+        $auditTrailMenu->permissions()->syncWithoutDetaching([Permission::firstOrCreate(['name' => 'view-reports'])->id]);
+
         // 1. Create permissions if not exist
         $permView = Permission::firstOrCreate(['name' => 'view-buku-induk']);
         $permEdit = Permission::firstOrCreate(['name' => 'manage-buku-induk']);
@@ -623,6 +649,8 @@ class MenuSeeder extends Seeder
         $raportMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'guru', 'kepala-sekolah'])->get());
         $jurnalMengajarMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['guru', 'admin', 'super-admin', 'kepala-sekolah'])->get());
         $statistikMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'kepala-sekolah'])->get());
+        $pengumumanMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'kepala-sekolah'])->get());
+        $auditTrailMenu->roles()->syncWithoutDetaching(Role::whereIn('name', ['admin', 'super-admin', 'kepala-sekolah'])->get());
 
         $pklMenu->roles()->syncWithoutDetaching($academicRoles);
         $ujianSiswaMenu->roles()->syncWithoutDetaching(Role::where('name', 'siswa')->get());

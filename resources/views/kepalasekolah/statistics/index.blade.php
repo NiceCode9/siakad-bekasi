@@ -45,14 +45,29 @@
         </div>
     </div>
 
+        </div>
+    </div>
+
     <div class="row">
         <!-- 3. Progres Jurnal per Guru -->
-        <div class="col-12 mb-4">
-            <div class="card">
+        <div class="col-md-6 col-sm-12 mb-4">
+            <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Progres Jurnal Mengajar (Top 10 Guru)</h5>
                     <div class="dashboard-line-chart">
                         <canvas id="chartJournalProgress"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Monitoring Capaian Kurikulum -->
+        <div class="col-md-6 col-sm-12 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Capaian Kurikulum per Kelas (%)</h5>
+                    <div class="dashboard-line-chart">
+                        <canvas id="chartCurriculumProgress"></canvas>
                     </div>
                 </div>
             </div>
@@ -134,6 +149,34 @@
                     xAxes: [{
                         ticks: {
                             beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+
+        // 4. Chart Curriculum Progress
+        const ctxCurriculum = document.getElementById('chartCurriculumProgress').getContext('2d');
+        new Chart(ctxCurriculum, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode($curriculumProgress->pluck('label')) !!},
+                datasets: [{
+                    label: 'Progres Capaian (%)',
+                    data: {!! json_encode($curriculumProgress->pluck('value')) !!},
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100
                         }
                     }]
                 }

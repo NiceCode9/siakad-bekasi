@@ -19,6 +19,37 @@
         </div>
     </div>
 
+    {{-- Urgent Announcement Banner --}}
+    @if(isset($latestAnnouncement) && $latestAnnouncement)
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-4 text-white" style="background: linear-gradient(60deg, #7b1fa2, #9c27b0); border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <div class="card-body d-flex justify-content-between align-items-center p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="mr-4 d-none d-md-block">
+                            <i class="iconsminds-speach-bubble-asking" style="font-size: 40px; opacity: 0.8;"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 text-white font-weight-bold">PENGUMUMAN RESMI</h4>
+                            <p class="mb-2 lead text-white" style="font-size: 1.1rem; opacity: 0.95;">{{ $latestAnnouncement->pesan }}</p>
+                            <div class="d-flex align-items-center">
+                                <span class="badge badge-outline-white mr-2">PENTING</span>
+                                <small class="text-white-50"><i class="simple-icon-clock mr-1"></i>{{ $latestAnnouncement->created_at->diffForHumans() }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <form action="{{ route('notifications.read', $latestAnnouncement->id) }}" method="POST">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-white btn-sm px-4" style="border-radius: 20px; font-weight: 600;">Tandai Selesai</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     @role(['admin', 'super-admin'])
     <div class="row sortable">
         <div class="col-xl-3 col-lg-6 mb-4">

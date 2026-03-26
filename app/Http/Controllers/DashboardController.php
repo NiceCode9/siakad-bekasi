@@ -27,6 +27,13 @@ class DashboardController extends Controller
             $data = $this->getSiswaDashboard($user);
         }
 
+        // Fetch latest official announcement for the user
+        $data['latestAnnouncement'] = Notifikasi::where('user_id', $user->id)
+            ->where('tipe', 'announcement')
+            ->unread()
+            ->latest()
+            ->first();
+
         return view('dashboard', $data);
     }
 

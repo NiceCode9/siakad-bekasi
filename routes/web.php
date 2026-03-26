@@ -12,6 +12,8 @@ use App\Http\Controllers\BukuIndukController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardNilaiController;
 use App\Http\Controllers\KepalaSekolah\AcademicStatisticController;
+use App\Http\Controllers\KepalaSekolah\AnnouncementController;
+use App\Http\Controllers\KepalaSekolah\LogAktivitasController as KepsekLogController;
 use App\Http\Controllers\EkstrakurikulerController;
 use App\Http\Controllers\ELearningController;
 use App\Http\Controllers\ForumDiskusiController;
@@ -384,7 +386,23 @@ Route::middleware('auth')->group(function () {
     // 12. Monitoring & Statistics (Admin & Kepala Sekolah)
     Route::middleware(['role:admin|super-admin|kepala-sekolah'])->group(function () {
         Route::get('/admin/statistik', [AcademicStatisticController::class, 'index'])->name('admin.statistik');
+        
+        // Audit Trail for Kepsek (View Only)
+        Route::get('/admin/logs', [KepsekLogController::class, 'index'])->name('admin.logs.index');
+        
+        // Announcement Management
+        Route::prefix('admin/announcement')->name('admin.announcement.')->group(function () {
+            Route::get('/', [AnnouncementController::class, 'index'])->name('index');
+            Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
+            Route::post('/', [AnnouncementController::class, 'store'])->name('store');
+        });
     });
+
+    // Notifications
+    Route::post('/notifications/{id}/read', function($id) {
+        auth()->user()->notifikasi()->findOrFail($id)->update(['is_read' => true]);
+        return back();
+    })->name('notifications.read');
 
 });
 

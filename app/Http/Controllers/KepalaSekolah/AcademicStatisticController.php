@@ -62,11 +62,34 @@ class AcademicStatisticController extends Controller
             ];
         });
 
+        // 4. Monitoring Capaian Kurikulum (Kompetensi yang sudah terisi)
+        $curriculumStats = DB::table('mata_pelajaran_kelas')
+            ->join('kelas', 'mata_pelajaran_kelas.kelas_id', '=', 'kelas.id')
+            ->where('kelas.semester_id', $semesterAktif->id)
+            ->select(
+                'kelas.nama as label',
+                DB::raw('COUNT(*) as total_subjects'),
+                DB::raw('COUNT(capaian_kompetensi) as filled_competencies')
+            )
+            ->groupBy('kelas.id', 'kelas.nama')
+            ->get();
+
+        $curriculumProgress = $curriculumStats->map(function($item) {
+            $percentage = $item->total_subjects > 0 ? ($item->filled_competencies / $item->total_subjects) * 100 : 0;
+            return [
+                'label' => $item->label,
+                'value' => round($percentage, 1),
+                'total' => $item->total_subjects,
+                'filled' => $item->filled_competencies
+            ];
+        });
+
         return view('kepalasekolah.statistics.index', compact(
             'semesterAktif',
             'averageGrades',
             'journalProgress',
-            'attendanceStats'
+            'attendanceStats',
+            'curriculumProgress'
         ));
     }
 }
