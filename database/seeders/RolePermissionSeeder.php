@@ -169,7 +169,7 @@ class RolePermissionSeeder extends Seeder
             'view-pelanggaran',
             'view-riwayat-konseling',
             'view-tempat-pkl',
-            'view-nilai-pkl',
+            'view-pkl-nilai',
         ]);
 
         // Admin - most permissions
