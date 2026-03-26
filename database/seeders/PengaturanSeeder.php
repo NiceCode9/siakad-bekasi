@@ -30,7 +30,7 @@ class PengaturanSeeder extends Seeder
             ],
             [
                 'kunci' => 'logo_sekolah',
-                'nilai' => null,
+                'nilai' => 'img/logophi.png',
                 'tipe' => 'string',
                 'kategori' => 'Umum',
                 'deskripsi' => 'Path file logo sekolah',
