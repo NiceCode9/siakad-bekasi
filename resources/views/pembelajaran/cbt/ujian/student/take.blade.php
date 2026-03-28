@@ -7,8 +7,13 @@
     <!-- Timer Header -->
     <div class="d-flex justify-content-between align-items-center bg-white p-3 shadow-sm rounded mb-3 sticky-top" style="z-index: 1000;">
         <h5 class="mb-0 text-truncate" style="max-width: 50%;">{{ $jadwal->nama_ujian }}</h5>
-        <div class="text-danger font-weight-bold h5 mb-0" id="timerBadge">
-            <i class="fas fa-stopwatch"></i> <span id="timer">Loading...</span>
+        <div class="d-flex align-items-center">
+            <div id="saveStatus" class="mr-3 text-muted small animate__animated" style="display: none;">
+                <span class="status-icon mr-1">🔄</span> <span class="status-text">Menyimpan...</span>
+            </div>
+            <div class="text-danger font-weight-bold h5 mb-0" id="timerBadge">
+                <i class="fas fa-stopwatch"></i> <span id="timer">Loading...</span>
+            </div>
         </div>
         <form action="{{ route('ujian-siswa.finish', $jadwal->id) }}" method="POST" id="formFinish">
             @csrf
@@ -146,7 +151,7 @@
 
             var hours = Math.floor(timeLeft / 3600);
             var minutes = Math.floor((timeLeft % 3600) / 60);
-            var seconds = timeLeft % 60;
+            var seconds = Math.floor(timeLeft % 60);
 
             timerDisplay.textContent =
                 (hours < 10 ? "0" + hours : hours) + ":" +
@@ -271,12 +276,39 @@
         showQ(index);
     }
 
-    function saveAnswer(ujianSiswaId, soalUjianId, answer) {
-        if(answer.trim() !== "") {
+    function updateSaveStatus(status, text = "") {
+        const $status = $('#saveStatus');
+        const $icon = $status.find('.status-icon');
+        const $text = $status.find('.status-text');
+
+        $status.show();
+        if (status === 'saving') {
+            $icon.html('🔄');
+            $text.text('Menyimpan...');
+            $status.removeClass('text-success text-danger').addClass('text-muted');
+        } else if (status === 'success') {
+            $icon.html('✅');
+            $text.text('Tersimpan');
+            $status.removeClass('text-muted text-danger').addClass('text-success');
+            setTimeout(() => $status.fadeOut(), 3000);
+        } else if (status === 'error') {
+            $icon.html('❌');
+            $text.text(text || 'Gagal Menyimpan');
+            $status.removeClass('text-muted text-success').addClass('text-danger');
+        }
+    }
+
+    function saveAnswer(ujianSiswaId, soalUjianId, answer, retryCount = 0) {
+        if(answer === undefined || answer === null) return;
+        
+        // Update navigation button color immediately
+        if(answer.toString().trim() !== "") {
             $('#nav_' + soalUjianId).removeClass('btn-outline-secondary').addClass('btn-success');
         } else {
             $('#nav_' + soalUjianId).removeClass('btn-success').addClass('btn-outline-secondary');
         }
+
+        updateSaveStatus('saving');
 
         $.ajax({
             url: "{{ route('ujian-siswa.save-answer') }}",
@@ -288,17 +320,61 @@
                 jawaban: answer
             },
             success: function(response) {
-                // Done
+                updateSaveStatus('success');
             },
             error: function(xhr) {
                 if(xhr.status === 403) {
+                    updateSaveStatus('error', 'Sesi Berakhir');
                     Swal.fire('Error', xhr.responseJSON.message, 'error').then(() => {
                         window.location.reload();
                     });
+                } else {
+                    // Network or Server Error - Auto Retry
+                    if (retryCount < 3) {
+                        updateSaveStatus('error', 'Koneksi Bermasalah. Mencoba ulang... (' + (retryCount + 1) + ')');
+                        setTimeout(function() {
+                            saveAnswer(ujianSiswaId, soalUjianId, answer, retryCount + 1);
+                        }, 2000 * (retryCount + 1)); // Exponential backoff
+                    } else {
+                        updateSaveStatus('error', 'Gagal menyimpan. Cek koneksi Anda!');
+                        Swal.fire({
+                            title: 'Gagal Menyimpan Jawaban',
+                            text: 'Sistem gagal menyimpan jawaban Anda setelah beberapa kali mencoba. Harap periksa koneksi internet Anda atau hubungi pengawas.',
+                            icon: 'error',
+                            confirmButtonText: 'Coba Lagi Secara Manual',
+                        });
+                    }
                 }
             }
         });
     }
+
+    // Periodic Save for Uraian (Textarea)
+    var lastSavedAnswers = {};
+    function periodicSaveUraian() {
+        $('textarea[name^="jawaban_"]').each(function() {
+            var nameAttr = $(this).attr('name');
+            var soalUjianId = nameAttr.split('_')[1];
+            var val = $(this).val();
+
+            // Only save if content changed
+            if (lastSavedAnswers[soalUjianId] !== val) {
+                saveAnswer(ujianSiswaId, soalUjianId, val);
+                lastSavedAnswers[soalUjianId] = val;
+            }
+        });
+    }
+    // Run every 30 seconds
+    setInterval(periodicSaveUraian, 30000);
+
+    // Initial population of lastSavedAnswers to prevent over-saving on start
+    $(document).ready(function() {
+        $('textarea[name^="jawaban_"]').each(function() {
+             var nameAttr = $(this).attr('name');
+             var soalUjianId = nameAttr.split('_')[1];
+             lastSavedAnswers[soalUjianId] = $(this).val();
+        });
+    });
 
     function confirmFinish() {
         Swal.fire({
