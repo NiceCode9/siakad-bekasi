@@ -373,13 +373,51 @@
         }
 
         /* Responsive */
+        @media (max-width: 992px) {
+            .flex-container { gap: 3rem; }
+            .about-image { height: 350px; }
+        }
+
         @media (max-width: 768px) {
-            header { padding: 1rem 5%; }
-            .logo { font-size: 1.1rem; }
-            nav a { margin-left: 5px; font-size: 0.8rem; padding: 0.4rem 0.6rem; }
-            .hero-content { padding: 1rem; }
-            .flex-container { gap: 2rem; }
-            .about-image { height: 300px; }
+            header { 
+                padding: 1rem 4%; 
+                backdrop-filter: blur(15px);
+                background: rgba(15, 23, 42, 0.8);
+            }
+            .logo { font-size: 1rem; gap: 8px; }
+            .logo img { height: 40px; }
+            nav a { margin-left: 0; font-size: 0.8rem; padding: 0.5rem 0.8rem; }
+            
+            .hero { height: auto; min-height: 100vh; padding: 120px 0 60px; }
+            .hero-content { padding: 1rem; width: 100%; max-width: 100%; }
+            .title { font-size: clamp(1.8rem, 8vw, 2.8rem); margin-bottom: 1.2rem; line-height: 1.3; }
+            .subtitle { font-size: 1rem; margin-bottom: 2rem; padding: 0 10px; }
+            
+            .stats-grid { 
+                grid-template-columns: repeat(2, 1fr); 
+                gap: 1rem; 
+            }
+            .stat-card { padding: 1.2rem 1rem; border-radius: 16px; }
+            .stat-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+            .stat-number { font-size: 1.2rem; }
+            .stat-label { font-size: 0.65rem; }
+            
+            .section { padding: 4rem 5%; }
+            .flex-item { min-width: 100%; }
+            .about-image { height: 280px; border-radius: 24px; }
+            .section-title { font-size: 1.8rem; }
+            .cta-section { padding: 4rem 5%; }
+            .cta-section .section-title { font-size: 2rem !important; }
+        }
+
+        @media (max-width: 480px) {
+            .logo span { font-size: 0.9rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .title { font-size: 1.8rem; }
+            .title br { display: none; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .stat-card { display: flex; align-items: center; text-align: left; gap: 15px; }
+            .stat-icon { margin-bottom: 0; font-size: 1.5rem; width: 40px; text-align: center; }
+            .stat-number { font-size: 1.1rem; }
         }
     </style>
 </head>
