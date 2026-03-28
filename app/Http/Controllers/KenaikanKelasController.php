@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Pengaturan;
 use App\Models\Kelas;
 use App\Models\KenaikanKelas;
 use App\Models\KenaikanKelasDetail;
@@ -108,7 +109,9 @@ class KenaikanKelasController extends Controller
             return back()->with('error', 'Gagal: Tidak ditemukan kelas tujuan di Tahun Akademik Target ('.$tahunAkademikTarget->nama.') untuk jurusan yang sama.');
         }
 
-        return view('kenaikan-kelas.simulasi', compact('kelasAsal', 'tahunAkademikTarget', 'students', 'targetClasses'));
+        $kkmDefault = Pengaturan::get('kkm_default', 75);
+
+        return view('kenaikan-kelas.simulasi', compact('kelasAsal', 'tahunAkademikTarget', 'students', 'targetClasses', 'kkmDefault'));
     }
 
     public function eksekusi(Request $request)
@@ -123,6 +126,13 @@ class KenaikanKelasController extends Controller
         ]);
 
         $tahunAkademikTarget = TahunAkademik::findOrFail($request->tahun_akademik_id);
+
+        foreach ($request->students as $idx => $sData) {
+            if ($sData['status'] != 'lulus' && empty($sData['kelas_tujuan_id'])) {
+                $siswa = Siswa::find($sData['id']);
+                return back()->with('error', "Gagal: Kelas Tujuan untuk siswa '{$siswa->nama_lengkap}' belum dipilih. Untuk siswa yang tidak lulus, Anda harus memilih kelas mengulang di tahun target.")->withInput();
+            }
+        }
 
         DB::beginTransaction();
         try {
